@@ -6,7 +6,7 @@ from archive_reader import Marshal
 from process_check import target_running
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = '0.996-dev'
+VERSION = '0.997-dev'
 MANIFEST=json.loads((ROOT/'modules.json').read_text(encoding='utf8'))
 IDS=[m['id'] for m in MANIFEST]
 DEFAULTS=[m['id'] for m in MANIFEST if m['default']]

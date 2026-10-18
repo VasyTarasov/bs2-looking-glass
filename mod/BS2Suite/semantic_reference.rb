@@ -42,6 +42,7 @@ module BS2Suite
       stock=Hash[$game_party.items.map { |item| [item.id,$game_party.item_number(item)] }]
       branches=[{:user=>Projection.copy(actor),:targets=>Hash[targets.map { |t| [t.index,Projection.copy(t)] }],:weight=>1.0,:stock=>stock,:gold=>$game_party.gold}]
       actions=actor.actions
+      final_index=actor.instance_variable_get(:@bs2s_forecast_final_index) || actions.size-1
       stopped=false;prior_damage=false
       actions.each_with_index do |action,index|
         item=action && action.item
@@ -49,18 +50,19 @@ module BS2Suite
           @steps<<{:index=>index,:item=>nil,:rows=>[],:cost=>nil};@complete=false;stopped=true;next
         end
         support_plan=action.instance_variable_get(:@bs2s_support_plan)
-        provider=support_plan && support_plan[:source]
+        provider=action.instance_variable_get(:@bs2s_macro_source) || (support_plan && support_plan[:source])
         provider=nil unless provider.is_a?(RPG::Weapon)
-        protected_source=DirectWeapons.sole_source(actor,item,index,action)
+        source_view=provider ? Projection.weapon(actor,provider) : actor
+        protected_source=DirectWeapons.sole_source(source_view,item,index,action)
         provider=protected_source || provider
         preview_user=provider ? Projection.weapon(actor,provider) : actor
-        final_swap=index==actions.size-1 ? DirectWeapons.eligible_final(preview_user,item,@weapon,index,action) : nil
+        final_swap=index==final_index ? DirectWeapons.eligible_final(preview_user,item,@weapon,index,action) : nil
         step={:index=>index,:item=>item,:rows=>[],:cost=>nil,:weapon=>final_swap || provider || actor.equips[0]}
         @steps<<step
         if stopped
           step[:reason]='Предыдущий слот не позволяет подтвердить продолжение';next
         end
-        ids=if item.for_user?;[:self]
+        ids=if item.for_user? || (item.for_friend? && !item.for_dead_friend? && (item.for_all? || action.target_index==actor.index));[:self]
         elsif item.for_opponent? && !item.for_random?
           item.for_all? ? targets.map { |t| t.index } : [targets.find { |t| t.index==action.target_index } && action.target_index]
         else;[];end
@@ -80,7 +82,7 @@ module BS2Suite
           user=branch[:user]
           restore_weapon=user.equips[0]
           user=Projection.weapon(user,provider) if provider && user.equips[0]!=provider
-          final_swap=index==actions.size-1 ? DirectWeapons.eligible_final(user,item,@weapon,index,action) : nil
+          final_swap=index==final_index ? DirectWeapons.eligible_final(user,item,@weapon,index,action) : nil
           user=Projection.weapon(user,final_swap) if final_swap && user.equips[0]!=final_swap
           actual_weapon=user.equips[0]
           step[:weapons] ||= []
@@ -141,6 +143,24 @@ module BS2Suite
           begin
           ids.each do |id|
             prediction=local_predictions[id];next unless prediction
+            if item.tp_gain>0 && prediction.repeats>1 && prediction.stable && item.effects.empty?
+              n=prediction.repeats;raise BranchLimit if n>=MAX_BRANCHES
+              outcomes=[];p=prediction.chance
+              effects.each do |b|
+                combination=1.0
+                (0..n).each do |hits|
+                  weight=combination*(p**hits)*((1-p)**(n-hits))
+                  if weight>0
+                    c=weighted(b,weight);u=c[:user]
+                    u.instance_variable_set(:@tp,[[u.tp+hits*item.tp_gain*u.tcr,0].max,u.max_tp].min)
+                    outcomes<<c
+                  end
+                  combination=combination*(n-hits)/(hits+1)
+                end
+              end
+              effects=outcomes;raise BranchLimit if effects.size>MAX_BRANCHES
+              next
+            end
             # A common hit/miss branch keeps the effects of the same hit correlated.
             hit=[];miss=[]
             effects.each do |b|
@@ -148,9 +168,17 @@ module BS2Suite
               hit<<weighted(b,prediction.chance) if prediction.chance>0
             end
             item.effects.each do |effect|
-              if [21,22,31,32,33,34].include?(effect.code)
+              if [11,12,13,21,22,31,32,33,34].include?(effect.code)
                 hit=apply_effect(hit,id,effect,prediction,item)
                 raise BranchLimit if hit.size+miss.size>MAX_BRANCHES
+              end
+            end
+            # Native user TP gain happens after a successful hit's effects.
+            # Variable repeated hits already stop propagation below.
+            if item.tp_gain>0
+              hit.each do |b|
+                u=b[:user];gain=item.tp_gain*u.tcr
+                u.instance_variable_set(:@tp,[[u.tp+gain,0].max,u.max_tp].min)
               end
             end
             effects=hit+miss
@@ -215,6 +243,22 @@ module BS2Suite
       target.instance_variable_set(:@mp,[[target.mp,0].max,target.mmp].min)
     end
     def apply_effect(branches,id,effect,prediction,item)
+      if [11,12,13].include?(effect.code)
+        branches.each do |branch|
+          change_target(branch,id) do |target|
+            if effect.code==13
+              target.instance_variable_set(:@tp,[[target.tp+effect.value1.to_i,0].max,target.max_tp].min)
+            else
+              resource=effect.code==11 ? :@hp : :@mp
+              maximum=effect.code==11 ? target.mhp : target.mmp
+              amount=(maximum*effect.value1+effect.value2)*target.rec
+              amount*=prediction.user.source.pha if item.is_a?(RPG::Item)
+              target.instance_variable_set(resource,target.instance_variable_get(resource)+amount.to_i)
+            end
+          end
+        end
+        return branches
+      end
       if effect.code==21
         ids=effect.data_id==0 ? prediction.user.source.atk_states : [effect.data_id]
         ids.each do |state_id|
@@ -269,10 +313,10 @@ module BS2Suite
       result
     end
     def special?(item)
-      return true if item.tp_gain>0
+      return true if item.tp_gain>0 && item.repeats>1 && !item.effects.empty?
       return true if item.damage.recover? || item.damage.drain?
       return true if item.for_user? && item.damage.to_hp? && item.damage.type!=0
-      return true if item.effects.any? { |e| [11,12,13,41,42,43,44].include?(e.code) || (e.code==21 && e.data_id==1) }
+      return true if item.effects.any? { |e| [41,42,43,44].include?(e.code) || (e.code==21 && e.data_id==1) }
       !!(item.note =~ /使用後追加行動|行動後遅延発動|使用者効果|ステート変化|変換攻撃|付与時/)
     end
   end

@@ -13,6 +13,7 @@
 #pragma comment(linker,"/EXPORT:BS2_SourceSize=_BS2_SourceSize@8")
 #pragma comment(linker,"/EXPORT:BS2_Stop=_BS2_Stop@0")
 #pragma comment(linker,"/EXPORT:BS2_Stats=_BS2_Stats@4")
+#pragma comment(linker,"/EXPORT:BS2_CapturePause=_BS2_CapturePause@4")
 #pragma comment(linker,"/EXPORT:BS2_InputStatus=_BS2_InputStatus@4")
 #pragma comment(linker,"/EXPORT:BS2_FocusStatus=_BS2_FocusStatus@4")
 #pragma comment(linker,"/EXPORT:BS2_OverlayTick=_BS2_OverlayTick@0")
@@ -201,7 +202,10 @@ static bool renderer(){
  rc=wglCreateContext(dc);if(!rc || !wglMakeCurrent(dc,rc)){ShowWindow(canvas,SW_HIDE);glFailed=true;errors++;return false;}
  glGenTextures(1,&tex);glBindTexture(GL_TEXTURE_2D,tex);glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);ready=1;wglMakeCurrent(savedDC,savedRC);return true;
 }
+static LONG capturePaused=0;
+extern "C" int WINAPI BS2_CapturePause(int paused){InterlockedExchange(&capturePaused,paused?1:0);return 1;}
 static void present(){
+ if(InterlockedCompareExchange(&capturePaused,0,0))return;
  HDC previousDC=wglGetCurrentDC();HGLRC previousRC=wglGetCurrentContext();
  try {
  InterlockedIncrement(&captures);

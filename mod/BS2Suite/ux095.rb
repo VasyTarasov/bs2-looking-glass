@@ -27,12 +27,12 @@ module BS2Suite
       return false unless actor && actor.actor? && actor.input && actor.input.item.nil? && actor.actions.all? { |a| !a.forcing && !a.item }
       return false if actor.confusion? || actor.auto_battle? || DirectWeapons.quick?
       @epochs ||= {}
-      return false if @epochs[actor.id]==actor.actions
-      @epochs[actor.id]=actor.actions.dup
+      return false if @epochs[actor.id]
+      @epochs[actor.id]=true
       weapon=selected(actor)
       return false unless weapon && weapon!=actor.equips[0]
       ok=BS2QoL::Model.change_weapon(actor,weapon)
-      BS2QoL::Hotkeys.notice(ok ? 'Начало хода: '+weapon.name : 'Стартовое оружие сейчас недоступно')
+      BS2QoL::Hotkeys.notice(ok ? 'Начало боя: '+weapon.name : 'Стартовое оружие сейчас недоступно')
       ok
     end
     def self.route(window)
@@ -47,7 +47,7 @@ module BS2Suite
       actor=scene.instance_variable_get(:@actor) || $game_party.menu_actor || $game_party.leader
       ok=toggle(actor,object)
       ok ? ::Sound.play_ok : ::Sound.play_buzzer
-      text=ok ? (selected(actor) ? 'Начало хода: '+selected(actor).name : 'Стартовое оружие снято') : 'Не удалось назначить стартовое оружие'
+      text=ok ? (selected(actor) ? 'Начало боя: '+selected(actor).name : 'Стартовое оружие снято') : 'Не удалось назначить стартовое оружие'
       BS2QoL::Hotkeys.notice(text)
       window.update_help;BS2QoL::Keyboard.consume;true
     end
@@ -59,8 +59,8 @@ module BS2Suite
       return unless object.is_a?(RPG::Weapon) && help
       actor=scene.instance_variable_get(:@actor) || $game_party.menu_actor || $game_party.leader
       weapon=selected(actor)
-      text=help.instance_variable_get(:@text).to_s.split("\n"+Keys.token(:Z)+': начало хода')[0]
-      hint=Keys.token(:Z)+': начало хода'+(weapon && WeaponFamilies.root(weapon.id)==WeaponFamilies.root(object.id) ? ' ✓ (повтор снять)' : ' (назначить)')
+      text=help.instance_variable_get(:@text).to_s.split("\n"+Keys.token(:Z)+': начало боя')[0]
+      hint=Keys.token(:Z)+': начало боя'+(weapon && WeaponFamilies.root(weapon.id)==WeaponFamilies.root(object.id) ? ' ✓ (повтор снять)' : ' (назначить)')
       help.set_text(text+"\n"+hint)
     end
   end
@@ -138,7 +138,7 @@ module BS2Suite::HDDisplay
     def battle_rows(scene)
       rows=bs2095_start_battle_rows(scene)
       actor=actor_for(scene);weapon=BS2Suite::StartingWeapon.selected(actor)
-      rows<<row('D','Начало хода: '+weapon.name) if weapon
+      rows<<row('D','Начало боя: '+weapon.name) if weapon
       rows
     end
   end

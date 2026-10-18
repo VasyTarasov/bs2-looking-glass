@@ -1,4 +1,29 @@
-# Verification of 0.995-dev
+# Verification of 0.997-dev
+
+Development preview; no stable release. Native QA uses only the hardened private-desktop launcher, exit code 0 and `result=PASS`. Tests use synthetic saves and a Steam-free fixture. No public test windows or player-game input.
+
+| Native suite | Assertions |
+|---|---:|
+| Current queue/executor/macros and actual UI | 53 |
+| Starting/sole/final weapon and target reference regression | 57 |
+| 1440p map effect/capture/diagnostic replay | 10 |
+| All 147 ring types, duplicate equipment and save/load | 157 |
+| Probability-branch sequence forecasting | 12 |
+| Existing classic/HD interaction regressions | 98 + 130 |
+| Logging / all modules / minimal modules | 8 + 69 + 22 |
+| Four full normal / instant-Ctrl battle scenarios | 9 + 9 |
+
+**634 native assertions**, plus **20 matched battle comparisons** covering actual uses/costs, effects/damage, state/rewards, result and RNG tail in normal versus instant presentation. Installer checks: 55. Verified updates from 0.995-dev and 0.996-dev, foreign-edit/running-game refusal, injected partial-write rollback, source-file and synthetic-profile preservation: 356 assertions. PowerShell 5.1 validation runs without opening UI.
+
+The new UI test enters an instant item after an already selected paid action, resumes exactly slot two, forecasts the next attack, and commits through the real native turn boundary before testing final equipment. It checks sole technique source versus magic executor, healing/self-state and normal-attack TP propagation, interleaved instant macro rows, paid budgets, persistence/failed writes, missing-item cancellation, both Shift attack routes, repeated C opening/closing, HD sidebar placement and nested H return. Macro forecasting projects scheduled instant effects without changing the live world or RNG.
+
+The 1440p map check restores the exact camera position, checks source pixels and rendered wave/scroll phase against the original full-map effect, releases the owned padded crop, and verifies that the native capture fence suppresses temporary frames then resumes presentation. The bridge change adds this explicit fence; game/engine/Steam API files are not replaced. Steam overlay behavior was previously confirmed in normal play; this isolated run does not claim another live Steam recording test.
+
+In a controlled replay of 2400 repeated map-command sites, individual records cost 11,485 ms versus 46 ms for four aggregate records. Real state/inventory/resource changes still receive individual records. This isolates diagnostic overhead, not whole-game FPS. Both full-map and cropped heat-render runs reached the fixture's 60 FPS cap (180 frames each), so no FPS gain is attributed to cropping from that measurement. Continued normal play and five-second diagnostic summaries are still needed to assess every reported map slowdown.
+
+Rings are excluded by equipment type, not by names or a fixed list. Every duplicate and lower upgrade tier remains. The 0.996-dev predecessor also passed 157 checks both with and without diagnostics. Existing losses are not automatically guessed/refunded: targeted recovery requires attributable backups or local logs. No player saves/logs/recovery plans are distributed.
+
+# Previous 0.995-dev verification
 
 Diagnostics extension, not a claimed slowdown fix. Five native suites on the hardened private desktop: diagnostics probe 28 assertions, diagnostics-only probe 28, existing logging replay 8, all modules 69, minimal modules 22 — **155 assertions**. Synthetic state and RNG are unchanged by observers; exceptions/return values propagate; disabled/closed tracing does not accumulate; preferences reload; context/phase/slow-row caps and histogram overflow labels are checked. Native frame-counter jumps cannot fabricate huge FPS; known transitions break ordinary frame intervals. Real frame calls emit bounded, valid JSON performance records, including modal/focus labels and diagnostic/window timing.
 

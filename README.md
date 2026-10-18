@@ -6,13 +6,17 @@
 
 An unofficial, modular collection of combat controls, practical reference cards and interface improvements for BLACK SOULS II.
 
-**Development build: `0.995-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
+**Development build: `0.997-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
+
+## Latest development changes
+
+0.997-dev preserves every ring copy/tier; fixes instant-item queue slots and final-executor arming; applies the starting weapon once per battle; adds Shift attacks in N and eight named six-step macros on C. Map diagnostics aggregate repeated command sites and the HD presenter hides heat-haze snapshot preparation. See [macro controls](docs/MACROS.md), [controls](docs/CONTROLS.md) and [verification](docs/QA.md).
 
 ## Features
 
 | Area | What it adds |
 |---|---|
-| Combat | Growing V/B/M/N groups, favorites, keyboard target selection and optional legacy controls. |
+| Combat | Growing V/B/M/N groups, six-step named macros, favorites, keyboard target selection and optional legacy controls. |
 | Equipment | Immediate weapon selection, independent starting/final weapons, named loadouts and detailed comparisons. |
 | Reference | F7 cards with actual formulas, effects, costs and supported forecasts. Inspect observed enemy attacks from the combat journal. |
 | Support | Optional maintenance for explicitly eligible items and Gun Break; healing, cleansing and excluded actions remain manual. |
@@ -37,7 +41,7 @@ Documentation and the installer default to English, with a Russian switch. **The
 3. Select modules and click **Install / change**. Everything defaults on except legacy controls and diagnostics.
 4. Launch the game normally. Configure controls, modules and display from the mod settings.
 
-Existing verified previews through `0.992-dev` can use `Update.cmd` with the game closed. **First installation adds an external bootstrap to `Data/Scripts.rvdata2` and preserves its original backup.** Module-only updates replace verified mod files and installation metadata. They do not replace the game executable, engine DLLs or saves. See [installation and recovery](docs/INSTALL.md).
+Existing verified previews through `0.996-dev` can use `Update.cmd` with the game closed. **First installation adds an external bootstrap to `Data/Scripts.rvdata2` and preserves its original backup.** Module-only updates replace verified mod files and installation metadata. They do not replace the game executable, engine DLLs or saves. See [installation and recovery](docs/INSTALL.md).
 
 ## Essential controls
 

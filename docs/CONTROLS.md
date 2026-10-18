@@ -24,6 +24,14 @@ F7 uses the corresponding platform, resolved variant and current cost. Journal c
 
 D support is available only on individually eligible items and Gun Break in the appropriate list. It is not a global battle-command toggle and does not apply to arbitrary magic or techniques.
 
+## New battle controls
+
+**Shift+Enter** in N attacks with the highlighted weapon. **Shift+digit** attacks with that numbered weapon. Ordinary selection still equips without attacking; D independently nominates the final executor. Native targeting, normal-attack skill IDs and final-weapon rules apply.
+
+**C** opens named six-step macros, with numeric preset selection and a paid-action count. Configure up to eight presets under **Macros**, immediately below **Loadouts** in the main menu. The hotkey is remappable. See [macros](MACROS.md).
+
+D in equipment or Items → Weapons nominates a weapon for the **first controllable input of the battle**, once. It does not re-equip it on later turns.
+
 ## Display and map shortcuts
 
 **F10** toggles the original window and your preferred HD mode. With fresh preferences, the HD target is the monitor's resolution. Choosing and confirming another size remembers that size. A smaller HD preset returns to its configured window size; the monitor-size preset uses borderless fullscreen. This does not change Windows display settings.

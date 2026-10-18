@@ -17,7 +17,7 @@ begin
   actor=$game_party.members[0];actor.change_class(1);actor.change_level(20,false);actor.clear_equipments
   actor.name='QA';actor.recover_all
   SceneManager.instance_variable_set(:@background_bitmap,Bitmap.new(640,480))
-  check(BS2Suite::VERSION=='0.996-dev','suite loads on native Ruby 1.9')
+  check(BS2Suite::VERSION=='0.997-dev','suite loads on native Ruby 1.9')
   check(BS2Suite::IDS.size==22,'twenty-two independently selected features')
   defs={'effects'=>'BS2Modules::Effects','loadouts'=>'BS2Modules::Loadouts','reference_cards'=>'BS2QoL::ReferenceCard','learned_books'=>'BS2Suite::Books','field_skills'=>'BS2Suite::FieldScene','saves'=>'BS2Suite::Saves','scaling'=>'BS2Suite::Scaling','sound'=>'BS2Suite::Sound','debug'=>'BS2Suite::Debug'}
   defs.each { |id,name| check(!!eval('defined?('+name+')')==BS2Suite.enabled?(id),'disabled feature code absent: '+id) }
@@ -168,7 +168,7 @@ begin
     step;step([0x78]);step
     BS2Suite::Debug.emit('user_note',{:text=>'Проверка «журнала»\nстрока',:float=>1.5})
     directory=BS2Suite::Debug.directory;BS2Suite::Debug.close
-    check(File.file?(File.join(directory,'session.closed')),'clean debug session closes marker')
+    check(File.file?(File.join(directory,'session.closed')),'clean debug session closes marker; error='+BS2Suite::Debug.error.to_s)
     data=Dir.glob(File.join(directory,'*.jsonl')).map { |p| File.open(p,'rb') { |f| f.read } }.join
     check(data.include?('variable') && data.include?('user_note'),'debug captures actual state setters and notes')
     check(data.include?('bookmark') && data.include?('keys'),'debug bookmark uses real raw input even without scene updates')

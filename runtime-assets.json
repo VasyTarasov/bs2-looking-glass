@@ -1,6 +1,6 @@
 {
   "mod/BS2Suite/native/bs2_steam_bridge.dll": {
-    "sha256": "5d9aed4a2843bf11cc5ee64b7319ce893d3621d8db81ea180d6b5ed3896ff611",
+    "sha256": "89407004b8f105074d39f601af31bd1c6847b93dec8d855572f4e234e067e980",
     "kind": "project-owned x86 helper; native/steam_bridge contains source and bundled licenses"
   },
   "mod/BS2Suite/reference098.rvdata2": {

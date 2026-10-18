@@ -18,7 +18,7 @@ module BS2Suite
       @data[:gear]='G' if @data[:gear]=='CTRL+G' && !@data.any? { |k,v| k!=:gear && v.split('+')[-1]=='G' }
       @data[:R]='E' if @data[:R]=='W' && !@data.any? { |k,v| k!=:R && v.split('+')[-1]=='E' }
       # New palette defaults must not reset a player's existing control map.
-      [:fullscreen,:gear,:palette_v,:palette_b,:palette_m,:palette_n,:combat_effects].each do |action|
+      [:fullscreen,:gear,:palette_v,:palette_b,:palette_m,:palette_n,:combat_effects,:macros].select { |a| DEFAULT.has_key?(a) }.each do |action|
         token=@data[action]
         conflict=@data.any? { |other,value| other!=action && (value==token || (LOGICAL.include?(other) && value.split('+')[-1]==token.split('+')[-1])) }
         if conflict

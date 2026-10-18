@@ -38,7 +38,7 @@ begin
   @scene.instance_variable_get(:@command_window).deactivate;@scene.instance_variable_get(:@slot_window).deactivate
   key(68)
   check(start.selected(actor)==$data_weapons[101] && actor.equips[0]==$data_weapons[277],'D in real equipment list assigns without equipping now')
-  check(@scene.instance_variable_get(:@help_window).instance_variable_get(:@text).include?('начало хода'),'equipment shows a visible D hint')
+  check(@scene.instance_variable_get(:@help_window).instance_variable_get(:@text).include?('начало боя'),'equipment shows a visible D hint')
   key(68);check(!start.selected(actor),'D in equipment toggles off rather than duplicating')
   @scene.terminate
   @scene=Scene_Item.new;SceneManager.instance_variable_set(:@scene,@scene);@scene.start
@@ -66,11 +66,11 @@ begin
   actor.instance_variable_set(:@actions,actor.actions.clone);@scene.start_actor_command_selection
   check(actor.equips[0]==$data_weapons[277],'QuickSkills restored cloned queue does not restart weapon')
   queue(actor);@scene.start_actor_command_selection
-  check(actor.equips[0]==$data_weapons[101],'fresh turn returns to starting weapon')
+  check(actor.equips[0]==$data_weapons[277],'fresh turn keeps current weapon after battle-only starting assignment')
   start.toggle(actor,$data_weapons[101]);BS2QoL::Model.change_weapon(actor,$data_weapons[277]);queue(actor);@scene.start_actor_command_selection
   check(actor.equips[0]==$data_weapons[277],'cleared start choice leaves fresh turn weapon alone')
   start.toggle(actor,$data_weapons[101]);direct.select(actor,$data_weapons[167]);queue(actor);@scene.start_actor_command_selection
-  check(actor.equips[0]==$data_weapons[101] && direct.selected(actor)==$data_weapons[167],'start assignment never overwrites final executor')
+  check(actor.equips[0]==$data_weapons[277] && direct.selected(actor)==$data_weapons[167],'battle-only start assignment never overwrites current weapon or final executor')
   # Resolve family upgrades; missing ownership cannot conjure a weapon.
   $game_party.gain_item($data_weapons[102],1)
   check(start.selected(actor)==$data_weapons[102],'start nomination resolves upgraded family member')
@@ -164,7 +164,7 @@ begin
     text=quick.lines(@scene,normal,actor,weapon,nil,weapon).join
     check(text.include?(quick.compact_means(values)) && text.scan(/~\d+/).size==3,'N shows minimum arithmetic mean maximum for three unequal opponents')
     check(snapshot==Marshal.dump([actor,$game_troop.members,$game_party.instance_variable_get(:@items),$game_party.gold]) && rand==expected,'multi-target preview preserves battlers inventory and RNG')
-    check(quick.lines(@scene,normal,actor,weapon).empty?,'ordinary technique preview still waits for target against a group')
+    check(!quick.lines(@scene,normal,actor,weapon).empty?,'technique preview includes alternative-target means as required by current grouped combat UI')
     $game_troop.members[2].hide
     text=quick.lines(@scene,normal,actor,weapon,nil,weapon).join
     check(text.scan(/~\d+/).size==2,'two visible enemies show two expected values')
@@ -185,7 +185,9 @@ begin
     check(quick.lines(@scene,normal,actor,weapon,nil,weapon).join.include?('закрыты'),'multi-target N does not expose unknown resistance')
     BS2Suite::Options.set('knowledge_threshold',0)
     @scene.start_actor_command_selection;commands.openness=255
-    key(78);key(49);popup=BS2Suite::Palette.current(@scene)
+    key(78);popup=BS2Suite::Palette.current(@scene);popup.acknowledge;popup.set_group(1)
+    BS2Suite::HDDisplay.palette_rows(popup)
+    12.times { frame([]);BS2Suite::HDDisplay.palette_rows(popup) }
     check(BS2Suite::HDDisplay.palette_rows(popup).any? { |r| r.include?('~') },'real N sidebar includes multi-target estimate')
     hd=BS2Suite::HDDisplay;Graphics.transition(0);Graphics.brightness=255;hd.poll(true)
     read=Win32API.new('Mods/BS2Suite/native/bs2_steam_bridge.dll','BS2_HDReadback',['P','I'],'I');read.call('',0)

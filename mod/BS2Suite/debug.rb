@@ -11,7 +11,8 @@ module BS2Suite::Debug
       when Hash;'{'+v.map { |k,x| json(k.to_s,depth+1)+':'+json(x,depth+1) }.join(',')+'}'
       when Array;'['+v.map { |x| json(x,depth+1) }.join(',')+']'
       when String,Symbol
-        text=v.to_s.encode('UTF-16LE',:invalid=>:replace,:undef=>:replace,:replace=>'?').encode('UTF-8')
+        text=v.to_s
+        text=text.encode('UTF-8',:invalid=>:replace,:undef=>:replace,:replace=>'?') unless text.ascii_only? || (text.encoding.name=='UTF-8' && text.valid_encoding?)
         '"'+text.gsub(/[\x00-\x1f"\\]/) { |c| c=='"' ? '\\"' : c=='\\' ? '\\\\' : '\\u%04x' % c.ord }+'"'
       when NilClass;'null'
       when TrueClass;'true'
@@ -219,7 +220,10 @@ class Game_Interpreter
     command=@list && @list[@index]
     if command && BS2Suite::Debug::WATCHED_COMMANDS.include?(command.code)
       fields={:map=>@map_id,:event=>@event_id,:index=>@index,:code=>command.code,:indent=>command.indent}
-      if command.code==111;BS2Suite::Debug.condition_command(fields)
+      # Parallel map events repeatedly assign the same switches/variables or
+      # run the same script site. Keep bounded counts and frame ranges; actual
+      # variable/inventory/effect mutations still have individual records.
+      if [111,121,122,123,355].include?(command.code);BS2Suite::Debug.condition_command(fields)
       else;BS2Suite::Debug.emit('event_command',fields);end
     end
     bs2suite_debug_command

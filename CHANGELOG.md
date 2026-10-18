@@ -1,5 +1,10 @@
 # Development history
 
+## 0.997-dev — battle queues, map capture and macros
+
+Resume the same unspent slot after instant items; arm final executors at the native turn boundary; make starting weapons battle-only; add Shift attacks in N and eight six-row macros. Preserve ring copies from 0.996. Aggregate repeated map diagnostic command sites, avoid redundant string conversions, fence intermediate heat-haze captures and render its padded visible region.
+
+
 ## 0.996-dev — ring preservation
 
 Exclude all ring copies and upgrade tiers from equipment cleanup, retain normal equipping and loadout fallback, and record future non-ring cleanup precisely. Native checks cover all 147 ring entries, duplicate equipped rings and save/load.
