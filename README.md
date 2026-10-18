@@ -6,7 +6,7 @@
 
 An unofficial, modular collection of combat controls, practical reference cards and interface improvements for BLACK SOULS II.
 
-**Development build: `0.993-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
+**Development build: `0.994-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
 
 ## Features
 
@@ -79,3 +79,9 @@ Enemy tempo uses AP-gauge stars instead of a text panel, with queued/hovered spe
 Enemy gauge buffers are six pixels high instead of full-screen, and their private bitmaps are explicitly released at teardown. Native temporary render allocations are collected after a completed battle teardown, outside input and AP updates. Enabled diagnostics now record this process's private memory, working set and graphics/handle counters without reading memory contents.
 
 The old gauge-lifetime defect was reproduced in the reported area's battles: eight transitions retained 56.25 MiB of gauge pixels. With the fix, forty cycles retain none; the actual 2560×1440 HD test has stable warmed memory and graphics handles. This fixes a demonstrated allocation defect; no native stack was available to prove it was the only contributor to the reported C++ termination. Steam bridge/engine binaries are unchanged. See [verification](docs/QA.md). This build includes the 0.992-dev changes above.
+
+## 0.994-dev: instant battle presentation with Ctrl
+
+Hold **Ctrl** to remove combat animation/log pauses and shorten battle entry/exit transitions to zero or one displayed frame. It also finishes active hit/collapse animations, removes lingering damage popups, opens battle windows immediately and settles battle screen/picture effects. The **Ctrl in battle** option is enabled by default; disable it to retain the original Ctrl behavior. Releasing Ctrl restores normal presentation. Choices and command/target selection remain manual; AP progression, action application, costs and rewards use the native pipeline. Resource loading and the actual game calculations still take time.
+
+Native hit-shake randomness now uses the existing separate visual stream in both modes, so skipped shake effects do not shift combat random rolls. Four controlled full battles match in actions, effects, final state/rewards and RNG tails. This build includes the 0.992/0.993 fixes. See [controls](docs/CONTROLS.md) and [verification](docs/QA.md).

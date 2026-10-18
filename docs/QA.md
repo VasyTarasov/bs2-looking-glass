@@ -1,4 +1,38 @@
-# Verification of 0.993-dev
+# Verification of 0.994-dev
+
+Development preview; native runs use only the hardened private-desktop launcher, with exit code 0 and result=PASS required. Synthetic fixtures only; no live-player controls or personal saves.
+
+## Current Ctrl presentation checks
+
+| Native suite | Assertions |
+|---|---:|
+| speed_classic | 48 |
+| speed_hd (2560×1440) | 49 |
+| speed_minimal (no optional modules) | 48 |
+| system_normal | 9 |
+| system_instant | 9 |
+| resources_classic (40 cycles) | 48 |
+| changes_classic | 98 |
+| changes_hd | 130 |
+| modules | 69 |
+| minimal | 22 |
+
+The dedicated tests exercise real native transition/fade calls, all standard collapse/appearance effects including boss collapse, active-animation sprite disposal, popup disposal, window animation, picture/screen effects, cooperative event waits, preference reload and the real settings handler. Held Ctrl leaves command input manual and does not advance AP or frame-state counters through skipped presentation waits. Map/menu behavior and exception-safe transition scope restoration are checked.
+
+Four full battles run with identical seeds and Ctrl held in normal versus instant mode. Twenty comparisons match: action use sequence/costs, per-target effects/damage, final party/inventory/gold/experience state, result and RNG tail. Controlled visual initialization and mist are isolated by the documented QA option. The native hit-shake path uses the separate visual RNG in the installable mod, in both modes.
+
+| Scenario | Normal frames | Instant frames |
+|---|---:|---:|
+| Items and attacks | 689 | 81 |
+| Magic | 543 | 133 |
+| Escape | 75 | 37 |
+| Allowed defeat | 307 | 112 |
+
+These are complete input-driven synthetic flows, not just animation duration. CPU/resource loading and native AP scheduling still consume time. No claim is made that every custom event/movie becomes zero-time. Choices and conditional forced-action waits are not bypassed.
+
+Installer: 55 assertions. Update/refusal/partial-write rollback from 0.9.8-alpha, 0.991-dev and 0.993-dev: 501 assertions, preserving engine/scripts and synthetic save/profile sentinels. Game-free repository checks and PowerShell 5.1 validation run before packaging. No engine or Steam bridge binary changes.
+
+# Previous 0.993-dev resource evidence
 
 Development preview; no stable release. All native checks use the hardened private-desktop launcher and require exit code 0 plus result=PASS. No personal saves, live-player input or public test windows.
 

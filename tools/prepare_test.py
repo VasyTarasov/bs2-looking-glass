@@ -31,11 +31,12 @@ def main():
     parser.add_argument('--source',type=Path,required=True)
     parser.add_argument('--game',type=Path,required=True)
     parser.add_argument('--copy',action='store_true',help='Copy only runtime folders/executable, excluding saves and Steam files')
-    parser.add_argument('--suite',choices=['resources0993','preferences0992','iteration0991','performance0991','iteration092dev','reference098','weapon_audit','iteration097','iteration094','smoke','system','keys','reference','forecast','modules','effects_loadouts','retry','screens','adversarial','stress','iteration','showcase','export','semantic','semantic_integration','semantic_forecast','semantic_boot','map_return','debug_performance'],default='modules')
+    parser.add_argument('--suite',choices=['battle_speed0994','resources0993','preferences0992','iteration0991','performance0991','iteration092dev','reference098','weapon_audit','iteration097','iteration094','smoke','system','keys','reference','forecast','modules','effects_loadouts','retry','screens','adversarial','stress','iteration','showcase','export','semantic','semantic_integration','semantic_forecast','semantic_boot','map_return','debug_performance'],default='modules')
     parser.add_argument('--vanilla',action='store_true',help='System suite without the mod for differential comparison')
     parser.add_argument('--cases',default='victory')
     parser.add_argument('--seed',type=int,default=24015)
     parser.add_argument('--isolate-visual-rng',action='store_true',help='Disable mist and separate sprite-constructor RNG in QA fixtures for deterministic comparison')
+    parser.add_argument('--battle-ctrl',choices=['normal','instant'],help='System QA: hold Ctrl throughout battle with the selected presentation mode')
     parser.add_argument('--modules',default=None)
     args=parser.parse_args()
     source=args.source.resolve();game=args.game.resolve()
@@ -62,7 +63,7 @@ def main():
     scripts=Marshal(raw if args.vanilla else patch_scripts(raw)).read()
     if b'class SteamAPIContext' not in zlib.decompress(scripts[222][2]):raise ValueError('Unexpected Steam script')
     scripts[222]=[scripts[222][0],scripts[222][1],zlib.compress(b'# Disabled in isolated test copy only.\n')]
-    spec=(args.suite+'_spec.rb') if args.suite in ['resources0993','preferences0992','iteration0991','performance0991','iteration092dev','reference098','weapon_audit','iteration097','iteration094'] else {'system':'system_spec.rb','smoke':'keys_spec.rb','keys':'keys_spec.rb','reference':'reference_spec.rb','forecast':'forecast_spec.rb','modules':'modules_spec.rb','effects_loadouts':'effects_loadouts_spec.rb','retry':'battle_retry_spec.rb','screens':'screens_spec.rb','iteration':'iteration_spec.rb','adversarial':'adversarial_spec.rb','stress':'stress_spec.rb','showcase':'showcase_spec.rb','export':'export_spec.rb','semantic':'semantic_spec.rb','semantic_integration':'semantic_integration_spec.rb','semantic_forecast':'semantic_forecast_spec.rb','semantic_boot':'semantic_boot_spec.rb','map_return':'map_return_spec.rb','debug_performance':'debug_performance_spec.rb'}[args.suite]
+    spec=(args.suite+'_spec.rb') if args.suite in ['battle_speed0994','resources0993','preferences0992','iteration0991','performance0991','iteration092dev','reference098','weapon_audit','iteration097','iteration094'] else {'system':'system_spec.rb','smoke':'keys_spec.rb','keys':'keys_spec.rb','reference':'reference_spec.rb','forecast':'forecast_spec.rb','modules':'modules_spec.rb','effects_loadouts':'effects_loadouts_spec.rb','retry':'battle_retry_spec.rb','screens':'screens_spec.rb','iteration':'iteration_spec.rb','adversarial':'adversarial_spec.rb','stress':'stress_spec.rb','showcase':'showcase_spec.rb','export':'export_spec.rb','semantic':'semantic_spec.rb','semantic_integration':'semantic_integration_spec.rb','semantic_forecast':'semantic_forecast_spec.rb','semantic_boot':'semantic_boot_spec.rb','map_return':'map_return_spec.rb','debug_performance':'debug_performance_spec.rb'}[args.suite]
     scripts[-1]=[scripts[-1][0],b'BS2QoL native tests',zlib.compress((ROOT/'tests'/spec).read_bytes())]
     scripts.insert(0,[900001,b'BS2QoL silent test prelude',zlib.compress(PRELUDE)])
     data=b'\x04\x08'+dump(scripts)
@@ -80,6 +81,8 @@ def main():
     (game/'BS2QA_bootstrap.rb').write_bytes(BOOT)
     (game/'Data/Scripts.rvdata2').write_bytes(data)
     (game/'qa_options.txt').write_text('variant='+('vanilla' if args.vanilla else 'mod')+'\nseed='+str(args.seed)+'\ncases='+args.cases+'\nisolate_visual_rng='+str(args.isolate_visual_rng).lower()+'\n',encoding='utf8')
+    if args.battle_ctrl:
+        with (game/'qa_options.txt').open('a',encoding='utf8') as stream:stream.write('battle_ctrl='+args.battle_ctrl+'\n')
     (game/'test_prepare_profile.json').write_text(json.dumps({
       'silent':True,'steam_disabled':True,'test_harness':True,
       'scripts_sha256':hashlib.sha256(data).hexdigest()}),encoding='utf8')

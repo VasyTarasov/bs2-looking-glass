@@ -449,7 +449,7 @@ module Input
     end
     def trigger?(key); @qa_key==key; end
     def repeat?(key); @qa_key==key; end
-    def press?(key); @qa_key==key; end
+    def press?(key); @qa_key==key || (key==:CTRL && !!BS2QA.options['battle_ctrl']); end
   end
 end
 
@@ -477,6 +477,7 @@ begin
   File.open('test_result.txt','w') { |f| f.puts 'system_suite; native_graphics=true; ruby='+RUBY_VERSION }
   BS2QoL::Keyboard.backend=BS2QA_RawBackend.new if BS2QA.mod?
   DataManager.init
+  BS2Suite::Options.set('instant_battle_ctrl',BS2QA.options['battle_ctrl']=='instant' ? 1 : 0) if BS2QA.mod? && BS2QA.options['battle_ctrl']
   BS2Suite::Debug.start if defined?(BS2Suite::Debug)
   SceneManager.instance_variable_set(:@background_bitmap,Bitmap.new(Graphics.width,Graphics.height))
   BS2QA.options['cases'].split(',').each_with_index do |name,index|

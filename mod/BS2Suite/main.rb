@@ -1,7 +1,7 @@
 # encoding: UTF-8
 unless defined?(BS2Suite::LOADED)
   module BS2Suite
-    VERSION='0.993-dev'
+    VERSION='0.994-dev'
     ROOT=File.dirname(__FILE__)
     IDS=%w(combat_shortcuts action_queue reference_cards effects loadouts learned_books field_skills saves defeat retry battle_stats controls run_toggle sound debug semantic_groups legacy_shortcuts soul_batch equipped_upgrade steam_bridge hd_display weapon_family_cleanup)
     @enabled=[]
@@ -74,6 +74,7 @@ unless defined?(BS2Suite::LOADED)
     load_part('display092dev') if enabled?('hd_display')
     %w(ux0991 performance0991 priority0991 tempo0992 followup0992).each { |name| load_part(name) }
     load_part('resources0993')
+    load_part('battle_speed0994')
     BS2QoL.const_set(:LOADED,true)
     BS2Modules.const_set(:LOADED,true)
     LOADED=true

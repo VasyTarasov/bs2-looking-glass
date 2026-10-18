@@ -74,3 +74,9 @@ Proposed stuns, AP interruption and chant cancellation are deliberately ignored,
 This is a conditional tempo forecast, not future enemy AI/damage simulation. Up to 32 outcome worlds are considered. Unsupported common events, channels, later global-turn expiry, frame regeneration, damage-dependent control removal or excess branches show `?`; they never silently imply a hero turn. Future deaths, enemy/ally actions and new choices may change the result. Unknown enemy mechanics retain the knowledge boundary. No live AP, resources or combat RNG is advanced by a preview.
 
 Options are registered before bootstrap reads preferences. Tempo, priority settings and navigation now survive an actual process restart, rather than only an in-memory reload. Final N nomination remains battle-local by design; starting-weapon assignments and user bindings remain separate persistent settings.
+
+## Ctrl battle speed
+
+Mod settings → **Ctrl в бою: мгновенные анимации** is enabled by default. Hold Ctrl before entering a battle and during actions/results to skip presentation delays, including the entry wipe, combat animations, hit/collapse effects, popup durations and exit fades. Battle windows open/close immediately. Active animations are disposed safely when acceleration takes over. Release Ctrl for ordinary presentation; disable the setting for the original Ctrl behavior.
+
+The mode applies to all battles while held, including bosses and spirits. It does not infer enemy strength. It does not select commands/targets, confirm choices, apply extra actions or change AP/chant/state-update formulas. Existing Ctrl text skipping still applies. Scripted timed battle waits retain one cooperative yield; conditional waits for choices/forced actions remain native. Map/menu presentation outside battle entry/return is unchanged. Loading assets and executing game logic cannot be made literally instantaneous.
