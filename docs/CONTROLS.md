@@ -80,3 +80,9 @@ Options are registered before bootstrap reads preferences. Tempo, priority setti
 Mod settings → **Ctrl в бою: мгновенные анимации** is enabled by default. Hold Ctrl before entering a battle and during actions/results to skip presentation delays, including the entry wipe, combat animations, hit/collapse effects, popup durations and exit fades. Battle windows open/close immediately. Active animations are disposed safely when acceleration takes over. Release Ctrl for ordinary presentation; disable the setting for the original Ctrl behavior.
 
 The mode applies to all battles while held, including bosses and spirits. It does not infer enemy strength. It does not select commands/targets, confirm choices, apply extra actions or change AP/chant/state-update formulas. Existing Ctrl text skipping still applies. Scripted timed battle waits retain one cooperative yield; conditional waits for choices/forced actions remain native. Map/menu presentation outside battle entry/return is unchanged. Loading assets and executing game logic cannot be made literally instantaneous.
+
+## Performance tracing
+
+Enable the optional Diagnostics module, then restart the game. **Диагностика производительности** in mod settings toggles five-second local timing summaries without disabling the ordinary journal. It defaults on when Diagnostics is loaded; with Diagnostics disabled, the profiler is not loaded. No hotkey is consumed. This option cannot attach new code to an already running game.
+
+Use the performance records to compare scene/map/modal/focus contexts, ordinary FPS and FPS excluding >1-second gaps, frame-time bounds/slow-frame counts, engine/mod/diagnostic phases, GC/resource counters and known transition/load/overlay waits. Phase times overlap and are not additive; the graphics phase includes native presentation/pacing. No automatic log uploads occur.

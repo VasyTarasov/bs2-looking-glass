@@ -1,4 +1,14 @@
-# Verification of 0.994-dev
+# Verification of 0.995-dev
+
+Diagnostics extension, not a claimed slowdown fix. Five native suites on the hardened private desktop: diagnostics probe 28 assertions, diagnostics-only probe 28, existing logging replay 8, all modules 69, minimal modules 22 — **155 assertions**. Synthetic state and RNG are unchanged by observers; exceptions/return values propagate; disabled/closed tracing does not accumulate; preferences reload; context/phase/slow-row caps and histogram overflow labels are checked. Native frame-counter jumps cannot fabricate huge FPS; known transitions break ordinary frame intervals. Real frame calls emit bounded, valid JSON performance records, including modal/focus labels and diagnostic/window timing.
+
+No live-player input or saves are used. The initial 181-second external observation ran without native tests; subsequent synthetic QA used a below-normal launcher priority and the unchanged private-desktop/job/error-dialog containment. Parser validation confirms the synthetic performance records are JSON and respect all caps. Microbenchmarks are noisy under a concurrently active game; they are not a universal zero-overhead claim.
+
+Installer: 55 assertions. Update/refusal/injected-partial-write rollback from 0.993-dev and 0.994-dev: 345 assertions. Game-free repository checks: 19; PowerShell 5.1 installer validation runs without UI. No game/engine/Steam bridge binary changes. New code is not injected into the running player process; collection begins on its next launch after updating. No player logs or external observation data are published.
+
+The profiler keeps only five-second aggregates with a maximum of 16 contexts, 32 phase rows and eight slow examples. No ObjectSpace walk or per-frame file flush. Native self-process counters are sampled only when publishing. Phase timings are inclusive and can overlap; Graphics.update includes pacing/presentation. Explicit overlay, save/load and graphics-transition waits are excluded from ordinary consecutive-frame intervals but separately timed. Unknown pauses remain visible in long-gap counters, with an additional FPS excluding gaps over one second. Focus transitions that occur entirely inside an opaque native wait cannot always be reconstructed. Existing 0.993 heartbeat FPS remains a coarse legacy measure; the new performance records are the detailed source.
+
+# Previous 0.994-dev verification
 
 Development preview; native runs use only the hardened private-desktop launcher, with exit code 0 and result=PASS required. Synthetic fixtures only; no live-player controls or personal saves.
 

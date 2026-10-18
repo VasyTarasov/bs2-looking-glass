@@ -6,7 +6,7 @@
 
 An unofficial, modular collection of combat controls, practical reference cards and interface improvements for BLACK SOULS II.
 
-**Development build: `0.994-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
+**Development build: `0.995-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
 
 ## Features
 
@@ -85,3 +85,9 @@ The old gauge-lifetime defect was reproduced in the reported area's battles: eig
 Hold **Ctrl** to remove combat animation/log pauses and shorten battle entry/exit transitions to zero or one displayed frame. It also finishes active hit/collapse animations, removes lingering damage popups, opens battle windows immediately and settles battle screen/picture effects. The **Ctrl in battle** option is enabled by default; disable it to retain the original Ctrl behavior. Releasing Ctrl restores normal presentation. Choices and command/target selection remain manual; AP progression, action application, costs and rewards use the native pipeline. Resource loading and the actual game calculations still take time.
 
 Native hit-shake randomness now uses the existing separate visual stream in both modes, so skipped shake effects do not shift combat random rolls. Four controlled full battles match in actions, effects, final state/rewards and RNG tails. This build includes the 0.992/0.993 fixes. See [controls](docs/CONTROLS.md) and [verification](docs/QA.md).
+
+## 0.995-dev: bounded performance diagnostics
+
+With the opt-in **Diagnostics** module, a new performance trace records five-second local summaries: frame-time distributions by scene/map/modal/focus, slow frames, time between frame calls, engine and mod phases, diagnostic logging cost, explicit GC calls and numeric resource counters. It uses actual monotonic frame-call timestamps instead of subtracting the save-restored frame number. Known transitions, save/load and Steam-overlay waits break ordinary frame intervals and remain separately timed. Unexplained long gaps stay visible, with an additional FPS estimate excluding gaps longer than one second.
+
+Tracing has its own in-game switch, defaults on only when Diagnostics is enabled, and performs no object enumeration or per-frame file writes. Phase tables, frame contexts and slow examples have fixed caps. Inclusive phase times can overlap; Graphics.update includes presentation/frame pacing, not just GPU work. Reports stay local. Installing this code cannot instrument an already running game: it begins on the next launch. No slowdown cause is declared fixed merely because diagnostics were added. Includes 0.994 Ctrl acceleration.
