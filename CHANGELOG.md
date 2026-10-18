@@ -1,5 +1,10 @@
 # Development history
 
+## 0.996-dev — ring preservation
+
+Exclude all ring copies and upgrade tiers from equipment cleanup, retain normal equipping and loadout fallback, and record future non-ring cleanup precisely. Native checks cover all 147 ring entries, duplicate equipped rings and save/load.
+
+
 ## 0.991-dev — responsive palettes and optional priorities
 
 Keep cosmetic animation running under battle inspections; cache palette work and defer new inline estimates; add contextual/rebindable WASZ and plain G; remove the field hotkey and redundant F5 command; combine AoE min/max/sum; add opt-in usage priorities with rolling history/hysteresis and an opt-in current-tempo aid. Steam overlay/HD confirmation recorded from normal play.

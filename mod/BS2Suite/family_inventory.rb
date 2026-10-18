@@ -3,6 +3,9 @@ module BS2Suite
   module FamilyInventory
     class << self
       def paused?;@busy || @suspended.to_i>0;end
+      # Rings can occupy several slots and are useful in multiple copies and
+      # upgrade tiers. Never normalize their inventory, regardless of name.
+      def ring?(item);item.is_a?(RPG::Armor) && item.etype_id==4;end
       def suspend
         @suspended=@suspended.to_i+1
         yield
@@ -22,7 +25,7 @@ module BS2Suite
         entered=false
         return if paused? || !$game_party || !$data_weapons
         if $game_party.in_battle;@pending=true;return;end
-        @busy=true;entered=true;removed=0
+        @busy=true;entered=true;removed=0;removed_entries=[]
         inventory=Marshal.load(Marshal.dump($game_party.instance_variable_get(:@weapons)))
         armor_inventory=Marshal.load(Marshal.dump($game_party.instance_variable_get(:@armors)))
         backups=$game_party.members.map { |a| [a,Marshal.load(Marshal.dump(a))] }
@@ -41,20 +44,27 @@ module BS2Suite
           count=$game_party.instance_variable_get(:@weapons)[old.id].to_i
           next if count<=0
           $game_party.lose_item(old,count);removed+=count
+          removed_entries<<{:kind=>'weapon',:id=>old.id,:count=>count,:reason=>'lower_tier'}
         end
         if defined?(BS2Suite::ArmorFamilies094)
           equipped_armor=$game_party.members.map { |a| a.equips.select { |e| e.is_a?(RPG::Armor) } }.flatten
           armor_owned=($game_party.armors+equipped_armor).uniq
           $game_party.armors.each do |old|
+            next if ring?(old)
             next unless armor_owned.any? { |best| BS2Suite::ArmorFamilies094.ancestor?(old.id,best.id) }
             count=$game_party.item_number(old);$game_party.lose_item(old,count);removed+=count
+            removed_entries<<{:kind=>'armor',:id=>old.id,:count=>count,:reason=>'lower_tier'}
           end
         end
         # The inventory contains at most one spare copy of an equipment entry.
-        # Equipped copies are retained, including identical rings and ally gear.
+        # Every ring copy/tier and all equipped items are retained.
         ($game_party.weapons+$game_party.armors).each do |item|
+          next if ring?(item)
           excess=$game_party.item_number(item)-1
-          if excess>0;$game_party.lose_item(item,excess);removed+=excess;end
+          if excess>0
+            $game_party.lose_item(item,excess);removed+=excess
+            removed_entries<<{:kind=>item.is_a?(RPG::Weapon) ? 'weapon' : 'armor',:id=>item.id,:count=>excess,:reason=>'duplicate'}
+          end
         end
         favorites=BS2QoL::Preferences.ids(:weapon)
         updated=favorites.map do |id|
@@ -67,6 +77,7 @@ module BS2Suite
           BS2QoL::Preferences.persist
         end
         @pending=false;@last_error=nil
+        BS2Suite::Debug.emit('family_cleanup',{:removed=>removed_entries}) if removed>0 && defined?(BS2Suite::Debug)
         BS2QoL::Hotkeys.notice('Убраны дубли / младшие версии снаряжения: '+removed.to_s) if removed>0
         removed
       rescue StandardError=>e
@@ -111,7 +122,7 @@ class Game_Party
     result=bs2091_family_gain(item,amount,include_equip)
     # gain_item is also called halfway through trade_item_with_party and refresh.
     # Defer to a completed UI/event boundary instead of changing a half-finished trade.
-    BS2Suite::FamilyInventory.request if item.is_a?(RPG::EquipItem) && amount>0
+    BS2Suite::FamilyInventory.request if item.is_a?(RPG::EquipItem) && amount>0 && !BS2Suite::FamilyInventory.ring?(item)
     result
   end
 end

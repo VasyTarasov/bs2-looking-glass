@@ -30,17 +30,17 @@ begin
   armor=$data_armors[79]
   $game_party.gain_item(armor,4);slot=actor.equip_slots.index(4);actor.change_equip(slot,armor)
   BS2Suite::FamilyInventory.normalize
-  check($game_party.item_number(armor)==1 && actor.equips[slot]==armor,'armor duplicates capped at one spare; equipped ring retained')
+  check($game_party.item_number(armor)==3 && actor.equips[slot]==armor,'all spare and equipped ring copies are retained')
   $game_party.gain_item($data_weapons[101],5);BS2Suite::FamilyInventory.normalize
   check($game_party.item_number($data_weapons[101])<=1,'identical spare weapon copies also capped')
   check($game_party.item_number($data_items[61])==15,'ordinary consumable quantities remain intact')
-  $game_party.gain_item(armor,3);armor_before=$game_party.instance_variable_get(:@armors).dup
+  $game_party.gain_item($data_armors[9],3);armor_before=$game_party.instance_variable_get(:@armors).dup
   Game_Party.class_eval { alias bs2094_loss lose_item;def lose_item(item,amount,include_equip=false);result=bs2094_loss(item,amount,include_equip);if @bs2094_fail_armor && item.is_a?(RPG::Armor);@bs2094_fail_armor=false;raise 'synthetic armor deletion failure';end;result;end }
   $game_party.instance_variable_set(:@bs2094_fail_armor,true)
   check(BS2Suite::FamilyInventory.normalize==false && $game_party.instance_variable_get(:@armors)==armor_before,'failed armor cleanup restores exact inventory after partial deletion')
   BS2Suite::FamilyInventory.normalize
   $game_party.gain_item($data_armors[79],1);$game_party.gain_item($data_armors[161],1);BS2Suite::FamilyInventory.normalize
-  check($game_party.item_number($data_armors[79])==0 && $game_party.item_number($data_armors[161])==1,'verified ring upgrade family keeps its highest spare tier')
+  check($game_party.item_number($data_armors[79])==4 && $game_party.item_number($data_armors[161])==1,'base and upgraded ring tiers coexist without deletion')
   check(BS2Modules::Loadouts.item(159)==$data_armors[161],'old loadout ring references resolve to the retained upgrade')
   # One-column pages, native two-column navigation.
   inventory=Window_ItemList.new(0,0,640,150);inventory.category=:item;inventory.refresh;inventory.select(0)
