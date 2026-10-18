@@ -6,7 +6,7 @@
 
 An unofficial, modular collection of combat controls, practical reference cards and interface improvements for BLACK SOULS II.
 
-**Development build: `0.91-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
+**Development build: `0.92-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
 
 ## Features
 

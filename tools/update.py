@@ -16,7 +16,7 @@ def run(game,apply=False):
     record_bytes=record_path.read_bytes();record=json.loads(record_bytes)
     if not record.get('active'):raise ValueError('Сначала требуется установленный мод 0.9.0–0.9.8.')
     if sha((game/'Data/Scripts.rvdata2').read_bytes())!=record['installed_scripts_sha256']:raise ValueError('Игровые скрипты изменены; автоматическое обновление отменено.')
-    previous_versions={'0.9.0-preview':'090','0.9.1-alpha':'091','0.9.2-alpha':'092','0.9.3-alpha':'093','0.9.4-alpha':'094','0.9.5-alpha':'095','0.9.6-alpha':'096','0.9.7-alpha':'097','0.9.8-alpha':'098'}
+    previous_versions={'0.9.0-preview':'090','0.9.1-alpha':'091','0.9.2-alpha':'092','0.9.3-alpha':'093','0.9.4-alpha':'094','0.9.5-alpha':'095','0.9.6-alpha':'096','0.9.7-alpha':'097','0.9.8-alpha':'098','0.91-dev':'091dev'}
     if record['version'] not in (*previous_versions,VERSION):raise ValueError('Этот обновитель предназначен для 0.9.0–0.9.8. Для другой версии используйте Install.cmd.')
     previous=json.loads((ROOT/('tools/previous_'+previous_versions.get(record['version'],'092')+'.json')).read_text(encoding='utf8'))
     source=ROOT/'mod/BS2Suite';changes=[]
@@ -41,7 +41,7 @@ def run(game,apply=False):
     config_new=('\n'.join(lines)+'\n').encode('utf8')
     if not apply:return {'result':'PASS','compatible':True,'target_running':running,'own_files_to_update':len(changes),'changes':False}
     if target_running(game/'Game.exe'):raise RuntimeError('Игра была запущена. Обновление отменено.')
-    backup=directory/('rollback-0.91-dev-'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
+    backup=directory/('rollback-0.92-dev-'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
     backup.mkdir()
     (backup/'install.json').write_bytes(record_bytes);(backup/'modules.ini').write_bytes(config_bytes)
     for rel,old,new in changes:

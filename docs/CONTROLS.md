@@ -23,3 +23,23 @@ Equipment locks, forced actions, missing weapons or unaffordable costs may preve
 F7 uses the corresponding platform, resolved variant and current cost. Journal cards show the observed action's mechanics, without inventing a historical forecast using today's hero.
 
 D support is available only on individually eligible items and Gun Break in the appropriate list. It is not a global battle-command toggle and does not apply to arbitrary magic or techniques.
+
+## Display and map shortcuts
+
+**F10** toggles the original window and your preferred HD mode. With fresh preferences, the HD target is the monitor's resolution. Choosing and confirming another size remembers that size. A smaller HD preset returns to its configured window size; the monitor-size preset uses borderless fullscreen. This does not change Windows display settings.
+
+Fresh installations start windowed. **Fullscreen on startup** in Display settings controls automatic HD startup independently of F10. Existing fullscreen preferences are preserved when updating. Every HD mode forces the sharp pixel filter; DPI-aware startup is required even if the old crisp preference was disabled. If Windows virtualizes the initial window, the existing safe title-screen restart prepares the DPI-aware child before loading a save. F10 itself never restarts an active game.
+
+**Shift+F10** opens field skills when HD is installed, replacing its former F10 default. Custom nonconflicting bindings remain available in Controls.
+
+**Ctrl+G** uses the Gear of Madness on the map by reserving the original item's common event. Its SEN selection dialog remains manual. The shortcut requires the item and does not interrupt messages, events, transfers, movement, menus or battle. Rebind it in Controls if desired.
+
+Rabbit's Pocket Watch is included in manual B groups under special items when owned. It remains excluded from automatic support.
+
+## Compact damage numbers
+
+Before choosing a single enemy, N weapons, V techniques and M spells compare the mean damage against the available enemies. Two enemies show up to two values; three or more show minimum, arithmetic mean and maximum. Nearly identical values collapse. These are alternative targets, not a combined attack. Selecting a target shows its individual forecast.
+
+All-target attacks retain a **summed total** over the actual targets. Random targeting retains its probability-weighted estimate. Unsupported chains are marked, and unknown enemy information remains hidden. Miss, critical, Guard and the valid execution weapon are included by the existing forecast model; multi-hit state changes can leave only the first hit predictable.
+
+F4, H and their F7 details are nested inspections. Esc returns to the previous controller. Opening H from F4 must not leave the enemy chooser deactivated with an unresponsive top window.

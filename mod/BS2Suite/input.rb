@@ -4,10 +4,10 @@ module BS2Suite
     BASE={'BACKSPACE'=>8,'TAB'=>9,'ENTER'=>13,'SHIFT'=>16,'CTRL'=>17,'ESC'=>27,'SPACE'=>32,'PAGEUP'=>33,'PAGEDOWN'=>34,'END'=>35,'HOME'=>36,'LEFT'=>37,'UP'=>38,'RIGHT'=>39,'DOWN'=>40,'INSERT'=>45,'DELETE'=>46}
     ('0'..'9').each { |s| BASE[s]=s.ord };('A'..'Z').each { |s| BASE[s]=s.ord }
     (3..11).each { |n| BASE['F'+n.to_s]=111+n }
-    DEFAULT={:UP=>'UP',:DOWN=>'DOWN',:LEFT=>'LEFT',:RIGHT=>'RIGHT',:C=>'ENTER',:B=>'ESC',:A=>'SHIFT',:X=>'A',:Y=>'S',:Z=>'D',:L=>'Q',:R=>'E',:bind=>'F6',:reference=>'F7',:language=>'F8',:field=>'F10',:note=>'F9',:stats=>'F5',:run=>'TAB',:attack=>'1',:skills=>'2',:guard=>'3',:items=>'4',:escape=>'5',:equip=>'6',:quicksave=>'F3',:enemy_info=>'F4',:palette_v=>'V',:palette_b=>'B',:palette_m=>'M',:palette_n=>'N',:combat_effects=>'H'}
+    DEFAULT={:UP=>'UP',:DOWN=>'DOWN',:LEFT=>'LEFT',:RIGHT=>'RIGHT',:C=>'ENTER',:B=>'ESC',:A=>'SHIFT',:X=>'A',:Y=>'S',:Z=>'D',:L=>'Q',:R=>'E',:bind=>'F6',:reference=>'F7',:language=>'F8',:field=>(BS2Suite.enabled?('hd_display') ? 'SHIFT+F10' : 'F10'),:note=>'F9',:stats=>'F5',:run=>'TAB',:attack=>'1',:skills=>'2',:guard=>'3',:items=>'4',:escape=>'5',:equip=>'6',:quicksave=>'F3',:enemy_info=>'F4',:palette_v=>'V',:palette_b=>'B',:palette_m=>'M',:palette_n=>'N',:combat_effects=>'H',:fullscreen=>(BS2Suite.enabled?('hd_display') ? 'F10' : 'CTRL+F10'),:gear=>'CTRL+G'}
     LOGICAL=[:UP,:DOWN,:LEFT,:RIGHT,:C,:B,:A,:X,:Y,:Z,:L,:R]
     NATIVE={:UP=>[38],:DOWN=>[40],:LEFT=>[37],:RIGHT=>[39],:C=>[13,32,90],:B=>[27,88,96],:A=>[16],:X=>[65],:Y=>[83],:Z=>[68],:L=>[81,33],:R=>[69,87,34]}
-    LABELS=['Вверх','Вниз','Влево','Вправо','Подтвердить','Отмена / меню','Бег (удержание)','Избранное','Фильтр избранного','Доп. клавиша D','Предыдущая страница','Следующая страница','Назначить быстрый слот','Открыть справку','Язык справки','Полевые навыки','Отметка в журнале','Журнал боя / последняя статистика','Переключить бег','Атака','Техники','Защита','Предметы','Бежать из боя','Сменить оружие','Быстрое сохранение (5 слотов)','Противники и сопротивления','Оружейные группы','Предметные группы','Магия и изученные приёмы','Выбор оружия N','Все эффекты участников боя']
+    LABELS=['Вверх','Вниз','Влево','Вправо','Подтвердить','Отмена / меню','Бег (удержание)','Избранное','Фильтр избранного','Доп. клавиша D','Предыдущая страница','Следующая страница','Назначить быстрый слот','Открыть справку','Язык справки','Полевые навыки','Отметка в журнале','Журнал боя / последняя статистика','Переключить бег','Атака','Техники','Защита','Предметы','Бежать из боя','Сменить оружие','Быстрое сохранение (5 слотов)','Противники и сопротивления','Оружейные группы','Предметные группы','Магия и изученные приёмы','Выбор оружия N','Все эффекты участников боя','Окно / выбранный HD-режим','Шестерня Безумия на карте']
     def self.data
       return @data if @data
       @data=DEFAULT.dup
@@ -15,9 +15,10 @@ module BS2Suite
         m=/\A([A-Za-z_]+)=([A-Z0-9+]+)\z/.match(line.strip)
         @data[m[1].to_sym]=m[2] if m && DEFAULT.has_key?(m[1].to_sym) && valid?(m[2])
       end
+      @data[:field]='SHIFT+F10' if BS2Suite.enabled?('hd_display') && @data[:field]=='F10'
       @data[:R]='E' if @data[:R]=='W' && !@data.any? { |k,v| k!=:R && v.split('+')[-1]=='E' }
       # New palette defaults must not reset a player's existing control map.
-      [:palette_v,:palette_b,:palette_m,:palette_n,:combat_effects].each do |action|
+      [:field,:fullscreen,:gear,:palette_v,:palette_b,:palette_m,:palette_n,:combat_effects].each do |action|
         token=@data[action]
         conflict=@data.any? { |other,value| other!=action && (value==token || (LOGICAL.include?(other) && value.split('+')[-1]==token.split('+')[-1])) }
         if conflict
@@ -71,7 +72,7 @@ module BS2Suite
       (k.raw_down.include?(17) ? 'CTRL+' : k.raw_down.include?(16) ? 'SHIFT+' : '')+name
     end
     def self.remap_token(token)
-      aliases={:bind=>'F6',:reference=>'F7',:language=>'F8',:attack=>'1',:skills=>'2',:guard=>'3',:items=>'4',:escape=>'5',:equip=>'6',:quicksave=>'F3',:enemy_info=>'F4',:palette_v=>'V',:palette_b=>'B',:palette_m=>'M',:palette_n=>'N',:combat_effects=>'H'}
+      aliases={:bind=>'F6',:reference=>'F7',:language=>'F8',:attack=>'1',:skills=>'2',:guard=>'3',:items=>'4',:escape=>'5',:equip=>'6',:quicksave=>'F3',:enemy_info=>'F4',:palette_v=>'V',:palette_b=>'B',:palette_m=>'M',:palette_n=>'N',:combat_effects=>'H',:fullscreen=>(BS2Suite.enabled?('hd_display') ? 'F10' : 'CTRL+F10'),:gear=>'CTRL+G'}
       aliases.each { |action,pseudo| return pseudo if trigger?(action) }
       token
     end

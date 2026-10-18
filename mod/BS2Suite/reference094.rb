@@ -96,7 +96,6 @@ module BS2Suite
     def self.lines(scene,object,actor,source=nil,target=nil,weapon=nil)
       return [] unless object && actor && $game_party.in_battle && object.respond_to?(:damage) && object.damage.to_hp? && !object.damage.recover?
       targets=target ? [target] : $game_troop.alive_members.reject { |e| e.hidden? }
-      return [] if object.for_one? && !object.for_random? && targets.size>1 && !target && !weapon
       return [] if targets.empty? || !object.for_opponent?
       return ['≈ ? · сведения о цели закрыты'] if targets.any? { |e| !Knowledge.allowed?(e) }
       key=[object.id,object.class.to_s,signature(actor),source && source.id,weapon && weapon.id,DirectWeapons.selected_id(actor),targets.map { |e| [e.index,signature(e)] },actor.actions.map { |a| [a.item && a.item.id,a.target_index] },actor.instance_variable_get(:@action_input_index),$game_variables[Hi_ru_Difficulty::VARIABLES]]
@@ -152,7 +151,10 @@ module BS2Suite::HDDisplay
           weapon=obj;source=obj;view=BS2Suite::Projection.weapon(actor,obj);obj=$data_skills[view.attack_skill_id]
         end
         extra=BS2Suite::QuickDamage.lines(SceneManager.scene,obj,actor,source,nil,weapon)
-        at=rows.index { |r| r.start_with?("D\t") } || rows.size
+        # Keep the estimate beneath the selected object's short description.
+        at=rows.rindex { |r| r.start_with?("S\t") }
+        at ||= rows.rindex { |r| r.start_with?("P\t") || r.start_with?("K\t") }
+        at=at ? at+1 : rows.size
         rows.insert(at,*extra.map { |text| row('S',text) })
       end
       rows

@@ -144,7 +144,7 @@ begin
   if defined?(BS2Suite::HDDisplay)
     actor.instance_variable_set(:@actions,[Game_Action.new(actor)]);actor.instance_variable_set(:@action_input_index,0)
     quick=BS2Suite::QuickDamage
-    check(quick.lines(@scene,skill,actor).empty?,'single-target damage hidden before target selection against a group')
+    check(quick.lines(@scene,skill,actor).any? { |s| s.start_with?('~') && !s.include?('?') },'single-target candidate means shown before selecting from a group')
     rng=srand(701);expected_rand=rand;srand(701)
     before=Marshal.dump([actor,$game_troop.members]);result=quick.lines(@scene,skill,actor,nil,enemy)
     check(result.any? { |s| s.start_with?('≈ ') && !s.include?('?') },'chosen target enables compact approximate damage')
@@ -185,7 +185,7 @@ begin
   if defined?(BS2Suite::HDDisplay)
     hd=BS2Suite::HDDisplay;BS2Suite::Store.write('hd_display','');hd.instance_variable_set(:@data,nil)
     monitor=([0]*6).pack('l*');hd.instance_variable_get(:@monitor).call(monitor);dimensions=monitor.unpack('l*')[1,2]
-    check(hd.data.values_at('width','height')==dimensions && hd.data['mode']==1,'fresh HD settings use monitor resolution and fullscreen by default')
+    check(hd.data.values_at('width','height')==dimensions && hd.data['mode']==1,'fresh HD target remembers monitor resolution')
     hd.singleton_class.class_eval { alias bs2094_saved_dpi dpi;alias bs2094_saved_restart restart_dpi;def dpi;[1,0,96,2560,1440,2048,1152,1];end;def restart_dpi;@bs2094_restarted=true;SceneManager.exit;true;end }
     $bs2s_private_qa=false;old_retry=ENV['BS2_CRISP_RETRY'];ENV.delete('BS2_CRISP_RETRY')
     title=Scene_Title.new;SceneManager.instance_variable_set(:@scene,title);title.start;title.post_start
@@ -201,3 +201,4 @@ ensure
   SuiteCapture.close
 end
 end
+

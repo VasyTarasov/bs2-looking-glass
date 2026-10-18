@@ -258,6 +258,10 @@ module BS2Suite::HDDisplay
         end
         return rows+[row('D','↑/↓ участники · Enter / F7 сведения'),row('D','H / Esc назад · д действия · т такты')]
       end
+      chooser=scene.instance_variable_get(:@bs2092_enemy_chooser)
+      if chooser && !chooser.disposed?
+        return [row('T','Противники')]+commands(chooser,10)+[row('D','Enter / F7 сведения · H эффекты · Esc назад')]
+      end
       journal=scene.instance_variable_get(:@bs2092_journal)
       if journal && !journal.disposed?
         rows=[row('T','Журнал боя'),row('D','Физ./маг. — тип попадания; стихия отдельно')]
@@ -282,7 +286,7 @@ module BS2Suite::HDDisplay
     def source_mode(scene)
       wanted=[]
       if active? && @panel_accepted && scene
-        keys=[:@bs2q_reference_window,:@bs2s_palette,:@bs2s_palette_header,:@bs2080_effects,:@bs2092_journal,:@bs2092_journal_header,:@bs2q_footer,:@bs2q_plan,:@bs2v2_notice]
+        keys=[:@bs2q_reference_window,:@bs2s_palette,:@bs2s_palette_header,:@bs2080_effects,:@bs2092_journal,:@bs2092_journal_header,:@bs2092_enemy_chooser,:@bs2q_footer,:@bs2q_plan,:@bs2v2_notice]
         keys.each do |key|
           window=scene.instance_variable_get(key);next unless window && !window.disposed?
           wanted<<window

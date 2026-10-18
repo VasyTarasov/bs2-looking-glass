@@ -316,7 +316,7 @@ class Scene_Title
   alias bs2090_display_title start
   def start
     bs2090_display_title
-    BS2Suite::HDDisplay.apply(BS2Suite::HDDisplay.data)
+    BS2Suite::HDDisplay.startup
   end
 end
 class BS2Suite::SettingsCommands

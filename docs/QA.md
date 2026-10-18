@@ -1,24 +1,27 @@
-# Verification of 0.91-dev
+# Verification of 0.92-dev
 
-Repository preparation was checked locally on Windows. This is a development preview, not a stable release or a claim of remote CI success.
+Local Windows development checks; no stable release or remote CI claim.
 
-| Check | Result | Assertions |
+| Native check | Result | Assertions |
 |---|---|---:|
+| new_classic | PASS | 24 |
+| new_hd | PASS | 50 |
+| ux_classic | PASS | 45 |
+| ux_hd | PASS | 58 |
 | reference_classic | PASS | 7562 |
 | reference_hd | PASS | 7565 |
 | weapons | PASS | 1077 |
 | modules | PASS | 69 |
 | minimal | PASS | 22 |
-| installer | PASS | 55 |
-| updater | PASS | 151 |
-| Game-free repository tests | PASS | 18 |
-| Windows PowerShell 5.1 parsing / BOM | PASS | 3 scripts |
-| Installer headless language check | PASS | English default, Russian switch, 22 modules |
 
-The native runs used the documented preparer and hardened private-desktop launcher, requiring exit code 0 and result=PASS. They included every named reference card, journal F7, unnamed service actions, active HD rendering, 105 weapon scenarios, module combinations and a minimal setup. Synthetic installation/update checks included failure rollback, file-integrity refusal, preservation of synthetic settings/saves and 0.9.8-alpha → 0.91-dev.
+Total: **16472 native assertions**. Each passed run used the hardened private-desktop launcher, exit code 0 and `result=PASS`. The player game was never used as a test fixture, and personal saves were not read.
 
-The player's installed game was not changed and personal saves were not used. All original runtime assets remained in local fixtures outside the repository. Logs, private paths and screenshots were excluded. Original description prose was removed from 2,602 English alias entries; short names remain. The two shipped runtime assets have an explicit hash allowlist, with source/third-party notices.
+The old F4 dispatcher was substituted into a synthetic fixture as a negative control. F4 → H reproduced the dead end and the bounded test deliberately failed; restoring the fix passes in classic and active HD. Nested F7 returns and interrupted-modal cleanup are covered.
 
-The publication audit checks file paths, source credential patterns, encodings, relative documentation links, binary hashes and staged index bytes. It reports rule names rather than matching credential values. This is not a guarantee against every possible future secret or malicious change.
+HD tests include actual F10 key input, saved-size reuse, sharp-filter enforcement, independent startup preference, preservation of custom key conflicts, real own-window minimize/restore before deferred startup placement, and repair after a late native resize. The title-only DPI restart guard is also covered by the UX regression suite. V/M palette rows are checked for estimates below their descriptions; AoE retains an explicit total. Forecasts preserve battlers and RNG.
 
-Steam recording playback/export and all driver/DPI/monitor combinations were not retested. Scripted events can remain partial forecasts. New reference explanations remain Russian. GitHub Actions has not run before the first upload.
+Installer: **55 assertions**. Update/rollback from 0.9.8-alpha: **155 assertions**. Update from the archived 0.91-dev package: **69 assertions**. These use synthetic files and test live-process refusal, integrity checks and rollback. Game-free repository tests: **18**. Three PowerShell scripts parse with UTF-8 BOM under Windows PowerShell 5.1; the installer headless check confirms English default, Russian switch and 22 modules.
+
+The remaining native sets audit every named reference card, journal details, 105 weapon scenarios, navigation, support restrictions and module combinations. Source/runtime asset hashes and repository privacy/link checks are validated before packaging. Original description prose remains removed from 2,602 English alias entries. The two runtime assets are explicitly allowlisted.
+
+Steam recording playback/export, every monitor/driver/DPI combination and live recovery of an already stuck older session are not claimed. The update takes effect only in a new game process. In-game reference text remains predominantly Russian. GitHub Actions has not run.

@@ -280,12 +280,15 @@ module BS2Suite::EnemyInfo
   def self.open(scene)
     origin=scene.instance_variable_get(:@actor_command_window);origin.deactivate
     chooser=BS2Suite::EnemyInfoList.new(24,72);chooser.z=450;done=false
+    scene.instance_variable_set(:@bs2092_enemy_chooser,chooser)
     chooser.set_handler(:cancel,lambda { done=true })
     chooser.set_handler(:enemy,lambda { BS2QoL::Reference.open(scene,chooser) })
     begin
       until done
         Graphics.update;Input.update
-        if BS2QoL::Reference.active?(scene)
+        if defined?(BS2Suite::CombatEffects) && scene.instance_variable_get(:@bs2080_effects)
+          BS2Suite::CombatEffects.update_modal(scene)
+        elsif BS2QoL::Reference.active?(scene)
           BS2QoL::Reference.update(scene)
         else
           chooser.update
@@ -293,7 +296,11 @@ module BS2Suite::EnemyInfo
       end
     ensure
       BS2QoL::Reference.close(scene,false) if BS2QoL::Reference.active?(scene)
-      chooser.dispose;Input.update;origin.activate
+      BS2Suite::CombatEffects.close(scene) if defined?(BS2Suite::CombatEffects) && scene.instance_variable_get(:@bs2080_effects)
+      # Closing H may restore an older F7 frame belonging to this chooser.
+      BS2QoL::Reference.close(scene,false) if BS2QoL::Reference.active?(scene)
+      chooser.dispose;scene.instance_variable_set(:@bs2092_enemy_chooser,nil)
+      Input.update;origin.activate unless origin.disposed?
     end
   end
 end

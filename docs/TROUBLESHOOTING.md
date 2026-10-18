@@ -15,3 +15,8 @@
 **Missing forecast:** hidden target knowledge, unsupported formulas, scripted events or a conditional chain can prevent a complete number. The UI must indicate this instead of inventing a total. Base MP cost is not necessarily the current cost with your equipment.
 
 **Diagnostics:** opt in only when needed. `Collect-debug.cmd` creates a local archive, without uploading it. Labels, profiles and local paths can be included; review it before sharing. Never attach your entire game folder, saves or credentials.
+
+
+**F4 + H appears frozen in an older build:** 0.92-dev fixes a missing child-controller update in F4's blocking chooser. The image can remain responsive to Steam while the game ignores H/Esc. Install only after closing the game; replacing files does not patch the running Ruby session. Returning to title restarts the battle state, so save or accept the loss of unsaved progress yourself before doing so.
+
+**Tiny window after minimizing at startup:** 0.92-dev defers placement while minimized, verifies the actual client size and reapplies after restore. F10 also reapplies the selected HD target. All monitor/driver combinations have not been verified.

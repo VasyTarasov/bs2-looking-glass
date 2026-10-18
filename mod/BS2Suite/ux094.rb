@@ -193,7 +193,7 @@ module BS2Suite::HDDisplay
       @data
     end
     def crisp_start
-      return false if $bs2s_private_qa || BS2Suite::Options.get('crisp_hd')!=1 || dpi[7]!=1
+      return false if $bs2s_private_qa || dpi[7]!=1
       # Only the title, before any save is loaded. No registry or global display changes.
       return false unless SceneManager.scene.is_a?(Scene_Title)
       return false if @crisp_attempted || ENV['BS2_CRISP_RETRY']=='1'

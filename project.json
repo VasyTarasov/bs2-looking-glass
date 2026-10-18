@@ -1,12 +1,11 @@
 {
   "name": "Looking Glass for BLACK SOULS II",
   "repository": "VasyTarasov/bs2-looking-glass",
-  "version": "0.91-dev",
+  "version": "0.92-dev",
   "status": "experimental",
   "stable_release": false,
   "imported_baseline": "0.9.8-alpha",
   "next_labels": [
-    "0.92",
     "0.991",
     "0.992"
   ],

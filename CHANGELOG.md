@@ -1,5 +1,13 @@
 # Development history
 
+## 0.92-dev — display and nested battle inspection
+
+- Fix the F4 → H dead end and preserve return through nested F7 views.
+- Add F10 display toggling, an independent startup checkbox and actual-size repair after restore.
+- Require sharp HD and DPI-aware startup for nonoriginal display modes.
+- Compare alternative-target damage for techniques and magic; retain summed AoE totals.
+- Add manual clock selection in B and Ctrl+G for the original Gear of Madness dialog.
+
 ## 0.91-dev — repository preparation
 
 - Name: Looking Glass for BLACK SOULS II.
@@ -9,7 +17,7 @@
 - Portable protected-path guards, audited runtime assets and package checks.
 - No stable release, release tag or automatic publishing.
 
-Future labels follow **0.91 → 0.92 → 0.991 → 0.992…**. Treat them as ordered development identifiers, not standard semantic-version arithmetic. `0.91-dev` is not the historical `0.9.1-alpha` preview. Updaters use an explicit compatibility list.
+Future labels follow **0.91 → 0.92 → 0.991 → 0.992…**. Treat them as ordered development identifiers, not standard semantic-version arithmetic. `0.92-dev` is not the historical `0.9.2-alpha` preview. Updaters use an explicit compatibility list.
 
 ## Imported baseline: 0.9.8-alpha
 

@@ -47,6 +47,7 @@ module BS2Suite
       {:key=>"b98",:prefix=>"B",:kind=>"item",:variants=>[98],:advanced_variants=>[98],:section=>"attack",:side=>"enemy"},
       {:key=>"b103",:prefix=>"B",:kind=>"item",:variants=>[103],:advanced_variants=>[103],:section=>"attack",:side=>"enemy"},
       {:key=>"b106",:prefix=>"B",:kind=>"item",:variants=>[106],:advanced_variants=>[106],:section=>"attack",:side=>"enemy"},
+      {:key=>'b19',:prefix=>'B',:kind=>'item',:variants=>[19],:advanced_variants=>[19],:section=>'special',:side=>'self'},
       {:key=>"b81",:prefix=>"B",:kind=>"item",:variants=>[81],:advanced_variants=>[81],:section=>"special",:side=>"self"},
       {:key=>"b102",:prefix=>"B",:kind=>"item",:variants=>[102],:advanced_variants=>[102],:section=>"special",:side=>"self"},
       {:key=>"b107",:prefix=>"B",:kind=>"item",:variants=>[107],:advanced_variants=>[107],:section=>"special",:side=>"self"},
