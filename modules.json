@@ -1,0 +1,180 @@
+[
+  {
+    "id": "combat_shortcuts",
+    "name": "Favorites and native commands",
+    "default": true,
+    "requires": [],
+    "name_ru": "Избранное и штатные команды",
+    "name_en": "Favorites and native commands"
+  },
+  {
+    "id": "action_queue",
+    "name": "Action queue",
+    "default": true,
+    "requires": [],
+    "name_ru": "Очередь действий",
+    "name_en": "Action queue"
+  },
+  {
+    "id": "reference_cards",
+    "name": "Reference cards and forecasts",
+    "default": true,
+    "requires": [],
+    "name_ru": "Справка и прогноз RU / EN",
+    "name_en": "Reference cards and forecasts"
+  },
+  {
+    "id": "effects",
+    "name": "Effect inspection",
+    "default": true,
+    "requires": [],
+    "name_ru": "Каталог эффектов",
+    "name_en": "Effect inspection"
+  },
+  {
+    "id": "loadouts",
+    "name": "Named equipment loadouts",
+    "default": true,
+    "requires": [],
+    "name_ru": "Полные комплекты",
+    "name_en": "Named equipment loadouts"
+  },
+  {
+    "id": "learned_books",
+    "name": "Learned-book status",
+    "default": true,
+    "requires": [],
+    "name_ru": "Изученные книги",
+    "name_en": "Learned-book status"
+  },
+  {
+    "id": "field_skills",
+    "name": "Field skills",
+    "default": true,
+    "requires": [],
+    "name_ru": "Полевые навыки",
+    "name_en": "Field skills"
+  },
+  {
+    "id": "saves",
+    "name": "Saves: sorting, labels, 100 slots",
+    "default": true,
+    "requires": [],
+    "name_ru": "Сохранения: сортировка, подписи, 100 слотов",
+    "name_en": "Saves: sorting, labels, 100 slots"
+  },
+  {
+    "id": "defeat",
+    "name": "Defeat screen",
+    "default": true,
+    "requires": [],
+    "name_ru": "Окно поражения",
+    "name_en": "Defeat screen"
+  },
+  {
+    "id": "retry",
+    "name": "Retry battle (requires defeat screen)",
+    "default": true,
+    "requires": [
+      "defeat"
+    ],
+    "name_ru": "Повтор боя (нужно окно поражения)",
+    "name_en": "Retry battle (requires defeat screen)"
+  },
+  {
+    "id": "battle_stats",
+    "name": "Battle statistics and journal",
+    "default": true,
+    "requires": [],
+    "name_ru": "Статистика боя",
+    "name_en": "Battle statistics and journal"
+  },
+  {
+    "id": "controls",
+    "name": "Key bindings",
+    "default": true,
+    "requires": [],
+    "name_ru": "Назначение клавиш",
+    "name_en": "Key bindings"
+  },
+  {
+    "id": "run_toggle",
+    "name": "Toggle running and item-speed options",
+    "default": true,
+    "requires": [],
+    "name_ru": "Переключаемый бег",
+    "name_en": "Toggle running and item-speed options"
+  },
+  {
+    "id": "sound",
+    "name": "Volume controls",
+    "default": true,
+    "requires": [],
+    "name_ru": "Громкость",
+    "name_en": "Volume controls"
+  },
+  {
+    "id": "debug",
+    "name": "Diagnostics (opt in)",
+    "default": false,
+    "requires": [],
+    "name_ru": "Диагностика и замечания",
+    "name_en": "Diagnostics (opt in)"
+  },
+  {
+    "id": "semantic_groups",
+    "name": "V/B/M groups and N weapons (recommended)",
+    "default": true,
+    "requires": [],
+    "name_ru": "Группы V/B/M и оружие N (рекомендуется)",
+    "name_en": "V/B/M groups and N weapons (recommended)"
+  },
+  {
+    "id": "legacy_shortcuts",
+    "name": "Legacy: Shift/Ctrl combinations (advanced)",
+    "default": false,
+    "requires": [],
+    "name_ru": "Legacy: Shift/Ctrl/Shift+Ctrl — Advanced",
+    "name_en": "Legacy: Shift/Ctrl combinations (advanced)"
+  },
+  {
+    "id": "soul_batch",
+    "name": "Batch soul consumption",
+    "default": true,
+    "requires": [],
+    "name_ru": "Массовое использование душ",
+    "name_en": "Batch soul consumption"
+  },
+  {
+    "id": "equipped_upgrade",
+    "name": "Upgrade equipped weapons",
+    "default": true,
+    "requires": [],
+    "name_ru": "Прокачка экипированного оружия",
+    "name_en": "Upgrade equipped weapons"
+  },
+  {
+    "id": "steam_bridge",
+    "name": "Steam / OpenGL / screenshots (experimental)",
+    "default": true,
+    "requires": [],
+    "name_ru": "Steam: OpenGL / скриншоты (эксперимент)",
+    "name_en": "Steam / OpenGL / screenshots (experimental)"
+  },
+  {
+    "id": "hd_display",
+    "name": "HD resolution and side panel (prototype)",
+    "default": true,
+    "requires": [],
+    "name_ru": "HD: разрешение / отдельная панель (прототип)",
+    "name_en": "HD resolution and side panel (prototype)"
+  },
+  {
+    "id": "weapon_family_cleanup",
+    "name": "Equipment-family cleanup",
+    "default": true,
+    "requires": [],
+    "name_ru": "Убирать дубли снаряжения",
+    "name_en": "Equipment-family cleanup"
+  }
+]

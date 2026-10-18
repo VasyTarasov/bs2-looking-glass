@@ -1,0 +1,33 @@
+name: Repository checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-and-package:
+    runs-on: windows-latest
+    steps:
+      - name: Check out pinned action
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Audit and test package
+        shell: pwsh
+        run: |
+          python tools/repo_audit.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m unittest discover -s tests -p test_repository.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/package.py --output "$env:RUNNER_TEMP/LookingGlass-dev.zip"
+          exit $LASTEXITCODE
+      - name: Parse Windows PowerShell scripts
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens=$null; $errors=$null
+            [Management.Automation.Language.Parser]::ParseFile($_.FullName,[ref]$tokens,[ref]$errors) | Out-Null
+            if ($errors.Count) { throw ('Parse failure: '+$_.Name) }
+          }
