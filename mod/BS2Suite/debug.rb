@@ -129,6 +129,7 @@ module BS2Suite::Debug
       end
       if !@heartbeat_at || frame<@heartbeat_at || frame-@heartbeat_at>=600
         data={:scene=>scene.class.to_s,:focused=>BS2QoL::Keyboard.focused?,:max_update_gap_ms=>(@max_gap*100).round/100.0}
+        data[:native_resources]=BS2Suite::ResourceStats.sample if defined?(BS2Suite::ResourceStats)
         if @heartbeat_at && frame>@heartbeat_at && @heartbeat_clock && clock>@heartbeat_clock
           data[:observed_fps]=((frame-@heartbeat_at)/(clock-@heartbeat_clock)*100).round/100.0
           data[:elapsed_ms]=((clock-@heartbeat_clock)*1000).round

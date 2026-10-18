@@ -1,27 +1,32 @@
-# Verification of 0.992-dev
+# Verification of 0.993-dev
 
-Local isolated Windows checks. Development preview; no stable release.
+Development preview; no stable release. All native checks use the hardened private-desktop launcher and require exit code 0 plus result=PASS. No personal saves, live-player input or public test windows.
 
-| Native suite | Result | Assertions |
-|---|---|---:|
-| preferences | PASS | 32 |
-| changes_classic | PASS | 98 |
-| changes_hd | PASS | 130 |
-| reference_classic | PASS | 7562 |
-| reference_hd | PASS | 7565 |
-| weapons | PASS | 1077 |
-| modules | PASS | 69 |
-| minimal | PASS | 22 |
-| bench | PASS | 4 |
+| Fixed-build native suite | Assertions |
+|---|---:|
+| resources_classic | 48 |
+| resources_hd | 49 |
+| changes_classic | 98 |
+| changes_hd | 130 |
+| modules | 69 |
+| minimal | 22 |
 
-**16559 native assertions** in nine sets; the preferences set includes two fresh game processes. Each requires the hardened private-desktop launcher, exit code 0 and result=PASS. No player saves or live game were used as fixtures.
+**416 assertions** for the resource fix and current regressions; the bounded old-build negative control separately reproduces the defect. The classic resource soak was run while developing the same resource code before the version-label bump; the 1440p soak and main regressions ran as 0.993-dev.
 
-New coverage: stored options loaded during actual bootstrap, changed values loaded by a second process, battle setup preserving preferences, real input conflicts/remapping including custom WASD, B stock exhaustion/reacquisition, cooldown counters in classic/HD, exact progression/souls in synthetic headers, scoped Gear digits calling original handlers, native AP quantization, frame-state expiry compared with native frame_update, multiple skipped stunned owner turns, pre-action state removal, permanent restriction, queued and hovered speed effects, random retained AP, existing stun exclusion, unknown-data question marks, marker anchoring/bitmap styles/disposal and state/resource/global/RNG preservation across repeated forecasts.
+## Resource evidence
 
-Previous regression coverage remains: F4/H/F7 nested input and cleanup, cosmetic modal animation without AP/timer/RNG changes, AoE means, priority history/hysteresis, all named reference cards, 105 weapon execution scenarios and optional/minimal module configurations.
+Reported session was 0.991-dev and stopped on a map-to-battle transition. It contained no Ruby exception or clean exit. Live metadata showed a fragmented 32-bit address space: roughly 272 MiB free in total, largest free region about 6.2 MiB. This was a metadata-only region query, not a memory dump. This is consistent with allocation pressure, not proof of the exact native throw site.
 
-Installer: 55 assertions. Verified update/rollback from 0.9.8-alpha and 0.991-dev: 328 assertions, including refusal of running games/foreign edits and rollback on partial-write failure. Synthetic save/profile sentinels and engine/script files were retained. Game-free repository checks: 19. Three BOM PowerShell scripts parse under Windows PowerShell 5.1; installer validation covers both languages and 22 modules. Source/staged/package audits run before upload. Remote CI is recorded after upload; native counts above are local.
+The verified native enemy-gauge script allocated a full 640×480 bitmap for every HP/MP/TP/AP strip and did not dispose it with its Sprite. Eight alternating battles from the reported map/troops retained 14,745,600 gauge pixels (56.25 MiB). Negative-control private memory rose from 69.89 to 124.75 MiB; explicitly freeing those buffers and collecting dropped it back to about 63.65 MiB. These are synthetic fixtures, not measurements read from a save.
 
-Tempo is conditional: new stuns/interrupts are deliberately omitted; unsupported transitions and unknown enemy data produce ?. Enemy/ally decisions, future damage/deaths and repeated enemy turns are not simulated. Priorities and tempo now default on, but explicit saved choices are preserved. Old save headers are not rewritten or read deeply for missing metadata. Automatic weak-battle acceleration is not implemented.
+The negative control and fixed-build soaks deliberately retain bitmap wrappers after sprite teardown, making resource-ownership assertions independent of garbage collection. Forty classic cycles retain zero gauge pixels: last thirty private-memory samples 62.64–63.72 MiB, GDI 375 throughout. Forty actual 2560×1440 HD cycles also retain zero: warmed private memory 128.41–129.41 MiB, GDI 384 throughout. Every displayed pixel in the compact strips is compared with a full-screen buffer rendered by the same native gauge method. These are bounded reproducible soaks, not a claim of unlimited-session stability on every driver.
 
-The player confirmed Steam overlay, HD mouse input and screenshots work during ordinary play. The bridge DLL is unchanged. Recording playback/export and additional monitor/driver combinations are not claimed. In-game explanations remain predominantly Russian.
+The fix releases only owned strip buffers, preserves cached/shared textures, and collects native temporaries at completed battle teardown. It does not change battle formulas, AP/state progression, enemy AI, Steam renderer code or engine binaries. Diagnostics sample self-process numeric counters only, once per normal heartbeat when enabled.
+
+## Other checks
+
+Installer: 55 assertions. Update/refusal/partial-write rollback from 0.9.8-alpha, 0.991-dev and 0.992-dev: 497 assertions. Engine/script bytes and synthetic save/profile sentinels are retained. Game-free repository checks: 19; PowerShell 5.1 installer validates without UI. Runtime assets, staged source and archive are audited before publication. CI status is recorded after upload.
+
+Current classic/HD regressions retain F4/H/F7 nesting, visual/RNG separation, forecast behavior, controls, options persistence, B stock hiding, cooldowns and Gear digits. The unchanged reference/105-weapon checks last passed in 0.992-dev; they were not counted again as new 0.993 assertions.
+
+The player confirmed Steam overlay, HD mouse and screenshots work. The bridge DLL is unchanged; recording playback/export was not retested. The C++ screenshot alone does not identify an exact allocator/call stack, so other native crash causes remain possible.

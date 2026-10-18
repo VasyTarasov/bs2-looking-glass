@@ -2,8 +2,8 @@
 $ErrorActionPreference='Stop'
 $script:lang='en'
 $script:strings=@{
- en=@{title='Looking Glass 0.992-dev — BLACK SOULS II';folder='BLACK SOULS II folder';browse='Browse...';choose='Select the folder containing Game.exe';note='Close the game before changing modules. Settings are retained. Diagnostics are opt-in; review local reports before sharing.';ready='Select modules, then choose Install / change.';install='Install / change';check='Check';remove='Remove modules';empty='Select a module or use Remove modules.';compatible='Compatible build. Installed: {0}. Game running: {1}.';removed='Modules disabled. Saves, settings, loadouts and logs remain local.';done='Selected modules installed. Open mod settings in the game.';failed='No change completed: ';caption='Looking Glass';yes='yes';no='no'}
- ru=@{title='Looking Glass 0.992-dev — BLACK SOULS II';folder='Папка BLACK SOULS II';browse='Обзор…';choose='Выберите папку с Game.exe';note='Закройте игру перед изменением модулей. Настройки сохраняются. Диагностика включается отдельно; проверьте отчёт перед отправкой.';ready='Выберите модули и нажмите «Установить / изменить».';install='Установить / изменить';check='Проверить';remove='Удалить модули';empty='Выберите модуль или используйте «Удалить модули».';compatible='Сборка совместима. Установлено: {0}. Игра запущена: {1}.';removed='Модули отключены. Сейвы, настройки, комплекты и журналы сохранены.';done='Выбранные модули установлены. Настройки доступны в игре.';failed='Изменение не выполнено: ';caption='Looking Glass';yes='да';no='нет'}
+ en=@{title='Looking Glass 0.993-dev — BLACK SOULS II';folder='BLACK SOULS II folder';browse='Browse...';choose='Select the folder containing Game.exe';note='Close the game before changing modules. Settings are retained. Diagnostics are opt-in; review local reports before sharing.';ready='Select modules, then choose Install / change.';install='Install / change';check='Check';remove='Remove modules';empty='Select a module or use Remove modules.';compatible='Compatible build. Installed: {0}. Game running: {1}.';removed='Modules disabled. Saves, settings, loadouts and logs remain local.';done='Selected modules installed. Open mod settings in the game.';failed='No change completed: ';caption='Looking Glass';yes='yes';no='no'}
+ ru=@{title='Looking Glass 0.993-dev — BLACK SOULS II';folder='Папка BLACK SOULS II';browse='Обзор…';choose='Выберите папку с Game.exe';note='Закройте игру перед изменением модулей. Настройки сохраняются. Диагностика включается отдельно; проверьте отчёт перед отправкой.';ready='Выберите модули и нажмите «Установить / изменить».';install='Установить / изменить';check='Проверить';remove='Удалить модули';empty='Выберите модуль или используйте «Удалить модули».';compatible='Сборка совместима. Установлено: {0}. Игра запущена: {1}.';removed='Модули отключены. Сейвы, настройки, комплекты и журналы сохранены.';done='Выбранные модули установлены. Настройки доступны в игре.';failed='Изменение не выполнено: ';caption='Looking Glass';yes='да';no='нет'}
 }
 function T([string]$key) { return $script:strings[$script:lang][$key] }
 $manifest=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'modules.json') -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -11,7 +11,7 @@ if ($ValidateOnly) {
  $enKeys=($script:strings.en.Keys | Sort-Object) -join ',';$ruKeys=($script:strings.ru.Keys | Sort-Object) -join ','
  if ($enKeys -ne $ruKeys) { throw 'Translation keys differ' }
  foreach ($m in $manifest) { if (-not $m.name_en -or -not $m.name_ru) { throw 'Missing module translation' } }
- @{result='PASS';version='0.992-dev';defaultLanguage=$script:lang;languages=@('en','ru');modules=$manifest.Count;uiShown=$false} | ConvertTo-Json
+ @{result='PASS';version='0.993-dev';defaultLanguage=$script:lang;languages=@('en','ru');modules=$manifest.Count;uiShown=$false} | ConvertTo-Json
  return
 }
 Add-Type -AssemblyName System.Windows.Forms
