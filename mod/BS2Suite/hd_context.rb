@@ -97,6 +97,8 @@ module BS2Suite::HDDisplay
         object=entry[:object]
         if object.is_a?(RPG::Skill)
           label+=' · '+BS2Suite::Performance.mp_cost(window.actor,object,entry[:source]).to_s+' MP'
+          cooldown=BS2Suite::Availability.cooldown(window.actor,object)
+          label+=' · КД '+cooldown.to_s if cooldown>0
         elsif object.is_a?(RPG::Item)
           label+=' ×'+$game_party.item_number(object).to_s
         end

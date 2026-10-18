@@ -19,7 +19,9 @@ module BS2Suite
     end
   end
   module Options
-    DEFAULTS={'experimental_support'=>0,'crisp_hd'=>1,'palette_notes'=>1,'weapon_notes'=>1,'bgm'=>100,'bgs'=>100,'me'=>100,'se'=>100,'run_mode'=>0,'fast_items'=>0,'steam_mode'=>1,'pad_fallback'=>1,'knowledge_threshold'=>2}
+    # Register every option before the first lazy read (sound/HD can trigger it
+    # during bootstrap). Late-added defaults used to discard saved 0.991 keys.
+    DEFAULTS={'navigation_aliases'=>1,'adaptive_priority'=>1,'priority_window'=>20,'tempo_hint'=>1,'experimental_support'=>0,'crisp_hd'=>1,'palette_notes'=>1,'weapon_notes'=>1,'bgm'=>100,'bgs'=>100,'me'=>100,'se'=>100,'run_mode'=>0,'fast_items'=>0,'steam_mode'=>1,'pad_fallback'=>1,'knowledge_threshold'=>2}
     def self.data
       return @data if @data
       @data=DEFAULTS.dup

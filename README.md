@@ -6,7 +6,7 @@
 
 An unofficial, modular collection of combat controls, practical reference cards and interface improvements for BLACK SOULS II.
 
-**Development build: `0.991-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
+**Development build: `0.992-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
 
 ## Features
 
@@ -37,7 +37,7 @@ Documentation and the installer default to English, with a Russian switch. **The
 3. Select modules and click **Install / change**. Everything defaults on except legacy controls and diagnostics.
 4. Launch the game normally. Configure controls, modules and display from the mod settings.
 
-Existing verified previews through `0.9.8-alpha` can use `Update.cmd` with the game closed. **First installation adds an external bootstrap to `Data/Scripts.rvdata2` and preserves its original backup.** Module-only updates replace verified mod files and installation metadata. They do not replace the game executable, engine DLLs or saves. See [installation and recovery](docs/INSTALL.md).
+Existing verified previews through `0.991-dev` can use `Update.cmd` with the game closed. **First installation adds an external bootstrap to `Data/Scripts.rvdata2` and preserves its original backup.** Module-only updates replace verified mod files and installation metadata. They do not replace the game executable, engine DLLs or saves. See [installation and recovery](docs/INSTALL.md).
 
 ## Essential controls
 
@@ -69,3 +69,7 @@ A technique with one original action uses its source weapon. Magic and action-co
 Steam overlay visibility and screenshots were confirmed in the development setup. Recording was observed, but playback/export and every HD/Steam combination were not validated. No universal recording guarantee is made.
 
 Included runtime assets are the project's x86 helper and a generated factual reference view. The game, RGSS engine, Steam API library, original game description prose, personal saves, local logs and conversation exports are excluded. Original-code licensing has not been selected; third-party licenses are preserved.
+
+## 0.992-dev changes
+
+Enemy tempo uses AP-gauge stars instead of a text panel, with queued/hovered speed effects and supported existing-control expiry. Tempo and usage priorities default on; history defaults to 20 battles. Fixed late option registration losing saved settings across restarts. Navigation exclusions now follow actual key conflicts. B hides exhausted items; palettes show remaining cooldowns; new save headers include progression/souls; Gear choices accept 1/2/3. Automatic acceleration of supposedly weak enemies is deferred until boss/spirit classification and timing-safe behavior can be verified. See [controls](docs/CONTROLS.md) and [local verification](docs/QA.md).

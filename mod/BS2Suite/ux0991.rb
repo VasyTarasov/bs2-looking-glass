@@ -111,18 +111,36 @@ module BS2Suite
     def self.context?
       return false unless BS2Suite.enabled?('controls') && Options.get('navigation_aliases')==1
       scene=SceneManager.scene
-      return false unless scene.is_a?(Scene_Map) || scene.is_a?(Scene_Battle)
+      return false unless scene.is_a?(Scene_Map) || scene.is_a?(Scene_Battle) || scene.is_a?(Scene_MenuBase)
       if scene.is_a?(Scene_Map)
         return !$game_message.busy? && !$game_map.interpreter.running? && !scene.scene_changing?
       end
-      popup=scene.instance_variable_get(:@bs2s_palette)
-      return false if popup && (popup.prefix=='B' || popup.assignment)
-      item=scene.instance_variable_get(:@item_window)
-      !(item && item.active && item.open?)
+      true
+    end
+    def self.list_conflicts?
+      scene=SceneManager.scene
+      return true if scene.is_a?(Scene_File)
+      return false unless scene.is_a?(Scene_Battle) || scene.is_a?(Scene_MenuBase)
+      # B and assignment palettes do not consume favorite/filter input. Native
+      # supported lists do. A reference above one still reserves its controls.
+      return false if scene.instance_variable_get(:@bs2s_palette)
+      scene.instance_variables.any? do |id|
+        window=scene.instance_variable_get(id)
+        next false unless window.is_a?(Window_Selectable) && !window.disposed? && window.open? &&
+          (window.active || scene.instance_variable_get(:@bs2q_reference_origin).equal?(window))
+        collection=defined?(Window_BS2QCollection) && window.is_a?(Window_BS2QCollection)
+        collection || (window.respond_to?(:bs2q_supported?) && window.bs2q_supported? && BS2Suite.enabled?('combat_shortcuts'))
+      end
+    end
+    def self.available?(key)
+      BS2Suite::Keys.data.none? do |action,token|
+        next false if [:X,:Y].include?(action) && !list_conflicts?
+        token.split('+')[-1]==key
+      end
     end
     def self.code(action)
       return nil unless context? && DEFAULT.has_key?(action.to_s)
-      key=data[action.to_s];free?(key) ? BS2Suite::Keys::BASE[key] : nil
+      key=data[action.to_s];available?(key) ? BS2Suite::Keys::BASE[key] : nil
     end
     def self.sample
       @holds ||= {};return if @frame==Graphics.frame_count
@@ -138,7 +156,7 @@ module BS2Suite
       sample;(@holds || {})[action.to_s].to_i
     end
     def self.claimed?(action)
-      return false unless [:X,:Y].include?(action) && context?
+      return false unless [:X,:Y].include?(action) && context? && !list_conflicts?
       vk=BS2Suite::Keys::BASE[BS2Suite::Keys.token(action)]
       DEFAULT.keys.any? { |dir| code(dir.to_sym)==vk }
     end
@@ -166,8 +184,6 @@ module Input
   end
 end
 
-BS2Suite::Options::DEFAULTS.merge!('navigation_aliases'=>1,'adaptive_priority'=>0,'priority_window'=>20,'tempo_hint'=>0)
-BS2Suite::Options::DEFAULTS.each { |key,value| BS2Suite::Options.data[key]=value unless BS2Suite::Options.data.has_key?(key) }
 class BS2Suite::SettingsCommands
   alias bs20991_settings_commands make_command_list
   def make_command_list
@@ -178,7 +194,7 @@ class BS2Suite::SettingsCommands
       @list.insert(-2,{:name=>'Приоритеты V/M/N (эксп.): '+(BS2Suite::Options.get('adaptive_priority')==1 ? 'вкл' : 'выкл'),:symbol=>:adaptive_priority,:enabled=>true,:ext=>nil})
       @list.insert(-2,{:name=>'История приоритетов: '+BS2Suite::Options.get('priority_window').to_s+' боёв',:symbol=>:priority_window,:enabled=>true,:ext=>nil})
     end
-    @list.insert(-2,{:name=>'Подсказка темпа противников: '+(BS2Suite::Options.get('tempo_hint')==1 ? 'вкл' : 'выкл'),:symbol=>:tempo_hint,:enabled=>true,:ext=>nil})
+    @list.insert(-2,{:name=>'Звёздочки темпа противников: '+(BS2Suite::Options.get('tempo_hint')==1 ? 'вкл' : 'выкл'),:symbol=>:tempo_hint,:enabled=>true,:ext=>nil})
   end
 end
 class BS2Suite::SettingsScene
@@ -203,7 +219,7 @@ class BS2Suite::NavigationKeyCommands < Window_Command
 end
 class BS2Suite::NavigationKeysScene < Scene_MenuBase
   def start
-    super;@header=BS2Modules::Header.new;@header.text=['Альтернативная навигация','Карта и бой; предметные списки исключены. Enter изменить · Esc назад']
+    super;@header=BS2Modules::Header.new;@header.text=['Альтернативная навигация','Занятые клавиши сохраняют свою функцию. Enter изменить · Esc назад']
     @commands=BS2Suite::NavigationKeyCommands.new(0,72);BS2Modules.style(@commands)
     @commands.set_handler(:cancel,method(:return_scene))
     BS2Suite::NavigationAliases::DEFAULT.keys.each { |dir| @commands.set_handler(dir.to_sym,lambda { capture(dir) }) }

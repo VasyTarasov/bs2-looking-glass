@@ -47,22 +47,30 @@ F4, H and their F7 details are nested inspections. Esc returns to the previous c
 
 ## Alternative movement and inspection
 
-W/A/S/Z duplicate Up/Left/Down/Right on the map and in battle, with the controls module enabled. D retains weapon/support assignments. Item lists and B item palettes keep their original controls, so favorites and filtering remain available there. In other menus A/S retain their existing assignments. The alternative is on by default and can be disabled or rebound under mod settings. Existing custom global bindings are not stolen; a conflicting alternative letter is ignored.
+W/A/S/Z duplicate Up/Left/Down/Right on the map, in battle and in menus with the controls module enabled. Each letter is checked against the functions actually reserved in that context. In a native item/skill list A/S remain favorites/filter; W/Z still navigate. Remapping favorites/filter frees A/S there too. B palettes do not use favorites/filter input and can use all four directions. D stays assigned to equipment/support until that assignment is moved; after moving it the navigation editor can support WASD. Collection and save-list A/S commands are preserved. Other global/confirm/cancel bindings are never stolen. The alternative can be disabled or rebound under mod settings.
 
-F5 still opens the combat journal; its redundant left-side battle command is removed. Cosmetic battle updates continue under V/B/M/N, F4, H and F7: breathing, mist, animations and screen effects. Battle AP, state timers, actions and troop events stay paused. Modal visual random draws have their own stream.
+F5 opens the combat journal; its redundant left-side battle command is removed. Cosmetic battle updates continue under V/B/M/N, F4, H and F7. Battle AP, state timers, actions and troop events stay paused. Modal visual random draws use their own stream.
 
-Palette descriptions and costs are cached until relevant state changes. A previously unseen damage estimate waits for about 120 ms of settled selection and yields to held navigation; a temporary ≈ … indicates calculation is pending. Explicit model/reference calculations are not delayed. Returning to a cached choice is immediate.
+Palette costs/descriptions are cached until relevant state changes. A new inline damage estimate waits about 120 ms of settled selection. Tempo hover previews wait about 100 ms and yield to held navigation; pending marks use `?`. Cached choices and explicit model/reference calculations are immediate. Zero-stock items disappear from B without removing their saved membership; acquiring them restores them. Remaining native skill cooldowns appear as `КД n` in palette rows, including HD.
 
-## Experimental usage priorities
+The Gear of Madness's original SEN dialog also accepts **1 / 2 / 3** for its three displayed choices. No other game dialog receives these keys. New saves include progression (the game's progression counter, not NG+ loops) and currency souls alongside the hero's level. Older headers remain readable; missing metadata is not guessed or recovered from save bodies.
 
-Off by default. This changes only row order inside existing automatic V/M/N groups. It does not change membership, create groups, include excluded weapons or alter custom profiles/B items. Digits are reassigned consecutively to match visible positions. Disabling the option returns the author's order.
+## Usage priorities
 
-History uses completed battles recorded while the option is enabled. The default window is 20, selectable as 5/10/20/30; up to 30 battles are retained when changing windows. Actual skill/magic uses and the weapon executing non-instant skills are counted. Browsing, nominating a weapon and item use do not count. A weapon/skill contributes at most five uses per battle, limiting one long fight's influence.
+Enabled by default with a 20-battle window. Explicit saved choices remain respected. This changes only row order inside existing automatic V/M/N groups; membership, custom profiles and B items are unchanged. Digits match visible positions. Disabling it restores the authored order.
 
-A challenger needs at least 50% more capped uses and at least three extra uses. At least three battles must be observed; the candidate must occur in three battles, or two for the five-battle window. After reordering a group rests for three completed battles. Ordering is committed at battle end, never during selection. Changes appear through the existing layout notification, with old/new addresses.
+History counts completed battles while enabled. Choose 5/10/20/30; up to 30 battles are retained. Actual skill/magic use and the weapon executing non-instant skills count, capped at five uses per token per battle. Browsing, equipping/nominating and items do not count.
 
-## Optional enemy tempo hint
+A challenger needs at least 50% more capped uses and three extra uses, observed across several battles. After reordering the group rests for three completed battles. Order commits at battle end; a notification gives changed addresses.
 
-Off by default. The sidebar, or a compact classic battle panel, lists enemies whose first gauge readiness precedes the hero's next gauge by the current native AP rates. Ally turns are omitted. The calculation uses the engine's AP gain and refresh quantum, existing enemy gauge progress, and the applicable final/source weapon for the selected last action. Random post-action AP is treated as a range.
+## Enemy tempo stars
 
-This is a conditional current-tempo aid, not a simulation of the future battle. New/expiring effects, deaths, incomplete queues, allies' future actions and enemies' repeated turns can change it. Channeled actions can remain unconfirmed. It does not inspect enemy AI, and unknown enemy mechanics remain behind the knowledge boundary. Actual AP/RNG is never advanced to make the prediction.
+Enabled by default, configurable in mod settings. No permanent text panel and no order numbers. A filled star beside an enemy's AP gauge identifies the first enemy before the hero. A hollow star marks another enemy that can also act before the next hero turn. `?` means a possible or unconfirmed outcome. No mark means that enemy is not ahead in the supported forecast; if every visible enemy has no mark, the hero is next **with the option enabled and a supported forecast**. Ally turns are not listed.
+
+Forecasts use current AP and native refresh quanta; live item effects already applied; selected actions in the remaining queue; hovered V/B/M/N or native-list actions; source/final weapon policy; AGI buffs/debuffs, speed states and their supported expiry; and random retained AP as a range. A hovered single-target effect without a selected target considers alternative targets. Choosing the target narrows that preview. N hover previews equipping the weapon, without inventing an attack.
+
+Proposed stuns, AP interruption and chant cancellation are deliberately ignored, even when guaranteed. Already applied restrictions are evaluated through their actual remaining skipped owner turns or frame duration. A stun does not hide a star if the enemy recovers before the hero. Native before-action removal and completed-chant precedence are respected.
+
+This is a conditional tempo forecast, not future enemy AI/damage simulation. Up to 32 outcome worlds are considered. Unsupported common events, channels, later global-turn expiry, frame regeneration, damage-dependent control removal or excess branches show `?`; they never silently imply a hero turn. Future deaths, enemy/ally actions and new choices may change the result. Unknown enemy mechanics retain the knowledge boundary. No live AP, resources or combat RNG is advanced by a preview.
+
+Options are registered before bootstrap reads preferences. Tempo, priority settings and navigation now survive an actual process restart, rather than only an in-memory reload. Final N nomination remains battle-local by design; starting-weapon assignments and user bindings remain separate persistent settings.

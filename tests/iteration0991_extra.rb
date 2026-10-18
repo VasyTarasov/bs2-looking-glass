@@ -2,7 +2,7 @@
 # Executed inside the synthetic battle by iteration0991_spec.rb.
 actor=$game_actors[1];scene=SceneManager.scene
 nav=BS2Suite::NavigationAliases
-check(BS2Suite::Options.get('adaptive_priority')==0 && BS2Suite::Options.get('tempo_hint')==0,'experimental priority and tempo hints default off')
+check(BS2Suite::Options::DEFAULTS['adaptive_priority']==1 && BS2Suite::Options::DEFAULTS['tempo_hint']==1 && BS2Suite::Options::DEFAULTS['priority_window']==20,'priorities and tempo default on with twenty-battle history')
 check(BS2Suite::Keys.token(:gear)=='G','Gear of Madness defaults to plain G')
 commands=scene.instance_variable_get(:@actor_command_window)
 check(!commands.instance_variable_get(:@list).any? { |r| r[:symbol]==:bs2092_journal },'F5 journal command is absent from battle command list')
@@ -13,7 +13,7 @@ end
 tick;tick([65]);check(!Input.trigger?(:X),'battle A navigates without toggling favorites')
 tick;tick([83]);check(!Input.trigger?(:Y),'battle S navigates without filtering favorites')
 context_item=scene.instance_variable_get(:@item_window);context_item.show.activate;context_item.openness=255
-check(!Input.press?(:DOWN),'opening an item list suppresses a held alias in the same frame')
+check(!Input.press?(:DOWN),'opening a supported item list reserves its S filter immediately')
 context_item.hide.deactivate
 tick;tick([68]);check(Input.trigger?(:Z) && !Input.press?(:RIGHT),'D retains equipment/support meaning')
 item=scene.instance_variable_get(:@item_window);item.show.activate;item.openness=255
@@ -81,34 +81,8 @@ size=p.instance_variable_get(:@history).size;p.finish
 check(p.instance_variable_get(:@history).size==size,'duplicate battle finish cannot append duplicate history')
 BS2Suite::Options.set('adaptive_priority',0)
 check(p.apply(actor,'V',1,original).equal?(original),'disabling priorities restores author order')
-# Native gauge prediction uses the same gain and refresh quantum, never enemy AI.
-BS2Suite::Options.set('tempo_hint',1);BS2Suite::Options.set('knowledge_threshold',0)
-actor.actions.each { |action| action.clear }
-actor.instance_variable_set(:@actions,[Game_Action.new(actor)]);actor.instance_variable_set(:@action_input_index,0)
-enemies=$game_troop.alive_members
-enemies.each { |enemy| enemy.ap=0 }
-enemies[0].ap=ATB::MAX_AP-1
-before=Marshal.dump([actor,enemies]);srand(77);expected_random=rand;srand(77)
-tempo=BS2Suite::TempoHint.lines(scene)
-check(tempo.join.include?(enemies[0].name) && tempo.join.include?('До следующего ГГ'),'ready enemy is identified before next hero turn')
-check(!tempo.join.include?('союзник 1') && before==Marshal.dump([actor,enemies]) && rand==expected_random,'tempo excludes ally turns and does not mutate or roll RNG')
-if defined?(BS2Suite::HDDisplay)
-  check(BS2Suite::HDDisplay.lines(scene).any? { |r| r.include?('Темп после серии') },'optional tempo is actually integrated into the battle sidebar')
-else
-  commands.show.activate;commands.openness=255;BS2Suite::TempoHint.tick
-  panel=scene.instance_variable_get(:@bs20991_tempo)
-  check(panel && panel.visible,'optional tempo has a compact classic battle panel')
-end
-view=BS2Suite::Projection.copy(enemies[1]);view.ap=0
-expected=(ATB::MAX_AP/(view.ap_gain_point*ATB::REFRESH_FRAME).to_f).ceil
-check(BS2Suite::TempoHint.ticks(enemies[1])==expected,'tempo matches native AP gain and refresh quantum')
-BS2Suite::Options.set('knowledge_threshold',100)
-check(BS2Suite::TempoHint.lines(scene).join.include?('закрыты'),'tempo does not expose unknown enemy mechanics')
-BS2Suite::Options.set('knowledge_threshold',0);BS2Suite::Options.set('tempo_hint',0)
-check(BS2Suite::TempoHint.lines(scene).empty?,'tempo can be fully disabled')
-BS2Suite::TempoHint.tick
-panel=scene.instance_variable_get(:@bs20991_tempo)
-check(!panel || !panel.visible,'disabled tempo leaves no classic panel behind')
+load 'tempo0992_extra.rb'
+load 'followup0992_extra.rb'
 if defined?(BS2Suite::QuickDamage)
   q=BS2Suite::QuickDamage;BS2Suite::Performance.reset
   actor.learn_skill(14);magic=$data_skills[14]

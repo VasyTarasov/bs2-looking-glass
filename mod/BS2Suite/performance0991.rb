@@ -16,7 +16,8 @@ module BS2Suite
        actor.actions.map { |a| [a.item && a.item.class.to_s,a.item && a.item.id,a.target_index,a.forcing,a.instance_variable_get(:@bs2s_direct_count),a.instance_variable_get(:@bs2s_normal_attack)] },
        actor.instance_variable_get(:@action_input_index),defined?(BS2Suite::DirectWeapons) && BS2Suite::DirectWeapons.selected_id(actor),
        $game_party.gold,$game_troop.members.map { |e| [e.index,e.hp,e.mp,e.hidden?,e.instance_variable_get(:@states).hash,e.instance_variable_get(:@state_turns).hash,e.instance_variable_get(:@buffs).hash,e.instance_variable_get(:@buff_turns).hash] },
-       Options.get('knowledge_threshold'),Options.get('palette_notes'),Options.get('weapon_notes')]
+       Options.get('knowledge_threshold'),Options.get('palette_notes'),Options.get('weapon_notes'),
+       $game_temp.instance_variable_get(:@cool_time).to_a.select { |b,v| b.equal?(actor) }.map { |b,v| v.hash }]
     end
     def self.mp_cost(actor,object,source=nil)
       @costs ||= {};key=[context(actor),object.id,source && source.id]

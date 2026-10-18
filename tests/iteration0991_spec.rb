@@ -29,7 +29,7 @@ def tick(keys=[])
   @raw.keys=keys;Graphics.update;Input.update
 end
 begin
-  File.open('test_result.txt','w') { |f| f.puts 'Looking Glass 0.991-dev native regression' }
+  File.open('test_result.txt','w') { |f| f.puts 'Looking Glass 0.992-dev native regression' }
   DataManager.init;DataManager.setup_new_game
   SceneManager.instance_variable_set(:@background_bitmap,Bitmap.new(640,480))
   actor=$game_actors[1];actor.change_class(1);actor.change_level(70,false);actor.clear_equipments
