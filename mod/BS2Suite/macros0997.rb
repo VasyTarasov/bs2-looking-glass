@@ -174,7 +174,7 @@ module BS2Suite
     def process_handling
       if active && open? && SceneManager.scene.is_a?(Scene_Battle)
         return if SceneManager.scene.instance_variable_get(:@bs2s_macros_opened)==Graphics.frame_count
-        return if BS2Suite::ContextEffects.route(SceneManager.scene,self)
+        return if defined?(BS2Suite::ContextEffects) && BS2Suite::ContextEffects.route(SceneManager.scene,self)
         if BS2Suite::Keys.trigger?(:macros);process_cancel;return;end
         digit=BS2Suite::Palette.digit
         unless digit.nil?

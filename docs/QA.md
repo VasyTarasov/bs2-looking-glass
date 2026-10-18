@@ -1,3 +1,9 @@
+# Verification of 0.998-dev
+
+Focused dependency fix on the verified 0.997-dev base below. Final-build native checks: reduced-module macro picker/editor **6**, full queue/weapon/macro UI **53**, all modules **69**, no optional modules **22** — **150 assertions**, all with exit code 0 and `result=PASS` on the hardened private desktop. The reduced fixture actually omits Effects, Reference Cards and Controls and exercises C dispatch/close and harmless F7 in the editor.
+
+Installer: **55** assertions. Verified update from 0.997-dev, running-game/foreign-edit refusal, partial-write rollback and synthetic profile/save preservation: **178** assertions. Repository checks: **19**. PowerShell 5.1 installer validation is headless. The original scripts, engine and Steam bridge DLL are unchanged from 0.997-dev; the 1440p map and full battle evidence below still describe that base.
+
 # Verification of 0.997-dev
 
 Development preview; no stable release. Native QA uses only the hardened private-desktop launcher, exit code 0 and `result=PASS`. Tests use synthetic saves and a Steam-free fixture. No public test windows or player-game input.

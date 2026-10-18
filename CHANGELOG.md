@@ -1,5 +1,10 @@
 # Development history
 
+## 0.998-dev — optional macro dependencies
+
+Guard the contextual effects route so macros work without Effects, Reference Cards or Controls. Keep the native C picker and editor safe in a reduced module installation.
+
+
 ## 0.997-dev — battle queues, map capture and macros
 
 Resume the same unspent slot after instant items; arm final executors at the native turn boundary; make starting weapons battle-only; add Shift attacks in N and eight six-row macros. Preserve ring copies from 0.996. Aggregate repeated map diagnostic command sites, avoid redundant string conversions, fence intermediate heat-haze captures and render its padded visible region.
