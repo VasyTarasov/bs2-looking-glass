@@ -17,7 +17,7 @@ begin
   actor=$game_party.members[0];actor.change_class(1);actor.change_level(20,false);actor.clear_equipments
   actor.name='QA';actor.recover_all
   SceneManager.instance_variable_set(:@background_bitmap,Bitmap.new(640,480))
-  check(BS2Suite::VERSION=='0.92-dev','suite loads on native Ruby 1.9')
+  check(BS2Suite::VERSION=='0.991-dev','suite loads on native Ruby 1.9')
   check(BS2Suite::IDS.size==22,'twenty-two independently selected features')
   defs={'effects'=>'BS2Modules::Effects','loadouts'=>'BS2Modules::Loadouts','reference_cards'=>'BS2QoL::ReferenceCard','learned_books'=>'BS2Suite::Books','field_skills'=>'BS2Suite::FieldScene','saves'=>'BS2Suite::Saves','scaling'=>'BS2Suite::Scaling','sound'=>'BS2Suite::Sound','debug'=>'BS2Suite::Debug'}
   defs.each { |id,name| check(!!eval('defined?('+name+')')==BS2Suite.enabled?(id),'disabled feature code absent: '+id) }

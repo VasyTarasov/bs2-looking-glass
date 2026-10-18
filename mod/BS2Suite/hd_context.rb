@@ -96,8 +96,7 @@ module BS2Suite::HDDisplay
         label=entry[:name] || (entry[:object] && entry[:object].name) || '—'
         object=entry[:object]
         if object.is_a?(RPG::Skill)
-          view=entry[:source].is_a?(RPG::Weapon) ? BS2Suite::Projection.weapon(window.actor,entry[:source]) : window.actor
-          label+=' · '+view.skill_mp_cost(object).to_s+' MP'
+          label+=' · '+BS2Suite::Performance.mp_cost(window.actor,object,entry[:source]).to_s+' MP'
         elsif object.is_a?(RPG::Item)
           label+=' ×'+$game_party.item_number(object).to_s
         end

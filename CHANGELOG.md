@@ -1,5 +1,10 @@
 # Development history
 
+## 0.991-dev — responsive palettes and optional priorities
+
+Keep cosmetic animation running under battle inspections; cache palette work and defer new inline estimates; add contextual/rebindable WASZ and plain G; remove the field hotkey and redundant F5 command; combine AoE min/max/sum; add opt-in usage priorities with rolling history/hysteresis and an opt-in current-tempo aid. Steam overlay/HD confirmation recorded from normal play.
+
+
 ## 0.92-dev — display and nested battle inspection
 
 - Fix the F4 → H dead end and preserve return through nested F7 views.

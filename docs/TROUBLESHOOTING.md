@@ -10,7 +10,7 @@
 
 **HD:** select a display preset in mod settings and confirm that it works. OpenGL scales the original frame and renders the side panel separately; it does not replace every old game screen with a new native-resolution layout. Windows DPI, drivers and monitor combinations can affect clarity.
 
-**Steam:** launch through Steam and inspect bridge status. Overlay and screenshots were confirmed in development. Recording was seen, but playback/export and all HD combinations were not fully verified. Steam chooses the screenshot key; keep plain F12 for the return-to-title workflow through a clean restart.
+**Steam:** launch through Steam and inspect bridge status. Overlay, mouse interaction and screenshots, including HD, were confirmed by the player during normal play. Recording was seen, but playback/export was not fully verified. Steam chooses the screenshot key; keep plain F12 for the return-to-title workflow through a clean restart.
 
 **Missing forecast:** hidden target knowledge, unsupported formulas, scripted events or a conditional chain can prevent a complete number. The UI must indicate this instead of inventing a total. Base MP cost is not necessarily the current cost with your equipment.
 

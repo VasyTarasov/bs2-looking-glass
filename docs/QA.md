@@ -1,27 +1,44 @@
-# Verification of 0.92-dev
+# Verification of 0.991-dev
 
-Local Windows development checks; no stable release or remote CI claim.
+Local isolated Windows checks; experimental development build, no stable release.
 
 | Native check | Result | Assertions |
 |---|---|---:|
-| new_classic | PASS | 24 |
-| new_hd | PASS | 50 |
-| ux_classic | PASS | 45 |
-| ux_hd | PASS | 58 |
+| changes_classic | PASS | 65 |
+| changes_hd | PASS | 96 |
 | reference_classic | PASS | 7562 |
 | reference_hd | PASS | 7565 |
 | weapons | PASS | 1077 |
 | modules | PASS | 69 |
 | minimal | PASS | 22 |
+| bench | PASS | 4 |
 
-Total: **16472 native assertions**. Each passed run used the hardened private-desktop launcher, exit code 0 and `result=PASS`. The player game was never used as a test fixture, and personal saves were not read.
+**16460 native assertions** across 8 current sets. The same hardened private-desktop launcher requires exit code 0 and result=PASS. Personal saves and the live player process were not used as fixtures.
 
-The old F4 dispatcher was substituted into a synthetic fixture as a negative control. F4 → H reproduced the dead end and the bounded test deliberately failed; restoring the fix passes in classic and active HD. Nested F7 returns and interrupted-modal cleanup are covered.
+Coverage includes real WASZ input and item-list exclusions, preserved D, removed F5 command, actual breathing/mist under H without AP/state/resource/RNG changes, F4/H/F7 nesting and cleanup, AoE minimum/maximum/sum, bounded rolling history, frequency thresholds, cooldown, preference reload, actual use tracking, duplicate-finish protection, tempo integration/knowledge/RNG safeguards, cache reuse/invalidation and deferred sidebar calculation. Reference sets cover all named cards and 105 weapon scenarios.
 
-HD tests include actual F10 key input, saved-size reuse, sharp-filter enforcement, independent startup preference, preservation of custom key conflicts, real own-window minimize/restore before deferred startup placement, and repair after a late native resize. The title-only DPI restart guard is also covered by the UX regression suite. V/M palette rows are checked for estimates below their descriptions; AoE retains an explicit total. Forecasts preserve battlers and RNG.
+## Palette CPU timing
 
-Installer: **55 assertions**. Update/rollback from 0.9.8-alpha: **155 assertions**. Update from the archived 0.91-dev package: **69 assertions**. These use synthetic files and test live-process refusal, integrity checks and rollback. Game-free repository tests: **18**. Three PowerShell scripts parse with UTF-8 BOM under Windows PowerShell 5.1; the installer headless check confirms English default, Russian switch and 22 modules.
+Same synthetic battle, same HD mode, 30 repetitions per group. These measure Ruby palette row construction, not end-to-end key or GPU latency. GetTickCount resolution is coarse; zero means below clock resolution.
 
-The remaining native sets audit every named reference card, journal details, 105 weapon scenarios, navigation, support restrictions and module combinations. Source/runtime asset hashes and repository privacy/link checks are validated before packaging. Original description prose remains removed from 2,602 English alias entries. The two runtime assets are explicitly allowlisted.
+Before (0.92-dev):
 
-Steam recording playback/export, every monitor/driver/DPI combination and live recovery of an already stuck older session are not claimed. The update takes effect only in a new game process. In-game reference text remains predominantly Russian. Remote game-free CI passed for the uploaded implementation commit b82849c; see [GitHub verification](https://github.com/VasyTarasov/bs2-looking-glass/actions/runs/39130135207). Native counts above come from local isolated runs.
+```text
+V stable_30_ms=140 selection_30_ms=422
+M stable_30_ms=16 selection_30_ms=125
+N stable_30_ms=63 selection_30_ms=406
+```
+
+After (0.991-dev):
+
+```text
+V stable_30_ms=0 selection_30_ms=31
+M stable_30_ms=0 selection_30_ms=31
+N stable_30_ms=0 selection_30_ms=32
+```
+
+Installer: 55 assertions. Update/rollback from 0.9.8-alpha: 163 assertions. Update from archived 0.92-dev: 73 assertions; the same migration is checked with Git-style LF Ruby sources. Known line-ending variants are accepted by verified canonical hashes; code edits remain refused. Synthetic settings/save sentinels and engine assets are retained, foreign changes/running games are refused, and partial writes roll back. Game-free repository checks: 19. Three PowerShell scripts parse with BOM under Windows PowerShell 5.1; headless installer confirms English default, Russian switch and 22 modules.
+
+Steam overlay, HD mouse interaction and screenshots are confirmed by the player during normal play. The native bridge DLL is unchanged in this preview. Recording playback/export was not retested. Remote CI is checked after upload; native counts above are local results.
+
+The tempo aid is conditional on current effects/AP rates, not a future enemy-AI simulation; repeated enemy turns and future effects can change it. Adaptive ordering is opt-in and records only completed battles while enabled. All monitor/driver combinations are not claimed. In-game mechanics text remains predominantly Russian. Runtime assets, staged content and archive hashes are audited before publication.

@@ -60,12 +60,3 @@ class Scene_Menu
     @command_window.set_handler(:bs2suite_field,lambda { SceneManager.call(BS2Suite::FieldScene) })
   end
 end
-class Scene_Map
-  alias bs2suite_field_update update
-  def update
-    bs2suite_field_update
-    if BS2Suite::Keys.trigger?(:field) && !$game_system.menu_disabled && !$game_map.interpreter.running? && !$game_message.busy? && !$game_player.moving? && !scene_changing?
-      Sound.play_ok;SceneManager.call(BS2Suite::FieldScene)
-    end
-  end
-end

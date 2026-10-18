@@ -19,7 +19,7 @@ The installer preserves the original script table and inserts an external bootst
 
 ## Update
 
-Close the game and run `Update.cmd`. It explicitly recognizes the recorded previous previews through `0.9.8-alpha` and `0.91-dev`, checks script/mod integrity, keeps settings and creates `BS2Suite/rollback-*` before writing. Partial writes roll back. A running target or foreign edit causes refusal.
+Close the game and run `Update.cmd`. It explicitly recognizes the recorded previous previews through `0.9.8-alpha` and `0.91-dev` / `0.92-dev`, checks script/mod integrity, keeps settings and creates `BS2Suite/rollback-*` before writing. Partial writes roll back. A running target or foreign edit causes refusal.
 
 New development labels are explicit identifiers, not numerical upgrade comparisons. If you edited files manually, preserve and compare them; do not force the updater to overwrite unknown code.
 
