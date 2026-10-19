@@ -6,11 +6,11 @@
 
 An unofficial, modular collection of combat controls, practical reference cards and interface improvements for BLACK SOULS II.
 
-**Development build: `0.998-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
+**Development build: `0.999-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
 
 ## Latest development changes
 
-0.998-dev also keeps macros usable with Effects, Reference Cards and Controls disabled.
+0.999-dev adds four groups of eight macros (C → group → preset), numbered editor choices, optional item/guard executors, MP/cooldown summaries, double-Esc queue reset and Space confirmation. It fixes growing N hints and models queued self buffs, random shots and repeated on-hit effects in damage previews. Existing presets migrate into group one with a local backup. See [macros](docs/MACROS.md) and [verification](docs/QA.md).
 
 0.997-dev preserves every ring copy/tier; fixes instant-item queue slots and final-executor arming; applies the starting weapon once per battle; adds Shift attacks in N and eight named six-step macros on C. Map diagnostics aggregate repeated command sites and the HD presenter hides heat-haze snapshot preparation. See [macro controls](docs/MACROS.md), [controls](docs/CONTROLS.md) and [verification](docs/QA.md).
 

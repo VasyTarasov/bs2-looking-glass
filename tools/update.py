@@ -1,6 +1,6 @@
-"""Update verified own modules through 0.997-dev; never replace game binaries or script data."""
+"""Update verified own modules through 0.998-dev; never replace game binaries or script data."""
 from pathlib import Path, PurePosixPath
-import argparse,datetime,hashlib,json,sys
+import argparse,datetime,hashlib,json,sys,re
 sys.dont_write_bytecode=True
 from install import ROOT,VERSION,atomic_write
 from process_check import target_running
@@ -18,6 +18,16 @@ def matches_own_ruby(data,expected,rel,canonical=None):
     if canonical and sha(lf)==canonical:return True
     return sha(lf)==expected or sha(lf.replace(b'\n',b'\r\n'))==expected
 
+
+def grouped_macros(data):
+    """Byte-preserving format-1 migration: old slots belong to group one."""
+    if data is None or re.search(rb'(?m)^format=2\r?$',data):return data
+    if len(data)>65536:raise ValueError('Macro profile exceeds the supported size')
+    if not re.search(rb'(?m)^format=1\r?$',data):return data
+    if re.search(rb'(?m)^\[[0-9]+,[0-9]+,[0-9]+\]\r?$',data):raise ValueError('Mixed macro formats; profile left untouched')
+    migrated=re.sub(rb'(?m)^\[([0-9]{1,4}),([1-8])\](\r?)$',rb'[\1,1,\2]\3',data)
+    return re.sub(rb'(?m)^format=1(\r?)$',rb'format=2\1',migrated)
+
 def run(game,apply=False):
     game=Path(game).resolve()
     if any(part.casefold()=='secrets' for part in game.parts):raise ValueError('Protected target refused')
@@ -27,7 +37,7 @@ def run(game,apply=False):
     record_bytes=record_path.read_bytes();record=json.loads(record_bytes)
     if not record.get('active'):raise ValueError('Сначала требуется установленный Looking Glass / BS2Suite.')
     if sha((game/'Data/Scripts.rvdata2').read_bytes())!=record['installed_scripts_sha256']:raise ValueError('Игровые скрипты изменены; автоматическое обновление отменено.')
-    previous_versions={'0.9.0-preview':'090','0.9.1-alpha':'091','0.9.2-alpha':'092','0.9.3-alpha':'093','0.9.4-alpha':'094','0.9.5-alpha':'095','0.9.6-alpha':'096','0.9.7-alpha':'097','0.9.8-alpha':'098','0.91-dev':'091dev','0.92-dev':'092dev','0.991-dev':'0991dev','0.992-dev':'0992dev','0.993-dev':'0993dev','0.994-dev':'0994dev','0.995-dev':'0995dev','0.996-dev':'0996dev','0.997-dev':'0997dev'}
+    previous_versions={'0.9.0-preview':'090','0.9.1-alpha':'091','0.9.2-alpha':'092','0.9.3-alpha':'093','0.9.4-alpha':'094','0.9.5-alpha':'095','0.9.6-alpha':'096','0.9.7-alpha':'097','0.9.8-alpha':'098','0.91-dev':'091dev','0.92-dev':'092dev','0.991-dev':'0991dev','0.992-dev':'0992dev','0.993-dev':'0993dev','0.994-dev':'0994dev','0.995-dev':'0995dev','0.996-dev':'0996dev','0.997-dev':'0997dev','0.998-dev':'0998dev'}
     if record['version'] not in (*previous_versions,VERSION):raise ValueError('Эта установленная версия не поддерживает прямое обновление. Используйте Install.cmd.')
     previous=json.loads((ROOT/('tools/previous_'+previous_versions.get(record['version'],'092')+'.json')).read_text(encoding='utf8'))
     canonical_path=ROOT/('tools/previous_'+previous_versions.get(record['version'],'092')+'_lf.json')
@@ -52,15 +62,19 @@ def run(game,apply=False):
     lines=[line for line in text.splitlines() if line.split('=',1)[0].strip()!='scaling']
     if not any(line.startswith('weapon_family_cleanup=') for line in lines):lines.append('weapon_family_cleanup=1')
     config_new=('\n'.join(lines)+'\n').encode('utf8')
+    macro_path=directory/'macros.ini'
+    macro_old=macro_path.read_bytes() if macro_path.is_file() else None
+    macro_new=grouped_macros(macro_old)
     if not apply:return {'result':'PASS','compatible':True,'target_running':running,'own_files_to_update':len(changes),'changes':False}
     if target_running(game/'Game.exe'):raise RuntimeError('Игра была запущена. Обновление отменено.')
-    backup=directory/('rollback-0.998-dev-'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
+    backup=directory/('rollback-0.999-dev-'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
     backup.mkdir()
     (backup/'install.json').write_bytes(record_bytes);(backup/'modules.ini').write_bytes(config_bytes)
     for rel,old,new in changes:
         if old is not None:
             path=backup/'Mods/BS2Suite'/rel;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(old)
     (backup/'manifest.json').write_text(json.dumps({'from':record['version'],'to':VERSION,'files':[{'path':rel,'before':sha(old) if old is not None else None,'after':sha(new) if new is not None else None} for rel,old,new in changes]},indent=2),encoding='utf8')
+    if macro_old is not None and macro_new!=macro_old:(backup/'macros.ini').write_bytes(macro_old)
     completed=[]
     try:
         if target_running(game/'Game.exe'):raise RuntimeError('Игра была запущена. Обновление отменено.')
@@ -69,6 +83,9 @@ def run(game,apply=False):
             if new is None:target.unlink()
             else:atomic_write(target,new)
             completed.append((target,old))
+        if macro_new!=macro_old:
+            if (macro_path.read_bytes() if macro_path.is_file() else None)!=macro_old:raise RuntimeError('Macro profile changed during update')
+            atomic_write(macro_path,macro_new);completed.append((macro_path,macro_old))
         atomic_write(config_path,config_new)
         atomic_write(record_path,json.dumps(dict(record,version=VERSION),indent=2).encode('utf8'))
     except BaseException:

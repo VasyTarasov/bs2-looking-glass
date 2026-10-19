@@ -165,6 +165,7 @@ rgss_main do
     editor=BS2Suite::MacroScene.new;SceneManager.instance_variable_set(:@scene,editor);editor.start
     editor.instance_variable_get(:@list).select(0);editor.choose
     editor.instance_variable_get(:@list).select(0);editor.choose
+    editor.instance_variable_get(:@list).select(0);editor.choose
     editor.instance_variable_get(:@list).select(1);editor.choose
     check(editor.instance_variable_get(:@stage)==:groups,'actual editor offers semantic roles after choosing item type')
     list=editor.instance_variable_get(:@list);list.select(list.item_max-1);editor.choose

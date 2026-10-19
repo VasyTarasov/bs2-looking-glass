@@ -28,7 +28,7 @@ D support is available only on individually eligible items and Gun Break in the 
 
 **Shift+Enter** in N attacks with the highlighted weapon. **Shift+digit** attacks with that numbered weapon. Ordinary selection still equips without attacking; D independently nominates the final executor. Native targeting, normal-attack skill IDs and final-weapon rules apply.
 
-**C** opens named six-step macros, with numeric preset selection and a paid-action count. Configure up to eight presets under **Macros**, immediately below **Loadouts** in the main menu. The hotkey is remappable. See [macros](MACROS.md).
+**C → group → preset** opens named six-step macros: four groups, eight presets each. Filled battle entries show paid actions, MP and cooldown. Configure them under **Macros**, immediately below **Loadouts**. Double Esc at battle commands resets an uncommitted queue; Space additionally confirms without replacing Enter. The hotkey is remappable. See [macros](MACROS.md).
 
 D in equipment or Items → Weapons nominates a weapon for the **first controllable input of the battle**, once. It does not re-equip it on later turns.
 

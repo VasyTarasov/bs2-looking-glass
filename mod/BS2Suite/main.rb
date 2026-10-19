@@ -1,7 +1,7 @@
 # encoding: UTF-8
 unless defined?(BS2Suite::LOADED)
   module BS2Suite
-    VERSION='0.998-dev'
+    VERSION='0.999-dev'
     ROOT=File.dirname(__FILE__)
     IDS=%w(combat_shortcuts action_queue reference_cards effects loadouts learned_books field_skills saves defeat retry battle_stats controls run_toggle sound debug semantic_groups legacy_shortcuts soul_batch equipped_upgrade steam_bridge hd_display weapon_family_cleanup)
     @enabled=[]
@@ -77,7 +77,9 @@ unless defined?(BS2Suite::LOADED)
     load_part('battle_speed0994')
     load_part('diagnostics0995') if enabled?('debug')
     load_part('iteration0997')
+    load_part('sequence0999') if enabled?('semantic_groups') && enabled?('reference_cards')
     load_part('macros0997') if enabled?('semantic_groups') && enabled?('loadouts')
+    load_part('iteration0999')
     BS2QoL.const_set(:LOADED,true)
     BS2Modules.const_set(:LOADED,true)
     LOADED=true

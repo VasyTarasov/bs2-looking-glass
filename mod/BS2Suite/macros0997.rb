@@ -3,41 +3,48 @@ module BS2Suite
   module Macros
     LIMIT=BS2Modules::Loadouts::LIMIT
     ROWS=6
+    GROUPS=4
+    def self.address(index,group);(group-1)*LIMIT+index;end
     def self.data
       return @data if @data
       @data={};current=nil
       Store.read('macros',65536).each_line do |line|
         line=line.strip
-        if m=/\A\[([0-9]{1,4}),([1-8])\]\z/.match(line)
-          current={'name'=>'Связка '+m[2],'key'=>m[2].to_i,'rows'=>[]};@data[[m[1].to_i,m[2].to_i]]=current
+        if m=/\A\[([0-9]{1,4}),(?:([1-4]),)?([1-8])\]\z/.match(line)
+          current={'name'=>'Связка '+m[3],'key'=>m[3].to_i,'rows'=>[]};@data[[m[1].to_i,address(m[3].to_i,(m[2] || '1').to_i)]]=current
         elsif current && (m=/\Aname=(.{1,24})\z/.match(line))
           current['name']=m[1].gsub(/[\x00-\x1f\x7f]/,'')
         elsif current && (m=/\Akey=([0-9])\z/.match(line));current['key']=m[1].to_i
+        elsif current && (m=/\Aexecutor=([0-9]{1,5})\z/.match(line));current['executor']=m[1].to_i
         elsif current && current['rows'].size<ROWS && (m=/\Arow=(item|skill|weapon|guard),([0-9]{1,5}),([0-9]{1,5}),([0-9])\z/.match(line))
           current['rows']<<{'kind'=>m[1],'id'=>m[2].to_i,'source'=>m[3].to_i,'target'=>m[4].to_i}
         end
       end
       @data
     end
-    def self.get(actor,index)
+    def self.get(actor,index,group=1)
+      index=address(index,group);base=(group-1)*LIMIT
       return data[[actor.id,index]] if data[[actor.id,index]]
-      used=data.select { |(id,n),v| id==actor.id }.values.map { |s| s['key'] }
-      key=index
-      (1..LIMIT).each do |n|
+      used=data.select { |(id,n),v| id==actor.id && n>base && n<=base+LIMIT }.values.map { |s| s['key'] }
+      key=index-base
+      ((base+1)..(base+LIMIT)).each do |n|
         next if data[[actor.id,n]]
-        key=used.include?(n) ? (1..9).to_a.push(0).find { |k| !used.include?(k) } : n
+        key=used.include?(n-base) ? (1..9).to_a.push(0).find { |k| !used.include?(k) } : n-base
         used<<key
         break if n==index
       end
-      {'name'=>'Связка '+index.to_s,'key'=>key,'rows'=>[]}
+      {'name'=>'Связка '+(index-base).to_s,'key'=>key,'rows'=>[]}
     end
-    def self.save(actor,index,value)
+    def self.save(actor,index,value,group=1)
       return false unless (1..LIMIT).include?(index) && value['rows'].size<=ROWS && (0..9).include?(value['key'])
-      return false if data.any? { |(id,n),v| id==actor.id && n!=index && v['key']==value['key'] }
+      return false unless (1..GROUPS).include?(group)
+      index=address(index,group);base=(group-1)*LIMIT
+      return false if data.any? { |(id,n),v| id==actor.id && n>base && n<=base+LIMIT && n!=index && v['key']==value['key'] }
       old=data.dup;data[[actor.id,index]]=BS2Modules.clone(value)
-      text="format=1\n"
+      text="format=2\n"
       data.keys.sort.each do |key|
-        set=data[key];text+='['+key.join(',')+"]\nname="+set['name'].gsub(/[\x00-\x1f\x7f]/,'')[0,24]+"\nkey="+set['key'].to_s+"\n"
+        set=data[key];text+='['+[key[0],(key[1]-1)/LIMIT+1,(key[1]-1)%LIMIT+1].join(',')+"]\nname="+set['name'].gsub(/[\x00-\x1f\x7f]/,'')[0,24]+"\nkey="+set['key'].to_s+"\n"
+        text+='executor='+set['executor'].to_s+"\n" if set['executor'].to_i>0
         set['rows'].each { |r| text+='row='+[r['kind'],r['id'],r['source'],r['target'] || 0].join(',')+"\n" }
       end
       return true if Store.write('macros',text)
@@ -65,13 +72,17 @@ module BS2Suite
     def self.problem(set,actor)
       return 'Пустая связка' if set['rows'].empty?
       return 'Нужно '+paid(set,actor).to_s+' действий; доступно '+remaining(actor).to_s if paid(set,actor)>remaining(actor)
+      if set['executor'].to_i>0 && executor_allowed?(set,actor)
+        final=DirectWeapons.resolve(actor,set['executor']);return 'Нет исполняющего оружия' unless final && DirectWeapons.can_switch?(actor,final)
+      end
       counts=Hash.new(0)
       set['rows'].each do |r|
         obj=object(r,actor);return 'Нет действия / оружия' unless obj
         weapon=source(r,actor)
         return 'Нет оружия-источника' if (r['kind']=='weapon' || r['source'].to_i>0) && !weapon
-        view=weapon ? Projection.weapon(actor,weapon) : actor
+        view=weapon ? Projection.weapon(actor,weapon) : Projection.copy(actor)
         return 'Смена оружия недоступна' if weapon && !DirectWeapons.can_switch?(actor,weapon)
+        return 'КД '+view.cool_time[obj.id].to_i.to_s+': '+obj.name if obj.is_a?(RPG::Skill) && view.cool_time[obj.id].to_i>0
         return 'Навык не изучен' if r['kind']=='skill' && !view.skills.include?(obj)
         if obj.is_a?(RPG::Item)
           counts[obj.id]+=1;return 'Недостаточно предметов: '+obj.name if counts[obj.id]>$game_party.item_number(obj)
@@ -107,6 +118,7 @@ module BS2Suite
         free.each { |r| scene.bs2s_macro_quick(actor,r,target) }
       else
         paid.last.instance_variable_set(:@bs2s_macro_after,free)
+        paid.last.instance_variable_set(:@bs2s_macro_executor,set['executor']) if executor_allowed?(set,actor)
         paid.each { |a| a.instance_variable_set(:@bs2s_macro_target,target) }
         index=actor.instance_variable_get(:@action_input_index).to_i
         paid.each_with_index { |a,i| actor.actions[index+i]=a }
@@ -124,9 +136,59 @@ module BS2Suite
         next unless token && a.instance_variable_get(:@bs2s_macro_token).equal?(token)
         a.clear
         a.instance_variable_set(:@bs2s_macro_before,[]);a.instance_variable_set(:@bs2s_macro_after,[])
-        a.instance_variable_set(:@bs2s_macro_token,nil);a.instance_variable_set(:@bs2s_macro_source,nil)
+        a.instance_variable_set(:@bs2s_macro_token,nil);a.instance_variable_set(:@bs2s_macro_source,nil);a.instance_variable_set(:@bs2s_macro_executor,nil)
       end
       BS2QoL::Hotkeys.notice('Связка остановлена: '+message)
+    end
+    def self.executor_allowed?(set,actor)
+      row=set['rows'].reverse.find { |r| o=object(r,actor);o && !BattleSupport.quick?(o) }
+      row && (row['kind']=='item' || row['kind']=='guard')
+    end
+    def self.requirements(set,actor)
+      view=Projection.copy(actor);index=actor.instance_variable_get(:@action_input_index).to_i
+      queued=actor.actions.take(index).map { |a| a.dup }
+      final_row=set['rows'].rindex { |r| o=object(r,actor);o && !BattleSupport.quick?(o) }
+      final_position=nil
+      set['rows'].each_with_index do |r,i|
+        a=action(actor,r,0);next unless a
+        a.instance_variable_set(:@bs2s_direct_count,actor.actions.size)
+        if i==final_row
+          final_position=queued.size
+          a.instance_variable_set(:@bs2s_macro_executor,set['executor']) if executor_allowed?(set,actor)
+        end
+        queued<<a
+      end
+      view.instance_variable_set(:@bs2s_forecast_final_index,paid(set,actor)==remaining(actor) ? final_position : -1)
+      view.instance_variable_set(:@actions,queued)
+      report=defined?(BS2QoL::Forecast::Prediction) ? SequenceForecast.new(view) : nil
+      costs=report && report.steps.drop(index).map { |s| s[:cost] && s[:cost][1] }
+      exact=costs && costs.size==set['rows'].size && costs.all? { |c| c }
+      if exact
+        low=costs.inject(0) { |n,c| n+c[0] };high=costs.inject(0) { |n,c| n+c[1] }
+        mp=low==high ? low.to_s : low.to_s+'–'+high.to_s
+      else
+        mp='~'+set['rows'].inject(0) { |n,r| o=object(r,actor);w=source(r,actor);v=w ? Projection.weapon(actor,w) : actor;n+(o.is_a?(RPG::Skill) ? v.skill_mp_cost(o) : 0) }.to_s
+      end
+      skills=set['rows'].map { |r| object(r,actor) }.select { |o| o.is_a?(RPG::Skill) }
+      wait=skills.map { |o| Projection.copy(actor).cool_time[o.id].to_i }.max || 0
+      cd=skills.map { |o| (o.cool_time || 0).to_i }.max || 0
+      paid(set,actor).to_s+' действ. · ОМ '+mp+' · КД '+(wait>0 ? 'ждать '+wait.to_s : 'готово')+(cd>0 ? ' / '+cd.to_s : '')
+    end
+    def self.fill(scene,window,actor,group=nil)
+      window.instance_variable_set(:@macro_group,group)
+      window.records=if group
+        (1..LIMIT).map { |i| get(actor,i,group) }.reject { |s| s['rows'].empty? }.map do |set|
+          reason=problem(set,actor)
+          [set['key'].to_s+' '+set['name']+' · '+requirements(set,actor)+(reason ? ' · '+reason : ''),set,!reason]
+        end
+      else
+        (1..GROUPS).map do |n|
+          sets=(1..LIMIT).map { |i| get(actor,i,n) }.reject { |s| s['rows'].empty? }
+          sets.empty? ? nil : [n.to_s+' Группа '+n.to_s+' · '+sets.size.to_s+' связок',{'macro_group'=>n,'key'=>n},true]
+        end.compact
+      end
+      window.refresh;window.select(0);window.activate
+      scene.instance_variable_set(:@bs2s_macros_opened,Graphics.frame_count)
     end
     def self.open(scene,origin)
       actor=BattleManager.actor;return false unless actor && actor.input
@@ -135,13 +197,12 @@ module BS2Suite
       scene.instance_variable_set(:@bs2s_macros,window)
       scene.instance_variable_set(:@bs2s_macros_opened,Graphics.frame_count)
       scene.instance_variable_set(:@bs2s_macros_origin,origin)
-      window.records=(1..LIMIT).map do |i|
-        set=get(actor,i);reason=problem(set,actor)
-        [set['key'].to_s+' '+set['name']+' · '+paid(set,actor).to_s+' действ.'+(reason ? ' · '+reason : ''),set,!reason]
-      end
-      window.refresh;window.select(0)
+      fill(scene,window,actor)
       window.set_handler(:entry,lambda {
         set=window.current_ext
+        if set && set['macro_group']
+          fill(scene,window,actor,set['macro_group']);BS2QoL::Keyboard.consume;next
+        end
         # Select one enemy for all single-target hostile rows; allies/self are
         # recorded per row. AoE and random targets keep native targeting.
         enemies=$game_troop.alive_members.reject { |e| e.hidden? }
@@ -156,7 +217,7 @@ module BS2Suite
           BS2QoL::Hotkeys.notice(reason) if reason
         end
       })
-      window.set_handler(:cancel,lambda { close(scene) });true
+      window.set_handler(:cancel,lambda { window.instance_variable_get(:@macro_group) ? fill(scene,window,actor) : close(scene);BS2QoL::Keyboard.consume });true
     end
     def self.close(scene,restore=true)
       w=scene.instance_variable_get(:@bs2s_macros);w.dispose if w && !w.disposed?
@@ -169,7 +230,21 @@ module BS2Suite
     attr_accessor :records
     def initialize;@records=[];super(12,72);self.z=480;BS2Modules.style(self);end
     def window_width;Graphics.width-24;end
-    def visible_line_number;12;end
+    def battle_picker?;SceneManager.scene.is_a?(Scene_Battle);end
+    def line_height;battle_picker? ? 40 : 24;end
+    def visible_line_number;battle_picker? ? [[item_max,8].min,1].max : 12;end
+    def refresh
+      super
+      desired=fitting_height(visible_line_number)
+      if height!=desired;self.height=desired;create_contents;draw_all_items;end
+    end
+    def draw_item(index)
+      return super unless battle_picker?
+      rect=item_rect_for_text(index);parts=command_name(index).split(' · ')
+      contents.font.size=18;change_color(normal_color,command_enabled?(index))
+      draw_text(rect.x,rect.y,rect.width,20,parts.take(2).join(' · '))
+      draw_text(rect.x,rect.y+20,rect.width,20,parts.drop(2).join(' · '))
+    end
     def make_command_list;@records.each { |name,value,enabled| add_command(name,:entry,enabled!=false,value) };end
     def process_handling
       if active && open? && SceneManager.scene.is_a?(Scene_Battle)
@@ -187,19 +262,21 @@ module BS2Suite
   end
   class MacroScene < Scene_MenuBase
     def start
-      super;@actor=$game_party.menu_actor || $game_party.leader;@stage=:sets;@slot=1;@row=0;@page=0
+      super;@actor=$game_party.menu_actor || $game_party.leader;@stage=:macro_groups;@macro_group=1;@slot=1;@row=0;@page=0
       @header=BS2Modules::Header.new;@list=MacroCommands.new
       @list.set_handler(:entry,method(:choose));@list.set_handler(:cancel,method(:back));redraw
     end
-    def set;@draft || Macros.get(@actor,@slot);end
+    def set;@draft || Macros.get(@actor,@slot,@macro_group);end
     def redraw
       rows=[];hint='Enter выбрать · Esc назад'
       case @stage
+      when :macro_groups
+        rows=(1..Macros::GROUPS).map { |g| [g.to_s+' Группа '+g.to_s,g] }
       when :sets
-        rows=(1..Macros::LIMIT).map { |i| s=Macros.get(@actor,i);[s['key'].to_s+' '+s['name']+' · '+s['rows'].size.to_s+'/6',i] }
+        rows=(1..Macros::LIMIT).map { |i| s=Macros.get(@actor,i,@macro_group);[s['key'].to_s+' '+s['name']+' · '+s['rows'].size.to_s+'/6',i] }
       when :edit
         rows=(0...Macros::ROWS).map { |i| [ (i+1).to_s+'. '+(set['rows'][i] ? Macros.label(set['rows'][i],@actor) : '—'),i] }
-        rows += [['Переименовать',:name],['Кнопка слота: '+set['key'].to_s,:key],['Сохранить',:save]]
+        rows += [['Переименовать',:name],['Кнопка слота: '+set['key'].to_s,:key],['Исполнитель: '+executor_name,:executor],['Сохранить',:save]]
         hint='V/B/M/N выбрать тип для строки · Enter редактировать · Esc назад'
       when :type
         rows=[['V — оружейные техники','V'],['B — предметы','B'],['M — изученные навыки','M'],['N — обычная атака оружием','N'],['Оборона',:guard],['Цель союзного действия: '+(set['rows'][@row] && set['rows'][@row]['target'].to_i>0 ? 'союзник '+set['rows'][@row]['target'].to_s : 'сам герой'),:target],['Удалить строку',:delete]]
@@ -208,12 +285,20 @@ module BS2Suite
         rows=groups.map { |g| [Semantic::DIGITS[g[:number]-1,1]+' '+g[:name],g[:number]] }+[['Полный доступный список',:all]]
       when :choices
         values=choices;count=[(values.size+9)/10,1].max;@page%=count
-        rows=values[@page*10,10].to_a.map { |r| [Macros.label(r,@actor),r] }
+        rows=values[@page*10,10].to_a.each_with_index.map { |r,i| [((i+1)%10).to_s+' '+Macros.label(r,@actor),r] }
         hint=@prefix+' · '+(@page+1).to_s+'/'+count.to_s+' · Q/E / ←/→ страница · F7 справка'
+      when :executor
+        values=Semantic.owned(@actor).sort_by { |w| [w.name,w.id] };values=[nil]+values;@page%=[(values.size+9)/10,1].max
+        rows=values[@page*10,10].to_a.each_with_index.map { |w,i| [((i+1)%10).to_s+' '+(w ? w.name : 'Снять исполнителя'),w ? w.id : 0] }
+        hint='Цифра выбрать · Q/E страница · только последнее платное: предмет / оборона'
       when :key;rows=(0..9).map { |i| [i.to_s,i] }
       end
-      @header.text=[@stage==:sets ? 'Связки — '+@actor.name : set['name'],hint]
+      @header.text=[[:macro_groups,:sets].include?(@stage) ? 'Связки — группа '+@macro_group.to_s+' · '+@actor.name : set['name'],hint]
       @list.records=rows;@list.refresh;@list.select(0);@list.activate
+    end
+    def executor_name
+      return 'недоступен для последнего действия' unless Macros.executor_allowed?(set,@actor)
+      w=DirectWeapons.resolve(@actor,set['executor']);w ? w.name : 'не назначен'
     end
     def choices
       if @group && @group!=:all
@@ -238,14 +323,18 @@ module BS2Suite
     def choose
       value=@list.current_ext
       case @stage
-      when :sets;@slot=value;@draft=BS2Modules.clone(Macros.get(@actor,@slot));@stage=:edit
+      when :macro_groups;@macro_group=value;@stage=:sets
+      when :sets;@slot=value;@draft=BS2Modules.clone(Macros.get(@actor,@slot,@macro_group));@stage=:edit
       when :edit
         if value.is_a?(Integer);@row=value;@stage=:type
         elsif value==:name
           BS2Suite.edit_text(self,set['name'],24) { |s| @draft['name']=s if s && !s.strip.empty? }
         elsif value==:key;@stage=:key
+        elsif value==:executor
+          if Macros.executor_allowed?(set,@actor);@stage=:executor;@page=0;else;::Sound.play_buzzer;end
         elsif value==:save
-          if Macros.save(@actor,@slot,@draft);@draft=nil;@stage=:sets
+          set.delete('executor') unless Macros.executor_allowed?(set,@actor)
+          if Macros.save(@actor,@slot,@draft,@macro_group);@draft=nil;@stage=:sets
           else;BS2QoL::Hotkeys.notice('Не сохранено: кнопка занята или ошибка записи');end
         end
       when :type
@@ -256,6 +345,8 @@ module BS2Suite
         else;@prefix=value;@page=0;@stage=:groups;end
       when :groups;@group=value;@page=0;@stage=:choices
       when :choices;assign(value)
+      when :executor
+        value>0 ? set['executor']=value : set.delete('executor');@stage=:edit
       when :key;set['key']=value;@stage=:edit
       end
       redraw
@@ -266,7 +357,8 @@ module BS2Suite
       set['rows'][@row]=row;@stage=:edit
     end
     def back
-      if @stage==:sets;return_scene;return
+      if @stage==:macro_groups;return_scene;return
+      elsif @stage==:sets;@stage=:macro_groups
       elsif @stage==:edit;@draft=nil;@stage=:sets
       elsif @stage==:choices;@stage=:groups
       elsif @stage==:groups;@stage=:type
@@ -276,6 +368,17 @@ module BS2Suite
     def update
       super
       return unless @list.active
+      digit=Palette.digit
+      unless digit.nil?
+        i=case @stage
+        when :choices,:executor;(digit+9)%10
+        when :macro_groups,:edit;digit-1
+        when :sets;@list.records.index { |name,slot,on| Macros.get(@actor,slot,@macro_group)['key']==digit }
+        when :key;digit
+        when :groups;@list.records.index { |name,value,on| value.is_a?(Integer) && Semantic::DIGITS[value-1,1].to_i==digit }
+        end
+        if i && i>=0 && i<@list.item_max;@list.select(i);choose;BS2QoL::Keyboard.consume;return;end
+      end
       if [:edit,:type,:choices,:groups].include?(@stage)
         prefix=Palette.letter
         if prefix
@@ -283,10 +386,10 @@ module BS2Suite
           @prefix=prefix;@stage=:groups;@page=0;redraw;BS2QoL::Keyboard.consume;return
         end
       end
-      if @stage==:choices
+      if [:choices,:executor].include?(@stage)
         if Input.trigger?(:L) || Input.trigger?(:R) || Input.trigger?(:LEFT) || Input.trigger?(:RIGHT)
           @page+=(Input.trigger?(:R) || Input.trigger?(:RIGHT)) ? 1 : -1;redraw
-        elsif BS2Suite.enabled?('reference_cards') && Keys.trigger?(:reference)
+        elsif @stage==:choices && BS2Suite.enabled?('reference_cards') && Keys.trigger?(:reference)
           row=@list.current_ext;obj=row && Macros.object(row,@actor)
           if obj
             @list.deactivate
@@ -313,8 +416,13 @@ module BS2Suite::HDDisplay
       window=scene && scene.instance_variable_get(:@bs2s_macros)
       if window && !window.disposed? && window.active
         actor=BattleManager.actor;set=window.current_ext
-        rows=[row('T','Связки'),row('D','Доступно действий: '+BS2Suite::Macros.remaining(actor).to_s)]+commands(window,8)
-        if set
+        rows=[row('T','Связки'),row('D','Доступно действий: '+BS2Suite::Macros.remaining(actor).to_s)]
+        window.records.each_with_index do |(name,value,on),i|
+          parts=name.split(' · ')
+          rows<<row(window.index==i ? 'A' : 'S',parts.take(2).join(' · '))
+          rows+=wrap_lines([parts.drop(2).join(' · ')]).map { |text| row('D',text) } if parts.size>2
+        end
+        if set && set['rows']
           rows<<row('H',set['name'])
           rows+=set['rows'].each_with_index.map { |r,i| o=BS2Suite::Macros.object(r,actor);row('S',(i+1).to_s+'. '+BS2Suite::Macros.label(r,actor)+(o && BS2Suite::BattleSupport.quick?(o) ? ' · мгновенно' : '')) }
         end
@@ -388,6 +496,11 @@ class Game_Action
         before.each { |row| scene.bs2s_macro_quick(actor,row,@bs2s_macro_target) }
         weapon=@bs2s_macro_source
         raise 'оружие-источник недоступно' if weapon && actor.equips[0]!=weapon && !BS2QoL::Model.change_weapon(actor,weapon)
+        if @bs2s_macro_executor && !@bs2s_direct_applied
+          final=BS2Suite::DirectWeapons.resolve(actor,@bs2s_macro_executor)
+          raise 'исполняющее оружие недоступно' unless final && BS2Suite::DirectWeapons.eligible_final(actor,item,final,0,self) && (actor.equips[0]==final || BS2QoL::Model.change_weapon(actor,final))
+          @bs2s_direct_applied=true
+        end
       rescue StandardError=>e
         BS2Suite::Macros.stop(actor,self,e.message);return
       end

@@ -110,7 +110,7 @@ class Window_BS2QPlan < Window_Base
     rows=BS2QoL::Model.queue(actor)
     weapon=actor.equips[0]
     playing=!editing && subject==actor
-    signature=[weapon && weapon.id,rows,editing,playing]
+    signature=[weapon && weapon.id,rows,editing,playing,defined?(BS2Suite::QueueEdit) ? BS2Suite::Performance.context(actor) : nil]
     if signature!=@signature
       shown=rows.take(6)
       row_height=editing ? 24 : 20
@@ -131,7 +131,8 @@ class Window_BS2QPlan < Window_Base
         current=editing && row[:current]
         executing=playing && i==0
         change_color(current || executing ? text_color(17) : normal_color)
-        text=current ? 'Выберите действие' : row[:name]
+        text=current && !actor.actions[i].item ? 'Выберите действие' : row[:name]
+        text+=BS2Suite::QueueEdit.mp(actor,i) if defined?(BS2Suite::QueueEdit)
         unless !editing || current || row[:name]=='—'
           item=actor.actions[i].item
           target=if item && item.for_all?

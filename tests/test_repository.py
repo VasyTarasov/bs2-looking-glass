@@ -33,7 +33,7 @@ class RepositoryTests(unittest.TestCase):
   text=(ROOT/'mod/BS2Suite/qol/lib/reference_data.rb').read_text(encoding='utf8');rows=re.findall(r'^\s*\d+ => (\[.*\]),?$',text,re.M)
   self.assertGreater(len(rows),1800);self.assertTrue(all(json.loads(r)[1]=='' for r in rows))
  def test_development_version(self):
-  p=json.loads((ROOT/'project.json').read_bytes());self.assertEqual(p['version'],'0.998-dev');self.assertFalse(p['stable_release'])
+  p=json.loads((ROOT/'project.json').read_bytes());self.assertEqual(p['version'],'0.999-dev');self.assertFalse(p['stable_release'])
   self.assertIn(p['version'],(ROOT/'tools/install.py').read_text(encoding='utf8'))
  def test_portable_private_path_guard(self):
   import install,update,collect_debug
@@ -50,12 +50,21 @@ class RepositoryTests(unittest.TestCase):
   self.assertTrue(update.matches_own_ruby(data,old,rel,canonical))
   self.assertTrue(update.matches_own_ruby(data.replace(b'\n',b'\r\n'),old,rel,canonical))
   self.assertFalse(update.matches_own_ruby(data+b'\n# manual code change',old,rel,canonical))
+ def test_grouped_macro_migration_preserves_player_content(self):
+  import update
+  old='format=1\r\n[2,3]\r\nname=Example\r\nkey=0\r\nrow=skill,14,0,0\r\n'.encode()
+  new=update.grouped_macros(old)
+  self.assertEqual(new,old.replace(b'format=1',b'format=2').replace(b'[2,3]',b'[2,1,3]'))
+  self.assertEqual(update.grouped_macros(new),new)
+ def test_grouped_macro_migration_refuses_mixed_formats(self):
+  import update
+  with self.assertRaises(ValueError):update.grouped_macros(b'format=1\n[2,1,3]\n')
  def test_package_integrity(self):
   with tempfile.NamedTemporaryFile(suffix='.zip',delete=False) as f:path=Path(f.name)
   try:
    result=packager.package(path);self.assertEqual(result['result'],'PASS');self.assertFalse(result['release_created'])
    with zipfile.ZipFile(path) as z:
-    prefix='LookingGlass-0.998-dev/';manifest=json.loads(z.read(prefix+'SHA256.json'))
+    prefix='LookingGlass-0.999-dev/';manifest=json.loads(z.read(prefix+'SHA256.json'))
     self.assertTrue(all(hashlib.sha256(z.read(prefix+k)).hexdigest()==v for k,v in manifest.items()))
     self.assertFalse(any('/.git/' in k or k.endswith('/Game.exe') or '/Data/' in k for k in z.namelist()))
   finally:

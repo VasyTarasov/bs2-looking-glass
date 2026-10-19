@@ -1,3 +1,25 @@
+# Verification of 0.999-dev
+
+Development build. Thirteen final-build native suites pass with exit code 0 and `result=PASS` on the hardened private desktop: **605 assertions**. Synthetic fixtures only; no player saves or live-player input.
+
+| Native suite | Assertions |
+|---|---:|
+| Grouped macros, numeric editor, executor, Space, double Esc and actual damage | 37 |
+| Macros without Effects, Reference Cards or Controls | 6 |
+| Probability-branch sequences | 12 |
+| Existing queue/executor/macro UI | 53 |
+| Sole/source/final weapon and multi-target estimates | 57 |
+| Classic/HD broad interaction regressions | 98 + 130 |
+| Classic/HD item, support and reference interactions | 45 + 58 |
+| All modules / no optional modules | 69 + 22 |
+| Normal / instant-Ctrl full battles | 9 + 9 |
+
+The new suite runs 400 native executions of each reported pair, using actual database formulas/states and normal native target/effect/cost paths. Self-flagellation → Triple Shot: predicted second-action mean **12,526.8**, observed **12,576.5** (0.40% difference). Jubjub normal ID → Two-Handed Sword: predicted **1,456.4**, observed **1,498.52** (2.81%). Sampling checks permit 8% because hit/critical/variance draws remain native; these synthetic values are not the player's build. The random-attack UI must match the entire projected shot total. Live battlers, stock, cooldown data and RNG are unchanged by previews. Twenty uncached two-action estimates averaged about 14 ms in this fixture; this is a local timing observation, not a whole-game FPS claim.
+
+Actual editor input tests choose a numbered weapon row. Native engine-frame captures were inspected for numbered choices and the two-line action/MP/cooldown picker. Repeated cached N rendering must contain exactly one Shift hint. A real instant MP-restoration row must fund the following paid skill even when current MP is insufficient. Double Esc preserves the allocated slot count and actual prior consumable effects; a preset's local guard executor must match forecast and preparation while leaving N unchanged.
+
+Installer: **55** assertions. Update from 0.998-dev: **186** assertions including foreign-edit/running-game refusal, partial-write rollback, new-file removal during rollback, synthetic profile migration, byte-preserved names/rows, backup, idempotence and mixed-format refusal. Repository tests: **21**. PowerShell 5.1 validation passes without a visible installer. The engine, game script table, reference database and native Steam/HD helper are unchanged.
+
 # Verification of 0.998-dev
 
 Focused dependency fix on the verified 0.997-dev base below. Final-build native checks: reduced-module macro picker/editor **6**, full queue/weapon/macro UI **53**, all modules **69**, no optional modules **22** — **150 assertions**, all with exit code 0 and `result=PASS` on the hardened private desktop. The reduced fixture actually omits Effects, Reference Cards and Controls and exercises C dispatch/close and harmless F7 in the editor.

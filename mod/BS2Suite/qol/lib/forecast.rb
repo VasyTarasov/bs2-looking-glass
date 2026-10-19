@@ -47,9 +47,10 @@ module BS2QoL
 
     class Prediction
       attr_reader :item,:user,:target,:selected,:rows,:chance,:crit_chance,:counter,:reflection,:cancel,:element,:rate,:bypass,:repeats,:stable,:base,:error
-      def initialize(user,target,item)
+      def initialize(user,target,item,paid=false)
         @item=item;@selected=target;@rows=[]
-        @user=Snapshot.new(user).after_cost(item)
+        @user=Snapshot.new(user)
+        @user.after_cost(item) unless paid
         # Counter and reflection are tested on the selected target, before substitution.
         original=target==user ? @user : Snapshot.new(target)
         opposite=original.actor? != @user.actor?

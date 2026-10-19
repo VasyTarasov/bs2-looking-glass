@@ -4,10 +4,10 @@ module BS2Suite
     BASE={'BACKSPACE'=>8,'TAB'=>9,'ENTER'=>13,'SHIFT'=>16,'CTRL'=>17,'ESC'=>27,'SPACE'=>32,'PAGEUP'=>33,'PAGEDOWN'=>34,'END'=>35,'HOME'=>36,'LEFT'=>37,'UP'=>38,'RIGHT'=>39,'DOWN'=>40,'INSERT'=>45,'DELETE'=>46}
     ('0'..'9').each { |s| BASE[s]=s.ord };('A'..'Z').each { |s| BASE[s]=s.ord }
     (3..11).each { |n| BASE['F'+n.to_s]=111+n }
-    DEFAULT={:UP=>'UP',:DOWN=>'DOWN',:LEFT=>'LEFT',:RIGHT=>'RIGHT',:C=>'ENTER',:B=>'ESC',:A=>'SHIFT',:X=>'A',:Y=>'S',:Z=>'D',:L=>'Q',:R=>'E',:bind=>'F6',:reference=>'F7',:language=>'F8',:field=>(BS2Suite.enabled?('hd_display') ? 'SHIFT+F10' : 'F10'),:note=>'F9',:stats=>'F5',:run=>'TAB',:attack=>'1',:skills=>'2',:guard=>'3',:items=>'4',:escape=>'5',:equip=>'6',:quicksave=>'F3',:enemy_info=>'F4',:palette_v=>'V',:palette_b=>'B',:palette_m=>'M',:palette_n=>'N',:combat_effects=>'H',:fullscreen=>(BS2Suite.enabled?('hd_display') ? 'F10' : 'CTRL+F10'),:gear=>'G'}
+    DEFAULT={:UP=>'UP',:DOWN=>'DOWN',:LEFT=>'LEFT',:RIGHT=>'RIGHT',:C=>'ENTER',:B=>'ESC',:A=>'SHIFT',:X=>'A',:Y=>'S',:Z=>'D',:L=>'Q',:R=>'E',:bind=>'F6',:reference=>'F7',:language=>'F8',:field=>(BS2Suite.enabled?('hd_display') ? 'SHIFT+F10' : 'F10'),:note=>'F9',:stats=>'F5',:run=>'TAB',:attack=>'1',:skills=>'2',:guard=>'3',:items=>'4',:escape=>'5',:equip=>'6',:quicksave=>'F3',:enemy_info=>'F4',:palette_v=>'V',:palette_b=>'B',:palette_m=>'M',:palette_n=>'N',:combat_effects=>'H',:fullscreen=>(BS2Suite.enabled?('hd_display') ? 'F10' : 'CTRL+F10'),:gear=>'G',:confirm_alt=>'SPACE'}
     LOGICAL=[:UP,:DOWN,:LEFT,:RIGHT,:C,:B,:A,:X,:Y,:Z,:L,:R]
     NATIVE={:UP=>[38],:DOWN=>[40],:LEFT=>[37],:RIGHT=>[39],:C=>[13,32,90],:B=>[27,88,96],:A=>[16],:X=>[65],:Y=>[83],:Z=>[68],:L=>[81,33],:R=>[69,87,34]}
-    LABELS=['Вверх','Вниз','Влево','Вправо','Подтвердить','Отмена / меню','Бег (удержание)','Избранное','Фильтр избранного','Доп. клавиша D','Предыдущая страница','Следующая страница','Назначить быстрый слот','Открыть справку','Язык справки','Полевые навыки','Отметка в журнале','Журнал боя / последняя статистика','Переключить бег','Атака','Техники','Защита','Предметы','Бежать из боя','Сменить оружие','Быстрое сохранение (5 слотов)','Противники и сопротивления','Оружейные группы','Предметные группы','Магия и изученные приёмы','Выбор оружия N','Все эффекты участников боя','Окно / выбранный HD-режим','Шестерня Безумия на карте']
+    LABELS=['Вверх','Вниз','Влево','Вправо','Подтвердить','Отмена / меню','Бег (удержание)','Избранное','Фильтр избранного','Доп. клавиша D','Предыдущая страница','Следующая страница','Назначить быстрый слот','Открыть справку','Язык справки','Полевые навыки','Отметка в журнале','Журнал боя / последняя статистика','Переключить бег','Атака','Техники','Защита','Предметы','Бежать из боя','Сменить оружие','Быстрое сохранение (5 слотов)','Противники и сопротивления','Оружейные группы','Предметные группы','Магия и изученные приёмы','Выбор оружия N','Все эффекты участников боя','Окно / выбранный HD-режим','Шестерня Безумия на карте','Подтвердить (дополнительно)']
     def self.data
       return @data if @data
       @data=DEFAULT.dup
@@ -18,7 +18,7 @@ module BS2Suite
       @data[:gear]='G' if @data[:gear]=='CTRL+G' && !@data.any? { |k,v| k!=:gear && v.split('+')[-1]=='G' }
       @data[:R]='E' if @data[:R]=='W' && !@data.any? { |k,v| k!=:R && v.split('+')[-1]=='E' }
       # New palette defaults must not reset a player's existing control map.
-      [:fullscreen,:gear,:palette_v,:palette_b,:palette_m,:palette_n,:combat_effects,:macros].select { |a| DEFAULT.has_key?(a) }.each do |action|
+      [:fullscreen,:gear,:palette_v,:palette_b,:palette_m,:palette_n,:combat_effects,:macros,:confirm_alt].select { |a| DEFAULT.has_key?(a) }.each do |action|
         token=@data[action]
         conflict=@data.any? { |other,value| other!=action && (value==token || (LOGICAL.include?(other) && value.split('+')[-1]==token.split('+')[-1])) }
         if conflict
@@ -143,7 +143,7 @@ if BS2Suite.enabled?('controls')
         @bs2suite_frame=Graphics.frame_count
         @bs2suite_holds ||= {}
         BS2Suite::Keys::LOGICAL.each do |action|
-          down=BS2QoL::Keyboard.focused? && BS2Suite::Keys.held?(BS2Suite::Keys.token(action),BS2QoL::Keyboard.raw_down)
+          down=BS2QoL::Keyboard.focused? && (BS2Suite::Keys.held?(BS2Suite::Keys.token(action),BS2QoL::Keyboard.raw_down) || (action==:C && BS2Suite::Keys.held?(BS2Suite::Keys.token(:confirm_alt),BS2QoL::Keyboard.raw_down)))
           @bs2suite_holds[action]=down ? (@bs2suite_holds[action] || 0)+1 : 0
         end
       end
@@ -153,7 +153,7 @@ if BS2Suite.enabled?('controls')
       def trigger?(action)
         return bs2suite_trigger(action) unless BS2Suite::Keys::LOGICAL.include?(action)
         n=(@bs2suite_holds || {})[action] || 0
-        (n==1 && BS2QoL::Keyboard.raw_fresh.include?(BS2Suite::Keys::BASE[BS2Suite::Keys.token(action).split('+')[-1]])) || (bs2suite_native_allowed?(action) && bs2suite_trigger(action))
+        (n==1 && ([BS2Suite::Keys::BASE[BS2Suite::Keys.token(action).split('+')[-1]]] + (action==:C ? [BS2Suite::Keys::BASE[BS2Suite::Keys.token(:confirm_alt).split('+')[-1]]] : [])).any? { |vk| BS2QoL::Keyboard.raw_fresh.include?(vk) }) || (bs2suite_native_allowed?(action) && bs2suite_trigger(action))
       end
       def press?(action)
         return bs2suite_press(action) unless BS2Suite::Keys::LOGICAL.include?(action)

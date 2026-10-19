@@ -34,6 +34,7 @@ rgss_main do
     editor.instance_variable_get(:@list).select(0);editor.choose
     editor.instance_variable_get(:@list).select(0);editor.choose
     editor.instance_variable_get(:@list).select(0);editor.choose
+    editor.instance_variable_get(:@list).select(0);editor.choose
     list=editor.instance_variable_get(:@list);list.select(list.item_max-1);editor.choose
     raw.keys=[];Graphics.update;Input.update
     raw.keys=[118];Graphics.update;Input.update;editor.update

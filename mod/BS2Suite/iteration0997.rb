@@ -80,7 +80,7 @@ module BS2Suite::HDDisplay
   class << self
     alias bs20997_attack_palette_rows palette_rows
     def palette_rows(window)
-      rows=bs20997_attack_palette_rows(window)
+      rows=bs20997_attack_palette_rows(window).dup
       rows<<row('D','Shift+Enter / Shift+цифра — обычная атака') if window.prefix=='N' && window.group && !window.assignment
       rows
     end

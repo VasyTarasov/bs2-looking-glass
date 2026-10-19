@@ -80,7 +80,11 @@ module BS2Suite::HDDisplay
     def palette_rows(window)
       rows=[]
       if window.actor.actions.size>1 && BS2Suite.enabled?('action_queue') && $game_party.in_battle
-        rows<<row('D','Серия: '+window.actor.actions.take(3).map { |a| a.item ? a.item.name : '…' }.join(' → '))
+        rows<<row('T','Серия')
+        window.actor.actions.take(6).each_with_index do |a,i|
+          next unless a.item
+          rows<<row('D',(i+1).to_s+'. '+a.item.name+(defined?(BS2Suite::QueueEdit) ? BS2Suite::QueueEdit.mp(window.actor,i) : ''))
+        end
       end
       if defined?(BS2Suite::DirectWeapons) && (weapon=BS2Suite::DirectWeapons.selected(window.actor))
         rows<<row('D','Назначено N: '+weapon.name)
@@ -124,9 +128,10 @@ module BS2Suite::HDDisplay
       if actor && actor.actions.size>1 && BS2Suite.enabled?('action_queue')
         rows<<row('T','Серия · '+actor.actions.size.to_s+' действия')
         actor.actions.take(6).each_with_index do |action,i|
-          rows<<row(actor.input.equal?(action) ? 'A' : 'S',(i+1).to_s+'. '+(action.item ? action.item.name : 'выбор действия'))
+          rows<<row(actor.input.equal?(action) ? 'A' : 'S',(i+1).to_s+'. '+(action.item ? action.item.name : 'выбор действия')+(defined?(BS2Suite::QueueEdit) ? BS2Suite::QueueEdit.mp(actor,i) : ''))
         end
         rows<<row('D','Ещё '+(actor.actions.size-6).to_s+' действий') if actor.actions.size>6
+        rows<<row('D','Esc, Esc — сбросить неисполненную серию')
       end
       if actor && defined?(BS2Suite::DirectWeapons)
         current=actor.equips[0];selected=BS2Suite::DirectWeapons.selected(actor)
