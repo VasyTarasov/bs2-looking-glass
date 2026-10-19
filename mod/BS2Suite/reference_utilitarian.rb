@@ -10,7 +10,7 @@ module BS2QoL
       if object.is_a?(RPG::EquipItem)
         equipment_card;return
       end
-      @resolved=$data_skills[object.skill_change_state(actor,object.id)] || object if actor && object.is_a?(RPG::Skill)
+      @resolved=@forecast09991_resolved || $data_skills[object.skill_change_state(actor,object.id)] || object if actor && object.is_a?(RPG::Skill)
       add(t('Применение','Use'),practical_use)
       detail=practical_effects
       add(t('Эффекты','Effects'),detail) unless detail.empty?

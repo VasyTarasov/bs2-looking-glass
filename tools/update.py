@@ -1,4 +1,4 @@
-"""Update verified own modules through 0.998-dev; never replace game binaries or script data."""
+"""Update verified own modules through 0.999-dev; never replace game binaries or script data."""
 from pathlib import Path, PurePosixPath
 import argparse,datetime,hashlib,json,sys,re
 sys.dont_write_bytecode=True
@@ -37,7 +37,7 @@ def run(game,apply=False):
     record_bytes=record_path.read_bytes();record=json.loads(record_bytes)
     if not record.get('active'):raise ValueError('Сначала требуется установленный Looking Glass / BS2Suite.')
     if sha((game/'Data/Scripts.rvdata2').read_bytes())!=record['installed_scripts_sha256']:raise ValueError('Игровые скрипты изменены; автоматическое обновление отменено.')
-    previous_versions={'0.9.0-preview':'090','0.9.1-alpha':'091','0.9.2-alpha':'092','0.9.3-alpha':'093','0.9.4-alpha':'094','0.9.5-alpha':'095','0.9.6-alpha':'096','0.9.7-alpha':'097','0.9.8-alpha':'098','0.91-dev':'091dev','0.92-dev':'092dev','0.991-dev':'0991dev','0.992-dev':'0992dev','0.993-dev':'0993dev','0.994-dev':'0994dev','0.995-dev':'0995dev','0.996-dev':'0996dev','0.997-dev':'0997dev','0.998-dev':'0998dev'}
+    previous_versions={'0.9.0-preview':'090','0.9.1-alpha':'091','0.9.2-alpha':'092','0.9.3-alpha':'093','0.9.4-alpha':'094','0.9.5-alpha':'095','0.9.6-alpha':'096','0.9.7-alpha':'097','0.9.8-alpha':'098','0.91-dev':'091dev','0.92-dev':'092dev','0.991-dev':'0991dev','0.992-dev':'0992dev','0.993-dev':'0993dev','0.994-dev':'0994dev','0.995-dev':'0995dev','0.996-dev':'0996dev','0.997-dev':'0997dev','0.998-dev':'0998dev','0.999-dev':'0999dev'}
     if record['version'] not in (*previous_versions,VERSION):raise ValueError('Эта установленная версия не поддерживает прямое обновление. Используйте Install.cmd.')
     previous=json.loads((ROOT/('tools/previous_'+previous_versions.get(record['version'],'092')+'.json')).read_text(encoding='utf8'))
     canonical_path=ROOT/('tools/previous_'+previous_versions.get(record['version'],'092')+'_lf.json')
@@ -67,7 +67,7 @@ def run(game,apply=False):
     macro_new=grouped_macros(macro_old)
     if not apply:return {'result':'PASS','compatible':True,'target_running':running,'own_files_to_update':len(changes),'changes':False}
     if target_running(game/'Game.exe'):raise RuntimeError('Игра была запущена. Обновление отменено.')
-    backup=directory/('rollback-0.999-dev-'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
+    backup=directory/('rollback-0.9991-dev-'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
     backup.mkdir()
     (backup/'install.json').write_bytes(record_bytes);(backup/'modules.ini').write_bytes(config_bytes)
     for rel,old,new in changes:

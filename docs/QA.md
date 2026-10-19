@@ -1,3 +1,29 @@
+# Verification of 0.9991-dev
+
+This build audits common forecasting paths, not only the two reported sequences. The earlier 605 assertions described the complete UI/gameplay suite, not independent proof of every damage mechanic. See [forecast scope, evidence and limitations](FORECAST.md) for exactly what each oracle covers.
+
+All sixteen native suites below finish with exit code 0 and `result=PASS` using the hardened private-desktop launcher. Only synthetic fixtures are used; no personal saves or live-player input. Native formula evaluation, item application and random draws belong to the isolated oracle, never to the preview.
+
+| Native suite | Assertions / independent coverage |
+|---|---|
+| Mechanism matrix | 102 assertions: native counters/reflection, weighted means, buff/debuff/state transitions, all 20 difficulty settings, all 33 state-dependent skill-selection rules, F7/short context, resource/retargeting boundaries and immutable previews |
+| Formula/baseline oracle | 35 assertions; 824 expression comparisons, 1,048 enemy prediction constructions, 868 landed native samples |
+| Full skill/item first-hit corpus | 4 aggregate assertions over 1,389 classified records, 648 formula records, 15,552 native applications and 13,268 landed conditional-range comparisons; zero mismatches |
+| Weapon source/executor oracle | 4 aggregate assertions over 500 weapons, 24 normal IDs and 3,494 targeting/repeat comparisons; zero mismatches |
+| Grouped macros and reported actual-damage pairs | 37 |
+| Minimal-dependency macros / probability-branch sequences | 6 / 12 |
+| Sole/source/final weapon and multi-target estimates | 57 |
+| Classic / HD broad interactions | 98 / 130 |
+| Classic / HD item/support/reference interactions | 45 / 58 |
+| All modules / no optional modules | 69 / 22 |
+| Normal / instant-Ctrl full battles | 9 / 9 |
+
+Mean checks include 2,000 native counter/reflection invocations, 3,000 combined crit/Guard-bypass/resistance/evasion/cancellation applications, 2,000 recovery-mode applications and 2,000 probabilistic debuff-then-damage sequences. These have declared sampling tolerances. The complete first-hit corpus tests conditional ranges, not every mean or every multi-action state. Weapon platform checks establish target/repeat counts, not every equipment damage distribution.
+
+The matrix also verifies that an already selected transformed ID is not transformed again during targeting, that a final weapon removing its enabling state does not change that selected ID, and that the sequence card does not invent a 0% hit chance from a missing legacy field. Unverified resource-dependent continuations, response damage, survival/retargeting or scheduled special effects produce an unknown/partial result; possible HP-triggered battle scripts qualify later figures and suppress a certified series total without reading hidden thresholds or script bodies.
+
+Installer: **55** assertions. Update from 0.999-dev: **188**, including refusal of running games/foreign edits, injected-failure rollback, removal of newly added files on rollback, profile byte preservation, migration idempotence and synthetic-save sentinels. Repository checks: **21**. PowerShell 5.1 `-ValidateOnly` passes without showing UI. No game binary, original script table, reference database or Steam/HD native helper is changed by this version.
+
 # Verification of 0.999-dev
 
 Development build. Thirteen final-build native suites pass with exit code 0 and `result=PASS` on the hardened private desktop: **605 assertions**. Synthetic fixtures only; no player saves or live-player input.

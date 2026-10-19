@@ -6,7 +6,7 @@ module BS2Suite::QuickDamage
       view=source.is_a?(RPG::Weapon) ? BS2Suite::Projection.weapon(actor,source) : BS2Suite::Projection.copy(actor)
       index=actor.instance_variable_get(:@action_input_index).to_i
       return nil unless actor.actions[index]
-      action=Game_Action.new(actor)
+      action=Game_Action.new(view)
       object.is_a?(RPG::Item) ? action.set_item(object.id) : action.set_skill(object.id)
       action.target_index=unit.index if unit
       BS2Suite::DirectWeapons.copy_action_context(actor.actions[index],action,object)
@@ -20,23 +20,24 @@ module BS2Suite::QuickDamage
     def candidate_mean(object,actor,source,unit,weapon=nil)
       step=candidate_step(object,actor,source,unit,weapon)
       return nil unless step && !step[:reason]
-      r=step[:rows].find { |v| v[:target_index]==unit.index };r && [r[:mean],step[:partial]]
+      r=step[:rows].find { |v| v[:target_index]==unit.index };r && [r[:mean],step[:partial],step[:direct_only],step[:conditional]]
     end
     def target_mean(object,actor,source,unit);candidate_mean(object,actor,source,unit,source);end
     def calculate(object,actor,source,targets,target,weapon)
       if object.for_one? && !object.for_random? && !target && targets.size>1
         values=targets.map { |unit| candidate_mean(object,actor,source,unit,weapon) }
         return ['~? · серия пока не рассчитана'] if values.any? { |v| !v }
-        return [compact_means(values.map { |v| v[0] })+' урона']
+        return [compact_means(values.map { |v| v[0] })+' урона'+(values.any? { |v| v[3] } ? ' · условно' : '')+(values.any? { |v| v[2] } ? ' · прямой урон; итог ?' : '')]
       end
-      step=candidate_step(object,actor,source,targets[0],weapon)
+      step=candidate_step(object,actor,source,targets[0],weapon,!!target && !source && !weapon)
       return ['~? · '+(step && step[:reason] || 'серия пока не рассчитана')] unless step && !step[:reason] && !step[:rows].empty?
       means=step[:rows].select { |r| r[:target_index]!=:self }.map { |r| r[:mean] }
       total=means.inject(0.0) { |n,v| n+v }
+      suffix=(step[:conditional] ? ' · условно' : '')+(step[:direct_only] ? ' · прямой урон; итог ?' : '')
       if (object.for_all? || (weapon && object.for_random? && !target)) && means.size>1
-        [compact_means(object.for_random? ? means : [means.min,means.max])+' по цели · Σ~'+total.round.to_s+' всего']
+        [compact_means(object.for_random? ? means : [means.min,means.max])+' по цели · Σ~'+total.round.to_s+' всего'+suffix]
       else
-        ['≈ '+[total.round,0].max.to_s+' урона'+(object.for_random? || object.for_all? ? ' суммарно' : '')]
+        ['≈ '+[total.round,0].max.to_s+' урона'+(object.for_random? || object.for_all? ? ' суммарно' : '')+suffix]
       end
     end
   end
@@ -69,6 +70,7 @@ module BS2Suite::QueueEdit
     range=step && step[:cost] && step[:cost][1]
     if range
       text=range[0]==range[1] ? range[0].to_s : range[0].to_s+'–'+range[1].to_s
+      text='~'+text if step[:conditional]
     else;text='~'+actor.skill_mp_cost(action.item).to_s;end
     cache[index]=' · '+text+' ОМ'
   end

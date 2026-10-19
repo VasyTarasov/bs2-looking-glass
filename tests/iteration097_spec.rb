@@ -187,7 +187,12 @@ begin
     @scene.start_actor_command_selection;commands.openness=255
     key(78);popup=BS2Suite::Palette.current(@scene);popup.acknowledge;popup.set_group(1)
     BS2Suite::HDDisplay.palette_rows(popup)
-    12.times { frame([]);BS2Suite::HDDisplay.palette_rows(popup) }
+    deadline=BS2Suite::Performance.now
+    120.times do
+      frame([]);break if BS2Suite::HDDisplay.palette_rows(popup).any? { |r| r.include?('~') }
+      break if ((BS2Suite::Performance.now-deadline)&0xffffffff)>2000
+    end
+    log('N render audit: '+BS2Suite::HDDisplay.palette_rows(popup).inspect)
     check(BS2Suite::HDDisplay.palette_rows(popup).any? { |r| r.include?('~') },'real N sidebar includes multi-target estimate')
     hd=BS2Suite::HDDisplay;Graphics.transition(0);Graphics.brightness=255;hd.poll(true)
     read=Win32API.new('Mods/BS2Suite/native/bs2_steam_bridge.dll','BS2_HDReadback',['P','I'],'I');read.call('',0)

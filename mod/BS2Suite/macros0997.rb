@@ -517,10 +517,18 @@ class BS2Suite::SequenceForecast
     expanded=[];positions=[]
     actor.actions.each do |a|
       before=a.instance_variable_get(:@bs2s_macro_before) || []
-      before.each { |r| expanded<<BS2Suite::Macros.action(actor,r,a.instance_variable_get(:@bs2s_macro_target) || a.target_index) }
+      before.each do |r|
+        virtual=BS2Suite::Macros.action(actor,r,a.instance_variable_get(:@bs2s_macro_target) || a.target_index)
+        virtual.instance_variable_set(:@bs2s_forecast_late_skill,r['id']) if virtual && r['kind']=='skill'
+        expanded<<virtual
+      end
       positions<<expanded.size;expanded<<a.dup
       after=a.instance_variable_get(:@bs2s_macro_after) || []
-      after.each { |r| expanded<<BS2Suite::Macros.action(actor,r,a.instance_variable_get(:@bs2s_macro_target) || a.target_index) }
+      after.each do |r|
+        virtual=BS2Suite::Macros.action(actor,r,a.instance_variable_get(:@bs2s_macro_target) || a.target_index)
+        virtual.instance_variable_set(:@bs2s_forecast_late_skill,r['id']) if virtual && r['kind']=='skill'
+        expanded<<virtual
+      end
     end
     return bs20997_macro_forecast(actor,weapon) if expanded.size==actor.actions.size
     view=BS2Suite::Projection.copy(actor)
