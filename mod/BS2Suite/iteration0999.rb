@@ -25,8 +25,13 @@ module BS2Suite::QuickDamage
     def target_mean(object,actor,source,unit);candidate_mean(object,actor,source,unit,source);end
     def calculate(object,actor,source,targets,target,weapon)
       if object.for_one? && !object.for_random? && !target && targets.size>1
-        values=targets.map { |unit| candidate_mean(object,actor,source,unit,weapon) }
-        return ['~? · серия пока не рассчитана'] if values.any? { |v| !v }
+        steps=targets.map { |unit| candidate_step(object,actor,source,unit,weapon) }
+        bad=steps.find { |st| !st || st[:reason] || st[:rows].empty? }
+        return ['~? · '+(bad && bad[:reason] || 'нет прямого урона / нужен переход серии')] if steps.any? { |st| !st || st[:reason] || st[:rows].empty? }
+        values=steps.each_with_index.map do |st,i|
+          row=st[:rows].find { |v| v[:target_index]==targets[i].index }
+          [row[:mean],st[:partial],st[:direct_only],st[:conditional]]
+        end
         return [compact_means(values.map { |v| v[0] })+' урона'+(values.any? { |v| v[3] } ? ' · условно' : '')+(values.any? { |v| v[2] } ? ' · прямой урон; итог ?' : '')]
       end
       step=candidate_step(object,actor,source,targets[0],weapon,!!target && !source && !weapon)

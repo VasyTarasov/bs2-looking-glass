@@ -1,3 +1,24 @@
+# Verification of 0.9992-dev
+
+The hardened private-desktop launcher is used throughout: exit code 0 plus `result=PASS`, synthetic game state, no personal saves or public game windows. There is no live-player input or arbitrary script evaluation in the highlighter.
+
+| Native suite | Assertions / evidence |
+|---|---|
+| Current continuation, cancellation and interaction regressions | 58; repeated attack → spell, native fractional TP → damage, safe/near-lethal Endure, four self-flagellation weapons × four difficulty settings, actual guard/attack cancellation, current-page/SAN gates, empty corpse choices/common event, state/RNG preservation, held/released Alt rendering and resource release on native character rebuild |
+| Interaction catalogue | 2 aggregate assertions: all 20,755 interactive page records across 410 maps classified without exceptions or world/RNG mutation, in the controlled initial state. This is not proof of every reachable event outcome |
+| Forecast mechanism matrix / formula baseline / first-hit corpus | 102 / 35 / 4; existing native-oracle coverage retained, including 15,552 first-hit applications |
+| Grouped macros / probability sequences / source-final weapons | 37 / 12 / 57 |
+| Reduced-module macros | 6 |
+| Classic / HD broad interactions | 98 / 130 |
+| Classic / HD support/reference interactions | 45 / 58 |
+| All modules / minimal modules | 69 / 22 |
+| Normal / instant-Ctrl full battles | 9 / 9 |
+| Performance diagnostics with full / minimal modules | 28 / 28 |
+
+The interaction corpus reports supported interactions, invisible/no-effect/empty cases and conservative omissions separately; unknown script conditions/control flow are not turned into speculative markers. Actual current-page transitions and visibility are verified by the focused native tests. A captured engine frame was visually inspected for the gold markers. Repeated redraws do not create more marker bitmaps or duplicate diagnostic records. Original engine, script table, reference data and native Steam/HD helper are unchanged.
+
+Installer checks: 55. Update from 0.9991-dev: 192, including refusal/rollback and profile preservation. Repository checks: 21. Windows PowerShell 5.1 validation remains headless. See [forecast scope](FORECAST.md) for remaining numerical limitations; this development build is not an exhaustive proof of all combat/event combinations.
+
 # Verification of 0.9991-dev
 
 This build audits common forecasting paths, not only the two reported sequences. The earlier 605 assertions described the complete UI/gameplay suite, not independent proof of every damage mechanic. See [forecast scope, evidence and limitations](FORECAST.md) for exactly what each oracle covers.

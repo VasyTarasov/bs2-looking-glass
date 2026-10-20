@@ -25,7 +25,13 @@ class BS2QoL::Forecast::Prediction
     amp=[value.abs*@item.damage.variance/100,0].max.to_i
     # Integer variance is triangular, not uniform. Enumerate small distributions;
     # large linear ranges use their symmetric endpoints (rounding error < 1).
-    nonlinear=@target.states.include?(Nana::STATE_KONJO) || @item.damage.to_mp? || (value-amp<0 && value+amp>0)
+    low=value-amp;high=value+amp
+    divisor=@target.guard? && value>0 ? 2*@target.values['grd'] : 1.0
+    minimum=@bypass<1 ? low/divisor : low
+    maximum=@bypass>0 ? high : high/divisor
+    survival=@item.damage.to_hp? && @target.states.include?(Nana::STATE_KONJO) && maximum>=@target.values['hp']
+    mp_clip=@item.damage.to_mp? && minimum<@target.values['mp'] && maximum>@target.values['mp']
+    nonlinear=survival || mp_clip || (low<0 && high>0)
     raise BS2QoL::Forecast::Unsupported,'Среднее нелинейного урона с большим разбросом не подтверждено' if nonlinear && amp>512
     if amp<=64 || nonlinear
       sum=0.0;den=(amp+1.0)**2
@@ -83,9 +89,6 @@ class BS2Suite::SequenceForecast
       end
       floor=target.instance_variable_get(:@bs2s_forecast_hp_floor)
       uncertain=floor && floor<target.hp
-      if uncertain && target.state?(Nana::STATE_KONJO)
-        raise BS2QoL::Forecast::Unsupported,'Выживание зависит от HP после предыдущего урона'
-      end
       members=id==:self ? user.friends_unit.alive_members : b[:targets].values
       if !item.certain? && members.any? { |m| !m.equal?(target) && m.substitute? } && (floor || target.hp)<target.mhp/4
         raise BS2QoL::Forecast::Unsupported,'Прикрытие после изменения HP требует отдельного перехода'
@@ -112,6 +115,16 @@ class BS2Suite::SequenceForecast
       target.instance_variable_set(:@bs2s_forecast_removed_states,[])
       p=BS2QoL::Forecast::Prediction.new(user,target,item,true)
       raise BS2QoL::Forecast::Unsupported,p.error if p.error
+      if item.damage.to_hp? && target.state?(Nana::STATE_KONJO) && (uncertain || target.instance_variable_get(:@bs2s_forecast_hp_uncertain))
+        value=p.base*p.element*(item.certain? ? 1.0 : p.rate)
+        multiplier=Hi_ru_Difficulty::DIFFICULTY_SETTING[11][$game_variables[Hi_ru_Difficulty::VARIABLES]]
+        value*=[1.0,multiplier].max if p.crit_chance>0
+        high=value+(value.abs*item.damage.variance/100).to_i
+        high/=2*p.target.values['grd'] if p.target.guard? && p.bypass<=0 && high>0
+        if high.to_i>=(floor || target.hp)
+          raise BS2QoL::Forecast::Unsupported,'Выживание зависит от HP после предыдущего урона'
+        end
+      end
       @forecast09991_predictions[b.object_id]=p
       if p.chance>0 && p.state_chances.any? { |sid,chance| sid==target.death_state_id && chance>0 }
         raise BS2QoL::Forecast::Unsupported,'Мгновенная смерть между попаданиями не рассчитана' if count>1

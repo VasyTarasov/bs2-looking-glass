@@ -16,14 +16,14 @@ module BS2Suite
         item=action && action.item
         step={:index=>index,:item=>item,:rows=>[],:cost=>nil,:weapon=>actor.equips[0]};@steps<<step
         unless item;stopped=true;@complete=false;next;end
-        if stopped;step[:reason]='Предыдущий переход не подтверждён';next;end
+        if stopped;step[:reason]=@limitations.last || (@steps[index-1] && @steps[index-1][:reason]) || 'Предыдущий переход не подтверждён';next;end
         late=action.instance_variable_get(:@bs2s_forecast_late_skill)
         if index>0 && late && $data_skills[late].note.include?('ステート変化')
           step[:reason]='Отложенный навык меняет ID по состоянию; переход не подтверждён';stopped=true;@complete=false;next
         end
         ids=if item.for_user? || (item.for_friend? && !item.for_dead_friend? && (item.for_all? || action.target_index==actor.index));[:self]
         elsif item.for_opponent?
-          item.for_all? || item.for_random? ? targets.map { |t| t.index } : [targets.find { |t| t.index==action.target_index } && action.target_index]
+          item.for_all? || item.for_random? ? targets.map { |t| t.index } : [targets.find { |t| t.index==action.target_index } ? action.target_index : (targets[0] && targets[0].index)]
         else;[];end
         if ids.empty? || ids.include?(nil)
           step[:reason]='Нужна цель; союзный переход не подтверждён';stopped=true;@complete=false;next
@@ -132,7 +132,7 @@ module BS2Suite
         @steps.each { |s| s[:rows].each { |r| t=@totals[[r[:name],r[:resource]]] ||= {:min=>0,:max=>0,:mean=>0.0};[:min,:max,:mean].each { |k| t[k]+=r[k] } } }
       end
     rescue StandardError=>e
-      @complete=false;@limitations<<'Неподдерживаемый расчёт: '+e.class.to_s
+      @complete=false;@limitations<<'Неподдерживаемый расчёт: '+e.class.to_s;@diagnostic_exception=[e.class.to_s,e.backtrace && e.backtrace[0]]
       if @steps.last;@steps.last[:rows]=[];@steps.last[:cost]=nil;@steps.last[:reason]='Расчёт прерван; частичное число скрыто';end
     end
     def unsupported_note?(item)
@@ -167,7 +167,7 @@ module BS2Suite
         p=(@forecast09991_predictions && @forecast09991_predictions.delete(b.object_id)) || BS2QoL::Forecast::Prediction.new(user,target,item,true)
         raise BS2QoL::Forecast::Unsupported,p.error if p.error
         raise BS2QoL::Forecast::Unsupported,'Прикрытие требует отдельного перехода' unless p.target.source.equal?(target)
-        if p.repeats>1 && (item.damage.formula =~ /b\.(?:hp|mp|hp_rate|mp_rate)\b/ || (id==:self && item.damage.formula =~ /a\.(?:hp|mp|hp_rate|mp_rate)\b/) || target.state?(Nana::STATE_KONJO))
+        if p.repeats>1 && (item.damage.formula =~ /b\.(?:hp|mp|hp_rate|mp_rate)\b/ || (id==:self && item.damage.formula =~ /a\.(?:hp|mp|hp_rate|mp_rate)\b/))
           raise BS2QoL::Forecast::Unsupported,'Повторы зависят от урона предыдущего попадания'
         end
         miss=forecast_weighted(b,1-p.chance) if p.chance<1

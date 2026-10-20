@@ -44,3 +44,12 @@ The generated mechanism matrix also checks all eight parameter buffs, resistance
 - **`?` plus reason:** a required transition is unverified or the finite branch budget (64) is exceeded. A previous value or a first hit is not reused as a whole result.
 
 Remaining limitations include counter/reflection responses between hits, arbitrary battle/common-event scripts, some repeated drain/conversion and nonlinear survival/resource cases, uncertain death/retargeting/bodyguard transitions, recovery-mode propagation, and late instant-skill ID transformations. Unsupported contexts can be extended with separately verified adapters. Unknown mechanisms outside the tested build/contexts are not claimed to be solved. Existing target-knowledge restrictions remain; no hidden enemy AI/drop tables or player saves are distributed.
+
+
+## 0.9992-dev continuation fixes
+
+The sequence model already propagated TP and on-hit effects, but an older blanket stop still rejected a repeated action with both. That obsolete stop is removed; native fractional TP gain is retained and verified against a subsequent TP-based action. A default `-1`/missing living target follows the native smooth-target fallback instead of being treated as an impossible preceding action.
+
+Endure does not make a distribution nonlinear when every possible hit is safely below remaining HP. The mean and repeated-hit continuation now check that boundary. A possible activation after uncertain prior damage still declines an unverified result. MP clipping likewise requires an actual threshold crossing to force a large nonlinear distribution into the unsupported path. Self-flagellation → Triple Shot is also exercised across four physical weapons and four difficulty settings, including a safe Endure case. These checks broaden confidence; they are not a proof of every player build.
+
+A stopped continuation carries the preceding specific reason instead of losing it behind a generic “sequence not calculated” message. Diagnostic context is described in [troubleshooting](TROUBLESHOOTING.md).

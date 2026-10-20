@@ -6,9 +6,11 @@
 
 An unofficial, modular collection of combat controls, practical reference cards and interface improvements for BLACK SOULS II.
 
-**Development build: `0.9991-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
+**Development build: `0.9992-dev`. No stable release.** Based on the locally tested `0.9.8-alpha` preview. This is a development repository, without release tags or automatic release publishing.
 
 ## Latest development changes
+
+0.9992-dev removes obsolete forecast barriers for repeated attacks with TP/effects, safe Endure and default native targets. Unverified continuations retain a concrete reason, with bounded diagnostic context. Esc removes uncommitted normal attacks/guard as well as other selected actions. Hold **Alt** on the map for current visible, useful interaction markers; exhausted corpse menus and concealed event pages are excluded. See [controls](docs/CONTROLS.md), [diagnostics](docs/TROUBLESHOOTING.md) and [verification](docs/QA.md).
 
 0.9991-dev audits the forecasting system beyond two examples: all 648 formula-damage/recovery records in three user contexts, native counter/reflection ordering, probability-weighted means, state transitions and source/executor normal-attack counts. F7 and short battle estimates now share the queued-state calculation. Unverified transitions show an explicit unknown/partial result; possible HP-driven battle scripts qualify the estimate as conditional. See [forecast scope and evidence](docs/FORECAST.md).
 

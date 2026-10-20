@@ -11,7 +11,7 @@ Repeat the active letter to go back one level; Esc exits. Q/E change groups. Ins
 | Decision | Control | Behavior |
 |---|---|---|
 | Equip now | Digit / Enter in N | Immediately change the live weapon when legal. |
-| Starting weapon | D in equipment / Items → Weapons | Apply at the beginning of a turn. Repeat D clears it; existing action slots are not recalculated. |
+| Starting weapon | D in equipment / Items → Weapons | Apply once at the first input of a battle. Repeat D clears it; existing action slots are not recalculated. |
 | Final executor | D on an N entry | Nominate the last action's platform. Repeat D or N N clears it. |
 
 With one original slot, a V equipment technique uses its granting source; the final nomination does not override it. Magic and non-instant items may use the final weapon on the last action. Instant actions do not trigger that final swap.
@@ -94,3 +94,14 @@ The mode applies to all battles while held, including bosses and spirits. It doe
 Enable the optional Diagnostics module, then restart the game. **Диагностика производительности** in mod settings toggles five-second local timing summaries without disabling the ordinary journal. It defaults on when Diagnostics is loaded; with Diagnostics disabled, the profiler is not loaded. No hotkey is consumed. This option cannot attach new code to an already running game.
 
 Use the performance records to compare scene/map/modal/focus contexts, ordinary FPS and FPS excluding >1-second gaps, frame-time bounds/slow-frame counts, engine/mod/diagnostic phases, GC/resource counters and known transition/load/overlay waits. Phase times overlap and are not additive; the graphics phase includes native presentation/pacing. No automatic log uploads occur.
+
+
+## Interaction highlighting (0.9992-dev)
+
+Hold **Alt** on the map to mark visible event graphics with quiet gold corners. Release it to hide them. The setting and held key are configurable under mod options / key assignments; normal Alt+Tab remains a Windows shortcut.
+
+Eligibility uses the current native event page, actual transparency/opacity and reachable switch/variable/self-switch conditions. Concealed pages are not used to reveal interactions, including sanity-dependent objects. A corpse's description/search menu is not sufficient: an empty search is excluded, while another meaningful available choice can keep it eligible. Erased pickups disappear immediately. Ordinary readable objects still count.
+
+Analysis never starts events, evaluates arbitrary Ruby scripts, rolls rewards, changes switches or spends items. Unknown script/control-flow cases are conservatively omitted and aggregated in diagnostics. Thus this is not a claim that every scripted interaction has been solved. Markers reuse sprites/bitmaps, scan only while held and release owned resources when map characters are rebuilt.
+
+At battle commands, **Esc** removes the previous unpaid action and its unpaid tail, including normal attacks and guard. Cancelling a target picker clears that unconfirmed action. Double Esc still resets the uncommitted queue. Applied instant items and already executed actions are not rolled back.
