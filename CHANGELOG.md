@@ -4,6 +4,8 @@
 
 Entries follow the actual development order. These identifiers are historical, not standard semantic-version arithmetic: 0.92-dev and 0.9.2-alpha are different builds. Early previews were not all published as GitHub releases. Each entry describes that build; later entries may supersede its features.
 
+Early releases were reconstructed from retained archives and their READMEs, changelogs and reports. BS2QoL and BS2Modules initially developed separately; their version numbers belong to different branches merged in 0.5. Before numbered releases, database research and a mod foundation existed without a custom in-game interface.
+
 ## 1.0 — Modular feature selection and bilingual installer
 
 - 20 choices in seven sections. Everything defaults on except Advanced Legacy, automatic support and diagnostics.
@@ -200,7 +202,92 @@ Entries follow the actual development order. These identifiers are historical, n
 - Added equipment-family handling and shared window navigation.
 - Refined how optional modules and the HD interface load together.
 
-## 0.9.0-preview — First modular preview
+## 0.9.0-preview — First HD preview
 
-- First recorded preview combining combat controls, action-queue display, reference cards and effect inspection.
-- Brought together loadouts, save conveniences, command groups and Steam/HD presentation.
+- Added custom high-resolution output and a separate HD interface on top of 0.8.2: actor resources, weapon, commands, queue, effects, V/B/M/N and F7.
+- Added windowed/full-screen presets, crisp/smoothed rendering, HD text scaling and timed display-mode confirmation with automatic fallback.
+- This began the HD branch; the unified modular package already existed in 0.5, and not every screen had been ported in this preview.
+
+## 0.8.2-alpha — Curated weapon shelves
+
+- N1 became a short list of frequent switches, N2 a separate final-action selection, and N3 onward additional manual shelves.
+- The authored profiles retain early alternatives differently; addresses stay fixed during battle and layout migration requires confirmation.
+- The editor gained explicit “Switch now” / “Final action” modes while preserving existing custom-group behavior; F7 explains weapon roles and limitations.
+
+## 0.8.1-alpha — Steam overlay and restart
+
+- The Steam bridge recognizes the redirected graphics context of a real Steam launch; the overlay refreshes during pauses, accepts mouse input and returns focus on closing.
+- With the bridge enabled, F12 restarts the same Game.exe in a new process instead of re-executing scripts in the existing Ruby process.
+- Removed the hard-coded F12 screenshot binding so Steam controls the shortcut; graphics-window system commands are forwarded to the main game window.
+
+## 0.8.0-alpha — Soul batches, equipped upgrades and Steam bridge
+
+- Added confirmed batch use of eligible souls with currency-cap checks, and native recipe upgrades of equipped weapons with rollback on failure.
+- Made authored V/B/M positions sequential and persisted acknowledged layouts outside saves; expanded N1, F7 references, loadout comparisons and compact H battle effects.
+- Added an optional Steam/OpenGL bridge and opt-in acceleration of ordinary item presentation. Full visual overlay operation was not yet confirmed at this stage.
+
+## 0.7.1-alpha — Map return and diagnostic overhead
+
+- Fixed access to a disposed notification window after returning from menus to the map by recreating it for the new scene lifetime.
+- Aggregated repeated diagnostic condition checks into counted summaries, removed empty inventory/currency changes and added update-rate and long-gap measurements.
+- Expanded map-return, diagnostic-overhead and 0.6 / 0.7.0 upgrade checks; this was not a claim to eliminate every possible slowdown.
+
+## 0.7.0-alpha — V/B/M/N groups and separate Legacy
+
+- Introduced V/B/M groups and N weapon selection; moved the old Shift/Ctrl shortcuts into Advanced Legacy, disabled by default. Favorites remained separate.
+- Added two evolving authored profiles and custom-group editing with copying, renaming, F6 assignments and up to ten groups of ten entries.
+- N1 switches immediately while N2 onward nominate a final-action weapon; F7 shows the queue and weapon comparison, with supported between-slot forecast transitions.
+- Added encounter tracking outside saves with a configurable threshold for exact enemy information; the installer offered 18 selectable modules.
+
+## 0.6.0-alpha — Weapon bindings and quick saves
+
+- Added independent Ctrl bindings for weapon techniques and Ctrl+Shift source-weapon switching with technique selection, using actual upgrade chains for weapon families.
+- Expanded F7 to equipment and battle targets and F4 to current enemies; refined mechanics cards, ring explanations and forecasts.
+- F3 saves on the map to five separate quick slots, 101–105, respecting native restrictions; D on Hidden Body optionally enables paid recasting.
+
+## 0.5.1-alpha — Hidden skills and malformed data
+
+- Hidden skills stay hidden in mod lists and direct slots; malformed UTF-8 settings safely fall back to defaults.
+- Hardened save-header and body validation, restoration of the previous live world after load failure, and damaged-slot skipping when finding the latest save.
+- Temporary-save cleanup failures no longer interrupt play and successful operations clear stale errors; diagnostic JSON handles malformed strings.
+
+## 0.5.0-alpha — First unified modular package
+
+- Combined BS2QoL 0.4 and the separate BS2Modules 0.1 effects/loadouts into one bootstrap, shared input and an installer with 16 selectable features.
+- Added learned-book markers, field skills, 100 labelled manual saves with verified writes, a defeat screen, bounded battle retry and battle statistics.
+- Added integer scaling, control remapping, run modes, separate volume controls and opt-in local diagnostics while preserving existing favorites, bindings and loadouts.
+
+## BS2Modules 0.1.0-alpha — Separate effects and loadouts branch
+
+- A standalone package of two independently selectable modules developed before the 0.5 merge. Its 0.1.0 identifier belongs to BS2Modules, separately from BS2QoL.
+- Shows states, buffs, cooldowns, instant-use limits and equipment contributions, preserving the current queue during battle inspection.
+- Provides named full defensive loadouts per actor with preview, availability and lock checks, and rollback on failure; coexistence with BS2QoL 0.2 was checked.
+
+## BS2QoL 0.4.0-alpha — Numeric forecasts for current targets
+
+- Added per-current-target estimates using stats, equipment, states, resistances, pre-formula costs, variance, criticals, reflection and substitution.
+- Distinguishes raw damage from actual HP/MP loss and labels complex changing sequences as first-hit estimates; inspection neither executes arbitrary formulas nor consumes combat random rolls.
+
+## BS2QoL 0.3.0-alpha — Bilingual cards and offline references
+
+- F7 opens detailed technique, magic and item cards and F8 switches Russian/English, with effects, formulas and special-mechanic rules.
+- Added separate searchable RU/EN HTML references; exact numeric forecasts for the current target followed in 0.4.
+
+## BS2QoL 0.2.0-alpha — Shortcuts in native lists
+
+- Moved quick access into the native battle interface: commands 1–6, Shift weapon/context slots and shared direct Ctrl slots.
+- F6 assigns the highlighted item, skill or weapon, with technique profiles per weapon; favorites move to the top of native lists and the separate battle Favorites category is removed.
+
+## BS2QoL 0.1.2-alpha — Esc return to categories
+
+- Fixed Esc returning from a favorites list to its categories, with button-driven verification during demo capture.
+
+## BS2QoL 0.1.1-alpha — Favorite sound and capacity
+
+- Removed the duplicate sound when toggling with Enter; at the 64-entry limit, adding is disabled while removal remains available.
+- Expanded full-battle, save/load, settings-write-failure and repeated large-inventory checks.
+
+## BS2QoL 0.1.0-alpha — First working favorites and queue
+
+- Added persistent favorite weapons, skills and consumables in menus and battle, A/S filtering and a compact view of actual action slots.
+- Uses native targets, costs and restrictions while keeping unavailable entries visible; added checked installation with exact script-table restoration.
