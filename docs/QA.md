@@ -16,6 +16,10 @@ One initial controls-test restore assertion did not recur in two fresh accepted 
 
 No complete story playthrough or universal hardware/third-party-mod certification is claimed. The historical native F12 crash is not established as fixed. Original game formulas, factual catalog assets and native graphics DLL are preserved. Shared integration files retain their verified loading order.
 
+## Guide publication checks
+
+The current source suite has 45 tests, including two additional documentation-media boundary tests. All 21 media files from the public Russian Steam guide are retained with original bytes and recorded SHA-256 hashes, formats and dimensions. The two GIFs retain 295 and 383 frames. Documentation media are allowed only at declared `docs/assets/guide/` paths with matching hashes and image signatures; runtime binary restrictions are unchanged. Text, section order, local media links and GitHub-rendered image tags are checked separately. These documentation changes do not modify the accepted game runtime or the published v1.0 ZIP.
+
 ## Historical verification records
 
 # Verification of 0.99995-dev

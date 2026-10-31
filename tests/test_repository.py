@@ -25,6 +25,17 @@ class RepositoryTests(unittest.TestCase):
   rel='mod/BS2Suite/native/bs2_steam_bridge.dll';self.assertIn('runtime asset hash mismatch',audit.inspect_file(rel,b'not the helper',self.assets))
  def test_powershell_bom_is_required(self):self.assertIn('PowerShell 5.1 requires UTF-8 BOM',audit.inspect_file('Example.ps1',b'Write-Output 1',self.assets))
  def test_relative_documentation_target(self):self.assertTrue(audit.link_errors({'README.md':b'[x](missing.md)'}))
+ def test_media_manifest_cannot_allow_game_or_outside_files(self):
+  for rel in ['Game.exe','docs/assets/guide/../../outside.gif','docs/elsewhere.png']:
+   valid,errors=audit.media_manifest(json.dumps({'files':{rel:{'sha256':'0'*64}}}))
+   self.assertEqual(valid,{});self.assertTrue(errors)
+ def test_documentation_image_requires_approved_hash_and_format(self):
+  rel='docs/assets/guide/synthetic.gif';data=b'GIF89a'+b'synthetic image fixture'
+  assets={rel:{'sha256':hashlib.sha256(data).hexdigest()}}
+  self.assertEqual(audit.inspect_file(rel,data,assets),[])
+  self.assertTrue(audit.inspect_file(rel,data+b'edit',assets))
+  bad=b'not an image';assets[rel]['sha256']=hashlib.sha256(bad).hexdigest()
+  self.assertIn('documentation media format mismatch',audit.inspect_file(rel,bad,assets))
  def test_language_and_defaults(self):
   modules=json.loads((ROOT/'modules.json').read_bytes());self.assertEqual({m['id'] for m in modules if not m['default']},{'debug','legacy_shortcuts','battle_support'})
   self.assertTrue(all(m['name']==m['name_en'] and m['name_ru'] for m in modules))

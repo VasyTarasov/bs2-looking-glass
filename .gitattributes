@@ -9,3 +9,6 @@
 *.cmd text eol=crlf
 *.dll binary
 *.rvdata2 binary
+*.png binary
+*.jpg binary
+*.gif binary

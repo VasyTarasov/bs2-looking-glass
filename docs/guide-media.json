@@ -1,0 +1,215 @@
+{
+  "source_guide": "https://steamcommunity.com/sharedfiles/filedetails/?id=3830469599",
+  "files": {
+    "docs/assets/guide/01-introduction-01.jpg": {
+      "sha256": "f233553ff53daf2974ab17d106536b390854bf86cb645b4335633fa62015c5a6",
+      "bytes": 475923,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/16032920835439801382/23138B8C96B7BC34C5F1C1B9011B0F9830DA91F7/",
+      "section": 1,
+      "alt": "Боевой интерфейс с HD-панелью и очередью действий"
+    },
+    "docs/assets/guide/02-installation-01.png": {
+      "sha256": "ecc96bfc52a9acdcc3585665989b1a64954f8b43c75d184eee71212e87900175",
+      "bytes": 48018,
+      "width": 936,
+      "height": 619,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/11873471006409326463/8B3DD7F0F08AE1F70918E07423D9DE237FF92BD0/",
+      "section": 2,
+      "alt": "Установщик с выбором модулей"
+    },
+    "docs/assets/guide/02-installation-02.jpg": {
+      "sha256": "b33a4e6946fe26ba949fb50e48e0647b0dfcd1122c3b613ca30f383822fb8e75",
+      "bytes": 283439,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/16422552279582823300/D31A1C42B63646C24C28B999CD0E8AD3F27E4BB1/",
+      "section": 2,
+      "alt": "Игровые настройки и выбор модулей"
+    },
+    "docs/assets/guide/04-references-01.jpg": {
+      "sha256": "223da2f96d080a892d61b032e231b17425d13dc5e019fcfe7f571933576d6952",
+      "bytes": 908125,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/11127796221395120266/F386BA943C0931082F2C1457E400234BF20D2199/",
+      "section": 4,
+      "alt": "Подробная карточка предмета F7"
+    },
+    "docs/assets/guide/04-references-02.jpg": {
+      "sha256": "91cc600533bac6a679f9bdbe2d8b3f7ccc123ec181cb891a8232043febd8c020",
+      "bytes": 947919,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/18001093251125414672/1E9F43D7E8DD2FA3B6F06BD52D0997C7CB9B2EB4/",
+      "section": 4,
+      "alt": "Свойства оружия в подробной справке"
+    },
+    "docs/assets/guide/04-references-03.jpg": {
+      "sha256": "c90bec5549da00669df99685a36514a637845bfd3586b2d794cc08cf7d9c2b17",
+      "bytes": 625941,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/14243549650239442610/E5314E7BEDD9B23D62CB28E593AFBA52D0C95808/",
+      "section": 4,
+      "alt": "Прогноз урона по текущим целям"
+    },
+    "docs/assets/guide/05-battle-controls-01.gif": {
+      "sha256": "08d3ff7080261a38a1ce994f1f397808d8244c54fcf82b3c7a412eb62e902866",
+      "bytes": 1986340,
+      "width": 640,
+      "height": 360,
+      "frames": 295,
+      "source": "https://images.steamusercontent.com/ugc/15414021793584485137/6F1C0447D227FC71F846FCD92CB73AB7DE0E613F/",
+      "section": 5,
+      "alt": "Выбор действий через боевые группы — анимация"
+    },
+    "docs/assets/guide/05-battle-controls-02.png": {
+      "sha256": "d5f9f6518bfd29b9b67fab2acaf8e395ba07d31c157f0c687544a047297a55eb",
+      "bytes": 1925314,
+      "width": 1536,
+      "height": 1152,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/12166417011046999802/4244083A65EA76AB1E1692A1D9C43C81B25170FD/",
+      "section": 5,
+      "alt": "Избранное в обычном списке предметов"
+    },
+    "docs/assets/guide/06-effects-journal-01.jpg": {
+      "sha256": "cdf2583380674f6ce0e198bb23e2f35ffb872fb3145aff17494fc0beecd300ad",
+      "bytes": 463392,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/15034611498938920540/7953858B241682B26865BFAD51A1DD82462236D3/",
+      "section": 6,
+      "alt": "Участники боя и действующие эффекты"
+    },
+    "docs/assets/guide/06-effects-journal-02.jpg": {
+      "sha256": "9396fa2e527eff430a6b68b9c86b22b676bb273ea00da064a4f249b867cb7b70",
+      "bytes": 473518,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/14148774661865834213/A66D7C0BF1A7D9F61A7618CEC693DB85E51E1BB0/",
+      "section": 6,
+      "alt": "Журнал наблюдавшихся боевых действий"
+    },
+    "docs/assets/guide/07-auto-items-01.gif": {
+      "sha256": "fd9269d83fd09fcbabceef8db16f510efe9618b6411f55072d5a709739b3efd1",
+      "bytes": 1632910,
+      "width": 640,
+      "height": 360,
+      "frames": 383,
+      "source": "https://images.steamusercontent.com/ugc/11909722356504319709/78B6B5B4E51DF58C56ED53DF4BDFE978DECC7D09/",
+      "section": 7,
+      "alt": "Включение автопредметов в текущем бою — анимация"
+    },
+    "docs/assets/guide/07-auto-items-02.jpg": {
+      "sha256": "f194c478c1a7cc6b7345bfd4e263521e9311e491517cc49de72a094ca76f67b3",
+      "bytes": 261968,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/17766300862576045988/FD4FBBEDE20307D77372C8A60B1052C412496FF6/",
+      "section": 7,
+      "alt": "Полевой навык скрытности"
+    },
+    "docs/assets/guide/09-equipment-saves-01.jpg": {
+      "sha256": "fa02714cdd993dc0a2145de0c43fc6faba0108c9b3e535551683105ecd3ae8c6",
+      "bytes": 372062,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/11862510008791358273/7A71EB17D3AF2A30501D8F21A3857E4B21B9B4C2/",
+      "section": 9,
+      "alt": "Сохранение и выбор комплектов снаряжения"
+    },
+    "docs/assets/guide/09-equipment-saves-02.jpg": {
+      "sha256": "68830d8148f642679fe5aeaf285fb172bc2bfdd1b4253a754eeb5fe03a673e90",
+      "bytes": 910291,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/17970334267214521899/133EFC91D7C5B24429B9C1329B183B296D6B5315/",
+      "section": 9,
+      "alt": "Отметка изученной книги"
+    },
+    "docs/assets/guide/09-equipment-saves-03.jpg": {
+      "sha256": "f0f1de55a14cb759e0028b41dcadcacd5b5c4a5a33bdafadf575d5d47940539d",
+      "bytes": 543001,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/15107095981341742709/9D26402A726AF47FA69EE162C4124A572C3538C2/",
+      "section": 9,
+      "alt": "Подтверждение массового использования душ"
+    },
+    "docs/assets/guide/09-equipment-saves-04.jpg": {
+      "sha256": "380005233a3bc3b8f1f197da54467d61f19497508b258589d4cc8d6635823b25",
+      "bytes": 276590,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/11277933959966589561/CC8046F16DC58FD354A6A1B3B5456A74B18CDE28/",
+      "section": 9,
+      "alt": "Список ручных и быстрых сохранений"
+    },
+    "docs/assets/guide/10-map-display-01.png": {
+      "sha256": "c5ed714887281a755e9dd6704271101429c73d696c69aadaf35fef70a4ee4f41",
+      "bytes": 458162,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/17494055169778158848/647DAFD12D863F4F4DB9A35A0A1010E9F11D34E1/",
+      "section": 10,
+      "alt": "Подсветка доступных взаимодействий на карте"
+    },
+    "docs/assets/guide/10-map-display-02.jpg": {
+      "sha256": "b7ca66296f55acd030ad554f2949d333e6bbbde00bd4ba0cd52e80b92c27bedf",
+      "bytes": 556522,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/12648143166265725515/3C8B4E5FD7E9E21082BE7CF1244C61B478338871/",
+      "section": 10,
+      "alt": "Выбор SEN при использовании Шестерни Безумия"
+    },
+    "docs/assets/guide/10-map-display-03.jpg": {
+      "sha256": "39afc030fde96ac904c824a86de494d79c2a088a4ef0276bb477f8c4dc7159fd",
+      "bytes": 290035,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/17712766845425606131/5904265A041BE31D8CA88513370F9FE4DE059FFD/",
+      "section": 10,
+      "alt": "Настройки экрана и HD-интерфейса"
+    },
+    "docs/assets/guide/10-map-display-04.jpg": {
+      "sha256": "05fa0b786cc4df61d2adafe9fb4caf2096acf9bd1a119ed5b687dd1639d283b4",
+      "bytes": 261300,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/9266694274531536817/0CA4712FCC81FDE7EF1B7782283FCC442B41C4AD/",
+      "section": 10,
+      "alt": "Переназначение клавиш"
+    },
+    "docs/assets/guide/10-map-display-05.jpg": {
+      "sha256": "c592655863522c2abbbb251ef6fba0112d078d13b6ce0e002a3aec5f63e6f90a",
+      "bytes": 349938,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "https://images.steamusercontent.com/ugc/9887032274348985476/4856621CF6FD74CE94DC86A35551AB5676B1070F/",
+      "section": 10,
+      "alt": "Состояние Steam-моста и оверлея"
+    }
+  }
+}
