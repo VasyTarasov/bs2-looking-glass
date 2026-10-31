@@ -20,25 +20,41 @@ module BS2Suite::QuickDamage
     def candidate_mean(object,actor,source,unit,weapon=nil)
       step=candidate_step(object,actor,source,unit,weapon)
       return nil unless step && !step[:reason]
-      r=step[:rows].find { |v| v[:target_index]==unit.index };r && [r[:mean],step[:partial],step[:direct_only],step[:conditional]]
+      r=step[:rows].find { |v| v[:target_index]==unit.index && v[:resource]=='HP' };r && [r[:mean],step[:partial],step[:direct_only],step[:conditional]]
     end
     def target_mean(object,actor,source,unit);candidate_mean(object,actor,source,unit,source);end
+    def result_suffix(step)
+      (step[:partial] ? ' · первое попадание' : '')+(step[:conditional] ? ' · условно' : '')+(step[:direct_only] || step[:followup_unknown] ? ' · прямой урон; итог ?' : '')
+    end
+    def first_hit_lines(object,actor,source,targets,target,weapon,reason)
+      rows=['~? · '+(reason || 'серия пока не рассчитана')]
+      targets.take(2).each do |unit|
+        first=BS2Suite::ForecastContext.step(object,actor,source,unit,weapon,!!target && !source && !weapon,true)
+        next unless first && !first[:reason]
+        row=first[:rows].find { |r| r[:target_index]==unit.index && r[:resource]=='HP' }
+        next unless row
+        rows<<unit.name+': ≈ '+row[:mean].round.to_s+' · сейчас, первое попадание; серия ?'
+      end
+      rows
+    end
     def calculate(object,actor,source,targets,target,weapon)
       if object.for_one? && !object.for_random? && !target && targets.size>1
         steps=targets.map { |unit| candidate_step(object,actor,source,unit,weapon) }
         bad=steps.find { |st| !st || st[:reason] || st[:rows].empty? }
-        return ['~? · '+(bad && bad[:reason] || 'нет прямого урона / нужен переход серии')] if steps.any? { |st| !st || st[:reason] || st[:rows].empty? }
+        return first_hit_lines(object,actor,source,targets,target,weapon,bad && bad[:reason]) if steps.any? { |st| !st || st[:reason] || st[:rows].empty? }
         values=steps.each_with_index.map do |st,i|
-          row=st[:rows].find { |v| v[:target_index]==targets[i].index }
-          [row[:mean],st[:partial],st[:direct_only],st[:conditional]]
+          row=st[:rows].find { |v| v[:target_index]==targets[i].index && v[:resource]=='HP' }
+          return ['~? · нет рассчитанного изменения HP'] unless row
+          targets[i].name+': ≈ '+[row[:mean].round,0].max.to_s+' урона'+result_suffix(st)
         end
-        return [compact_means(values.map { |v| v[0] })+' урона'+(values.any? { |v| v[3] } ? ' · условно' : '')+(values.any? { |v| v[2] } ? ' · прямой урон; итог ?' : '')]
+        return values.take(3)+(values.size>3 ? ['Ещё '+(values.size-3).to_s+' целей — '+BS2Suite::Keys.token(:reference)] : [])
       end
       step=candidate_step(object,actor,source,targets[0],weapon,!!target && !source && !weapon)
-      return ['~? · '+(step && step[:reason] || 'серия пока не рассчитана')] unless step && !step[:reason] && !step[:rows].empty?
-      means=step[:rows].select { |r| r[:target_index]!=:self }.map { |r| r[:mean] }
+      return first_hit_lines(object,actor,source,targets,target,weapon,step && step[:reason]) unless step && !step[:reason] && !step[:rows].empty?
+      means=step[:rows].select { |r| r[:target_index]!=:self && r[:resource]=='HP' }.map { |r| r[:mean] }
+      return ['~? · нет рассчитанного изменения HP'] if means.empty?
       total=means.inject(0.0) { |n,v| n+v }
-      suffix=(step[:conditional] ? ' · условно' : '')+(step[:direct_only] ? ' · прямой урон; итог ?' : '')
+      suffix=result_suffix(step)
       if (object.for_all? || (weapon && object.for_random? && !target)) && means.size>1
         [compact_means(object.for_random? ? means : [means.min,means.max])+' по цели · Σ~'+total.round.to_s+' всего'+suffix]
       else

@@ -52,6 +52,18 @@ static void paintIcon(int index,int x,int y,int size,const Layout& l){
   unsigned alpha=source[a+3];for(int c=0;c<3;++c)destination[b+c]=(unsigned char)((source[a+c]*alpha+destination[b+c]*(255-alpha))/255);
  }
 }
+// Private inline roles used only by reference formulas. Measure plain glyphs.
+static bool formulaMarker(wchar_t ch){return ch>=0xE000&&ch<=0xE002;}
+static std::wstring plainFormula(const std::wstring& value){
+ std::wstring out;out.reserve(value.size());for(wchar_t ch:value)if(!formulaMarker(ch))out+=ch;return out;
+}
+static void formulaText(HDC dc,const std::wstring& rich,const RECT& bounds,COLORREF normal){
+ int x=bounds.left;std::wstring run;COLORREF color=normal;
+ auto flush=[&](){if(run.empty())return;SetTextColor(dc,color);SIZE size={};GetTextExtentPoint32W(dc,run.c_str(),(int)run.size(),&size);
+  ExtTextOutW(dc,x,bounds.top,ETO_CLIPPED,&bounds,run.c_str(),(UINT)run.size(),0);x+=size.cx;run.clear();};
+ for(wchar_t ch:rich){if(formulaMarker(ch)){flush();color=ch==0xE000?RGB(218,234,250):ch==0xE001?RGB(250,224,224):normal;}else run+=ch;}
+ flush();SetTextColor(dc,normal);
+}
 static bool panel(const Layout& l){
  if(!l.pw||!l.ph)return false;
  if(error==10||error==11)return false;
@@ -82,7 +94,8 @@ static bool panel(const Layout& l){
   int iconSize=std::max(20,(int)std::round(24.0*l.font/22));
   int iconLeft=left;if(icon>=0)left+=iconSize+8;
   UINT format=(kind==L'P'||kind==L'K') ? DT_SINGLELINE|DT_END_ELLIPSIS : DT_WORDBREAK;
-  RECT rect={left,y,right,y};DrawTextW(textDC,line.c_str(),(int)line.size(),&rect,DT_CALCRECT|format|DT_NOPREFIX);
+  std::wstring measured=plainFormula(line);
+  RECT rect={left,y,right,y};DrawTextW(textDC,measured.c_str(),(int)measured.size(),&rect,DT_CALCRECT|format|DT_NOPREFIX);
   int height=std::max(l.font+4,(int)(rect.bottom-rect.top))+(kind==L'H'?pad:4);
   int cells=std::max(1,(right-left)/(iconSize+10));
   int cellHeight=iconSize+std::max(14,l.font*2/3)+4;
@@ -94,7 +107,8 @@ static bool panel(const Layout& l){
   }
   rect={left,y,right,y+height};
   if(kind==L'A'||kind==L'K'){HBRUSH active=CreateSolidBrush(RGB(56,45,49));FillRect(textDC,&rect,active);DeleteObject(active);}
-  DrawTextW(textDC,line.c_str(),(int)line.size(),&rect,format|DT_NOPREFIX);
+  if(measured!=line)formulaText(textDC,line,rect,GetTextColor(textDC));
+  else DrawTextW(textDC,line.c_str(),(int)line.size(),&rect,format|DT_NOPREFIX);
   if(icon>=0)paintIcon(icon,iconLeft,y,iconSize,l);
   if(!grid.empty()){
    HFONT small=CreateFontW(-std::max(11,l.font*2/3),0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,DEFAULT_PITCH,L"Segoe UI");
@@ -203,6 +217,7 @@ extern "C" int WINAPI BS2_HDMeasure(const char* data,int size,int font){
  if(!data||size<0||size>4096||font<10||font>100)return -1;
  int count=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,data,size,0,0);if(!count&&size)return -1;
  std::wstring value(count,L'\0');if(count)MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,data,size,&value[0],count);
+ value=HD::plainFormula(value);count=(int)value.size();
  HDC dc=CreateCompatibleDC(0);if(!dc)return -1;
  HFONT face=CreateFontW(-font,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,ANTIALIASED_QUALITY,DEFAULT_PITCH,L"Segoe UI");
  if(!face){DeleteDC(dc);return -1;}

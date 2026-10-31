@@ -18,6 +18,7 @@ class Window_BS2QCollection < Window_Selectable
   def refresh
     @data = BS2QoL::Model.collection(@kind,@actor)
     @data = BS2QoL::Model.ordered(@data,true,@kind) if @only
+    @data.select! { |object| BS2QoL::Model.battle_skill_visible?(@actor,object) }
     create_contents
     draw_all_items
   end
@@ -106,7 +107,7 @@ class Window_BS2QPlan < Window_Base
     self.z=220;@signature=nil;hide
   end
   def display(actor,editing=true,subject=nil)
-    return hide unless actor && actor.actions.size>1
+    return hide unless actor && (actor.actions.size>1 || actor.actions.any? { |a| !BS2Suite::ActionContext.attachments(a,actor).empty? })
     rows=BS2QoL::Model.queue(actor)
     weapon=actor.equips[0]
     playing=!editing && subject==actor

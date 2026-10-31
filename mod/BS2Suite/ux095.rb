@@ -198,7 +198,7 @@ if BS2Suite.enabled?('semantic_groups') && BS2Suite.enabled?('reference_cards')
 class BS2QoL::PracticalCard
   alias bs2095_execution_card initialize
   def initialize(object,actor=nil,language=:ru)
-    if actor && (object.is_a?(RPG::Skill) || object.is_a?(RPG::Item)) && $game_party.in_battle && !BS2Suite::BattleSupport.quick?(object)
+    if actor && (object.is_a?(RPG::Skill) || object.is_a?(RPG::Item)) && $game_party.in_battle && !BS2Suite::ActionRules.quick?(object)
       index=actor.instance_variable_get(:@action_input_index).to_i
       source=BS2Suite::DirectWeapons.sole_source(actor,object,index)
       final=BS2Suite::DirectWeapons.execution_weapon(actor,object,index)

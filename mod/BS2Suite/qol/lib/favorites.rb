@@ -32,6 +32,7 @@ class Window_SkillList
   include BS2QoL::ListControls
   alias bs2q_original_include? include?
   def include?(item)
+    return false unless BS2QoL::Model.battle_skill_visible?(@actor,item)
     if item && @actor && @actor.respond_to?(:skill_seal) && @actor.skill_seal.include?(item.id)
       return bs2q_original_include?(item) if @stype_id==AB_SSS2::STI && !$game_party.in_battle && !@bs2q_all_types && !@bs2q_only
       return false

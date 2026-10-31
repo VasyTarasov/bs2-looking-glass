@@ -1,4 +1,4 @@
-"""Build an audited development ZIP; never publish or create a release."""
+"""Build an audited release ZIP; never publish or create a release."""
 from pathlib import Path
 import argparse,hashlib,json,zipfile,sys
 sys.dont_write_bytecode=True

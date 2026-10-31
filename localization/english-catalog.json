@@ -1,0 +1,22 @@
+{
+  "result": "PASS",
+  "entries": 2401,
+  "stat_overrides": [
+    "weapon:272",
+    "weapon:273",
+    "weapon:274",
+    "weapon:275",
+    "weapon:423",
+    "weapon:424",
+    "weapon:425",
+    "weapon:435",
+    "weapon:436",
+    "weapon:437",
+    "weapon:438"
+  ],
+  "legacy_notes_replaced": 221,
+  "bytes": 3345251,
+  "sha256": "fff078a898bf8f13239e39dd069b09ac8c61c70efaffda051350690cbe8922af",
+  "english_profile_sha256": "05869e8ea47334c0a159cc4cfd1c987a26e8f51d3622aad17caaebbd0899062f",
+  "provenance": "Base factual catalog retains its original provenance; native English differences are verified against build_profile.en.json."
+}

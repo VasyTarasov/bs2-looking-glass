@@ -6,11 +6,6 @@ module BS2Suite
       queue=actor.actions.map { |a| [a.item && a.item.class.to_s,a.item && a.item.id,a.target_index,a.instance_variable_get(:@bs2s_normal_source),a.forcing,(a.instance_variable_get(:@bs2s_macro_source) && a.instance_variable_get(:@bs2s_macro_source).id),a.instance_variable_get(:@bs2s_macro_executor)] }
       steps=report.steps.map { |s| [s[:index],s[:item] && s[:item].id,s[:reason],s[:followup_unknown],s[:conditional],s[:rows].size] }
       limits=report.limitations
-      key=[actor.id,actor.hp,actor.mp,actor.tp,actor.equips.map { |e| e && e.id },actor.states.map { |v| v.id },actor.instance_variable_get(:@action_input_index),queue,steps,limits]
-      @seen ||= {};now=BS2Suite::Performance.now
-      return if @seen[key] && ((now-@seen[key])&0xffffffff)<30000
-      @seen.shift while @seen.size>=64
-      @seen[key]=now;@last=now
       known=$game_troop.alive_members.select { |b| BS2Suite::Knowledge.allowed?(b) }
       cooldown_table=$game_temp.instance_variable_get(:@cool_time)
       cooldown_rows=cooldown_table && cooldown_table.has_key?(actor) ? cooldown_table[actor].to_a : []
@@ -18,7 +13,38 @@ module BS2Suite
         :resources=>[actor.hp,actor.mp,actor.tp],:params=>(0..7).map { |i| actor.param(i) },:equips=>actor.equips.map { |e| e && [e.class.to_s,e.id] },
         :states=>actor.states.map { |s| s.id },:buffs=>actor.instance_variable_get(:@buffs).dup,:cooldowns=>cooldown_rows,
         :difficulty=>$game_variables[Hi_ru_Difficulty::VARIABLES],:known_targets=>known.map { |b| [b.index,b.hp,b.mp,b.states.map { |s| s.id },b.instance_variable_get(:@buffs).dup] },
-        :feature_sources=>actor.feature_objects.map { |o| [o.class.to_s,o.id] },:exception=>report.instance_variable_get(:@diagnostic_exception)}
+        :feature_sources=>actor.feature_objects.map { |o| [o.class.to_s,o.id] },:exception=>(report.instance_variable_get(:@diagnostic_exception) || [])[0,1]}
+      # Numeric execution evidence only: no notes, event commands, save data or
+      # unknown enemies. Older traces omitted the very numbers being audited.
+      fields[:schema]=2;fields[:level]=actor.level;fields[:class_id]=actor.class.id
+      fields[:learned_skills]=actor.instance_variable_get(:@skills).dup
+      fields[:final_weapon]=BS2Suite::DirectWeapons.selected_id(actor)
+      fields[:action_contexts]=actor.actions.map { |a| BS2Suite::ActionContext.signature(a) }
+      fields[:known_target_contexts]=known.map do |b|
+        [b.index,b.enemy_id,(0..7).map { |i| b.param(i) },b.feature_objects.map { |o| [o.class.to_s,o.id] }]
+      end
+      fields[:numeric_rows]=report.steps.map do |s|
+        [s[:index],s[:rows].map { |r| [r[:target_index],r[:resource],r[:min],r[:max],r[:mean]] },
+         (s[:weapons] || [s[:weapon]]).compact.map { |w| w.id },!!s[:partial],!!s[:direct_only],!!s[:snapshot_only]]
+      end
+      fields[:preview_mode]=actor.instance_variable_get(:@bs2s_forecast_first_hit) ? 'current_first_hit' : 'queue'
+      signature=BS2Suite::DirectWeapons.variable_signature(actor,actor.actions.map { |a| a.item }.compact[0],known)
+      # The helper may return a dense array for dynamic v[index]. Keep numeric
+      # values only; a game's string variables are never diagnostic payloads.
+      if signature.all? { |v| v.is_a?(Array) && v.size==2 }
+        fields[:numeric_variables]=signature.select { |id,v| v.is_a?(Numeric) || v==true || v==false || v.nil? }
+      else
+        fields[:numeric_variables]=signature.each_with_index.map { |v,id| [id,v] if v.is_a?(Numeric) || v==true || v==false || v.nil? }.compact
+      end
+      fields[:gold]=$game_party.gold
+      fields[:inventory]=$game_party.items.map { |i| [i.id,$game_party.item_number(i)] }
+      # Target identity/parameters and numerical rows belong in the key. A boss
+      # phase change with the same queue must not be silently deduplicated.
+      key=fields.to_a
+      @seen ||= {};now=BS2Suite::Performance.now
+      return if @seen[key] && ((now-@seen[key])&0xffffffff)<30000
+      @seen.shift while @seen.size>=64
+      @seen[key]=now;@last=now
       @pending ||= [];@pending<<fields;@pending.shift while @pending.size>8
       flush
     rescue StandardError
@@ -83,7 +109,10 @@ class Scene_Battle
     alias_method ('bs209992_'+method_name.to_s).to_sym,method_name
     define_method(method_name) do
       actor=BattleManager.actor
-      actor.input.clear if actor && actor.input && !BattleManager.in_turn?
+      # The macro picker has not committed anything to this slot yet. It may
+      # still contain a visible paid support suggestion owned by another mode.
+      macro_target=method_name==:on_enemy_cancel && @bs2s_macro_targeting
+      actor.input.clear if actor && actor.input && !BattleManager.in_turn? && !macro_target
       BS2Suite::Performance.bump
       send(('bs209992_'+method_name.to_s).to_sym)
     end
@@ -94,7 +123,7 @@ class BS2Suite::SettingsCommands
   alias bs209992_highlight_commands make_command_list
   def make_command_list
     bs209992_highlight_commands
-    add_command('Подсветка взаимодействий: '+(BS2Suite::Options.get('interaction_highlight')==1 ? 'вкл' : 'выкл')+' · '+BS2Suite::Keys.token(:interact_highlight),:interaction_highlight)
+    add_command('Подсветка взаимодействий: '+(BS2Suite::Options.get('interaction_highlight')==1 ? 'вкл' : 'выкл')+' · '+BS2Suite::Keys.token(:interact_highlight),:interaction_highlight) if BS2Suite.enabled?('map_highlight')
   end
 end
 class BS2Suite::SettingsScene

@@ -135,6 +135,8 @@ module BS2Modules
         raise ArgumentError,'Смена затронет другие слоты или оружие. Измените комплект вручную.' unless actor.equips==wanted
       end
       def preview(actor,set)
+        family=defined?(BS2Suite::FamilyInventory) ? BS2Suite::FamilyInventory : nil
+        pending=family.instance_variable_get(:@pending) if family
         reason=blocked(actor);return {:ok=>false,:errors=>[reason]} if reason
         real_party=$game_party
         target=expected(actor,set)
@@ -160,6 +162,9 @@ module BS2Modules
         {:ok=>false,:errors=>[e.message]}
       ensure
         $game_party=real_party if real_party
+        # Trading equipment on the cloned party also reaches the global
+        # cleanup hook. A comparison must not enqueue work on the real party.
+        family.instance_variable_set(:@pending,pending) if family
       end
       def apply(actor,set)
         result=preview(actor,set)
@@ -211,9 +216,13 @@ module BS2Modules
             delta=result[:after][i]-v
             lines << PARAMS[i]+': '+v.to_s+' → '+result[:after][i].to_s+' ('+(delta>0 ? '+' : '')+delta.to_s+')' if delta!=0
           end
+          if result[:before]==result[:after]
+            lines << 'Основные параметры не меняются.'
+            lines << 'Свойства вещей — '+BS2Suite::Keys.token(:reference)+'.' if BS2Suite.enabled?('reference_cards')
+          end
           lines << 'ОЗ после смены: '+result[:hp][1].to_s if result[:hp][0]!=result[:hp][1]
           lines << 'ОМ после смены: '+result[:mp][1].to_s if result[:mp][0]!=result[:mp][1]
-          lines << 'Enter → «Применить» → подтверждение.'
+          lines << BS2Suite::Keys.token(:C)+' → «Применить» → подтверждение.'
         else
           lines << 'Сейчас применить нельзя:'
           lines += result[:errors]

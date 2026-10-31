@@ -18,7 +18,7 @@ jobs:
         run: |
           python tools/repo_audit.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -m unittest discover -s tests -p test_repository.py
+          python -m unittest discover -s tests -p 'test_*.py'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tools/package.py --output "$env:RUNNER_TEMP/LookingGlass-dev.zip"
           exit $LASTEXITCODE

@@ -26,14 +26,14 @@ class RepositoryTests(unittest.TestCase):
  def test_powershell_bom_is_required(self):self.assertIn('PowerShell 5.1 requires UTF-8 BOM',audit.inspect_file('Example.ps1',b'Write-Output 1',self.assets))
  def test_relative_documentation_target(self):self.assertTrue(audit.link_errors({'README.md':b'[x](missing.md)'}))
  def test_language_and_defaults(self):
-  modules=json.loads((ROOT/'modules.json').read_bytes());self.assertEqual({m['id'] for m in modules if not m['default']},{'debug','legacy_shortcuts'})
+  modules=json.loads((ROOT/'modules.json').read_bytes());self.assertEqual({m['id'] for m in modules if not m['default']},{'debug','legacy_shortcuts','battle_support'})
   self.assertTrue(all(m['name']==m['name_en'] and m['name_ru'] for m in modules))
   self.assertIn("$script:lang='en'",(ROOT/'Installer.ps1').read_text(encoding='utf-8-sig'))
  def test_no_original_description_prose(self):
   text=(ROOT/'mod/BS2Suite/qol/lib/reference_data.rb').read_text(encoding='utf8');rows=re.findall(r'^\s*\d+ => (\[.*\]),?$',text,re.M)
   self.assertGreater(len(rows),1800);self.assertTrue(all(json.loads(r)[1]=='' for r in rows))
- def test_development_version(self):
-  p=json.loads((ROOT/'project.json').read_bytes());self.assertEqual(p['version'],'0.9992-dev');self.assertFalse(p['stable_release'])
+ def test_release_version(self):
+  p=json.loads((ROOT/'project.json').read_bytes());self.assertEqual(p['version'],'1.0');self.assertTrue(p['stable_release'])
   self.assertIn(p['version'],(ROOT/'tools/install.py').read_text(encoding='utf8'))
  def test_portable_private_path_guard(self):
   import install,update,collect_debug
@@ -44,7 +44,7 @@ class RepositoryTests(unittest.TestCase):
   for p in ROOT.rglob('*.py'):compile(p.read_text(encoding='utf8'),str(p),'exec')
  def test_known_ruby_line_endings_preserve_integrity_boundary(self):
   import update
-  rel='execution097.rb';data=(ROOT/'mod/BS2Suite'/rel).read_bytes()
+  rel='weapon_families.rb';data=(ROOT/'mod/BS2Suite'/rel).read_bytes()
   old=json.loads((ROOT/'tools/previous_092dev.json').read_bytes())[rel]
   canonical=json.loads((ROOT/'tools/previous_092dev_lf.json').read_bytes())[rel]
   self.assertTrue(update.matches_own_ruby(data,old,rel,canonical))
@@ -64,10 +64,32 @@ class RepositoryTests(unittest.TestCase):
   try:
    result=packager.package(path);self.assertEqual(result['result'],'PASS');self.assertFalse(result['release_created'])
    with zipfile.ZipFile(path) as z:
-    prefix='LookingGlass-0.9992-dev/';manifest=json.loads(z.read(prefix+'SHA256.json'))
+    prefix='LookingGlass-1.0/';manifest=json.loads(z.read(prefix+'SHA256.json'))
     self.assertTrue(all(hashlib.sha256(z.read(prefix+k)).hexdigest()==v for k,v in manifest.items()))
     self.assertFalse(any('/.git/' in k or k.endswith('/Game.exe') or '/Data/' in k for k in z.namelist()))
   finally:
    path.unlink(missing_ok=True);path.with_suffix('.zip.sha256').unlink(missing_ok=True)
+
+ def test_installed_ruby_accepts_only_known_line_ending_variants(self):
+  from unittest.mock import patch
+  import install
+  import shutil,uuid
+  root=ROOT.parent/('qa-lines-'+uuid.uuid4().hex);root.mkdir()
+  try:
+   root=root.resolve();root.relative_to(ROOT.parent.resolve())
+   source=root/'package/mod/BS2Suite';installed=root/'game/Mods/BS2Suite'
+   source.mkdir(parents=True);installed.mkdir(parents=True)
+   code=b'# encoding: UTF-8\nmodule Fixture\nend\n'
+   (source/'main.rb').write_bytes(code);(installed/'main.rb').write_bytes(code.replace(b'\n',b'\r\n'))
+   (source/'asset.rvdata2').write_bytes(b'fixed\nasset');(installed/'asset.rvdata2').write_bytes(b'fixed\nasset')
+   with patch.object(install,'ROOT',root/'package'):
+    install.verify_own_modules(root/'game')
+    (installed/'main.rb').write_bytes(code+b'# unrelated edit\n')
+    with self.assertRaises(ValueError):install.verify_own_modules(root/'game')
+    (installed/'main.rb').write_bytes(code)
+    (installed/'asset.rvdata2').write_bytes(b'fixed\r\nasset')
+    with self.assertRaises(ValueError):install.verify_own_modules(root/'game')
+  finally:
+   root.resolve().relative_to(ROOT.parent.resolve());shutil.rmtree(root)
 
 if __name__=='__main__':unittest.main()

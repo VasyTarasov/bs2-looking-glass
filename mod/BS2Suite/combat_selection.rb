@@ -1,0 +1,44 @@
+# encoding: UTF-8
+module BS2Suite::Palette
+  class << self
+    alias bs2093_palette_update update
+    def update(scene)
+      popup=current(scene)
+      if popup && !popup.assignment && popup.transition.empty? && popup.group && (popup.prefix=='N' || (popup.prefix=='B' && BS2Suite::SupportState.eligible?(popup.item)) || (popup.prefix=='V' && BS2Suite::SupportState.gunbreak?(popup.item))) && Input.trigger?(:Z) && BS2QoL::Keyboard.focused? && !(defined?(BS2QoL::Reference) && BS2QoL::Reference.active?(scene))
+        return if scene.instance_variable_get(:@bs2094_d_frame)==Graphics.frame_count
+        scene.instance_variable_set(:@bs2094_d_frame,Graphics.frame_count)
+        actor=popup.actor
+        if popup.prefix=='N' && popup.group && popup.item.is_a?(RPG::Weapon)
+          weapon=popup.item
+          if BS2Suite::DirectWeapons.selected(actor)==weapon
+            BS2Suite::DirectWeapons.clear(actor);BS2QoL::Hotkeys.notice('Исполняющее оружие снято')
+          elsif BS2Suite::DirectWeapons.select(actor,weapon)
+            BS2QoL::Hotkeys.notice('Последнее действие: '+weapon.name+' · N N снять')
+          end
+          Sound.play_ok
+        elsif popup.prefix!='N'
+          ok=BS2Suite::BattleSupport.toggle_object(actor,popup.item)
+          if ok;Sound.play_ok;BS2QoL::Hotkeys.notice('Автоприменение переключено для выбранной строки')
+          else;Sound.play_buzzer;BS2QoL::Hotkeys.notice('Авто недоступно для этого предмета или приёма');end
+        end
+        command=scene.instance_variable_get(:@actor_command_window)
+        command.refresh if command
+        popup.refresh;update_header(scene);BS2QoL::Keyboard.consume;return
+      end
+      bs2093_palette_update(scene)
+    end
+  end
+end
+class Window_BS2QKeyHints
+  alias bs2093_support_display display
+  def display(scene,actor,context)
+    bs2093_support_display(scene,actor,context)
+    return unless actor && visible
+    text='Профиль: '+BS2Suite::Semantic.title(actor)
+    status=BS2Suite::SupportState.label;text+=' · '+status unless status.empty?
+    return if @bs2093_support_hint==text && @bs2093_support_context==@bs2s_signature
+    @bs2093_support_hint=text;@bs2093_support_context=@bs2s_signature
+    contents.clear_rect(0,20,contents_width,18);contents.font.size=14;change_color(normal_color)
+    draw_text(0,20,contents_width,18,text)
+  end
+end

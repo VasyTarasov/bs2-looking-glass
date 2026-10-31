@@ -19,3 +19,19 @@ While still entering a turn, **press Esc twice within 0.55 seconds at the battle
 Damage previews now traverse queued buffs and random target draws instead of estimating random shots from the current actor alone. Repeated hits can propagate supported state/buff effects between hits. Random attacks show the expected total; multi-enemy N random attacks also show compact per-enemy values. Unsupported formulas, resource-dependent hit chains or more than 64 distinct probability branches still produce an explicit unknown. Values are approximate expectations before target HP caps, with hit/critical chances and variance; they are not a guarantee of the observed roll.
 
 Profiles are bounded local text, separate from game saves. Format-1 presets are interpreted as group one; the verified updater converts their section headers to format two and stores the original profile in its rollback directory. Names, digits, row order, sources and targets are retained. These personal files are never part of the public package.
+
+## Action ownership in 0.9993-dev
+
+A selected paid action owns its attached instant rows, source, executor and shared enemy target. The native queue names its instant rows with `мгн. до:` / `после:`; the HD queue wraps them into separate detail rows. A single paid slot with attached instant rows also keeps the queue visible.
+
+One Esc retains the existing slot-by-slot rollback. Two Esc presses within 550 ms clear the unexecuted queue. Thus one Esc may leave an earlier guard with a Carpenter Bolt before it; that remaining item is now visible. Executed items and their effects are never undone.
+
+Opening a new macro target picker does not yet change the input slot. Cancelling that picker discards only the new draft, preserving a previously displayed Gun Break support suggestion. Clearing a committed action removes its macro ownership and instant rows, so reusing that action cannot spend an old item.
+
+Failed automatic-item attempts remain blocked until the protagonist completes a real paid ATB series. Cancelling or regenerating a queue, executing instant items, and another battler's opportunity do not start a new support period. Battle end/retry resets battle-local support state. Successful stacking up to the native two buff levels remains available.
+
+## Physical input in 0.9994-dev
+
+C switches directly from an open V/B/M/N palette to macros; V/B/M/N switch directly out of C. Physical Esc cancellation has a single scene-level time stamp across palettes, C, native lists and target pickers, including HD presentation. Closing a menu counts as the first press even while the command window is still opening; a second press within 550 ms clears the unexecuted queue. Holding the key does not count twice.
+
+Repeated item/skill/weapon choice is described in [controls](CONTROLS.md#repeated-battle-selection-09994-dev). Costs and committed native turn execution remain unchanged.

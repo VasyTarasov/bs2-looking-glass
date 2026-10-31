@@ -1,30 +1,22 @@
 # Installation and recovery
 
-[English home](../README.md) · [Русский](RU.md#установка)
+[Home](../README.md) · [English / Русский details](LOCALIZATION-099995.md)
 
-## Compatibility and requirements
+Use Windows, Python 3.12 on PATH and Windows PowerShell 5.1. No Python packages are needed. The native helper is x86, matching RGSS3.
 
-Use Windows, Python 3.12 on PATH (`python --version`) and Windows PowerShell 5.1. The Python installer uses the standard library. The own native helper is x86, matching RGSS3.
+1. Extract the mod separately and close the game.
+2. Run `Install.cmd`, select the folder containing `Game.exe`, and choose **Check**.
+3. Choose **English game**, **Russian game**, or **Auto-detect**. This is the installed game language, independent of the installer interface button.
+4. Hover over a choice or focus it with Tab to read its description. Everything defaults on except Advanced Legacy, automatic battle support and diagnostics. Select modules and choose **Install / change selection**. Launch the game normally.
 
-Only the recorded loose-data profile in `build_profile.json` is supported. An encrypted `Game.rgss3a`, another translation or unrelated script edits can be rejected. Do not replace the profile to silence a failed check.
+The installer recognizes the exact Russian loose-data profile and original English archive/matching loose data. It refuses unsupported active scripts, wrong language selections and incompatible previous installation records. Loose base Data alongside a verified English archive are preserved; the engine uses the archive. It does not translate the base game.
 
-## First installation
+For English `Game.rgss3a`, no unpacking is required. The verified original is kept at `BS2Suite/Game.original.rgss3a`. A staged copy appends the bootstrap script table and redirects only that archive directory entry; all other encrypted assets remain byte-identical. Allow about 1.1 GB additional free space for the backup and temporary copy. Keep the original backup with that installation.
 
-1. Back up saves yourself, close the game, and extract the mod separately.
-2. Run `Install.cmd`, select the game's folder and use **Check**.
-3. Select modules, then **Install / change**. Use **Русский** to switch installer language.
-4. Launch through Steam normally when using Steam features.
+For loose data, the original script table is kept in `BS2Suite/Scripts.original.rvdata2`; the external loader is inserted into `Data/Scripts.rvdata2`. Engine binaries and game database entries are not replaced. Mod code is in `Mods/BS2Suite`; settings and locale are in `BS2Suite`.
 
-The installer preserves the original script table and inserts an external bootstrap into `Data/Scripts.rvdata2`. Own code goes to `Mods/BS2Suite`; settings are in `BS2Suite`, with historical settings in `BS2QoL` / `BS2Modules`. Engine binaries and personal save contents are not edited by the installer.
+**Update:** close the game and use `Update.cmd` or **Install / change selection**. Recorded development versions through 0.99995-dev are supported. Known mod files are verified, settings retained and a local rollback created. Unknown changes are refused.
 
-## Update
+**Remove:** choose **Remove modpack**. Packed installations restore the byte-identical original archive; loose installations restore original scripts. Saves, settings, loadouts and journals remain local. Removal cannot reverse inventory/progression changes already saved during play.
 
-Close the game and run `Update.cmd`. It explicitly recognizes the recorded previous previews through `0.9.8-alpha` and `0.91-dev` / `0.92-dev`, checks script/mod integrity, keeps settings and creates `BS2Suite/rollback-*` before writing. Partial writes roll back. A running target or foreign edit causes refusal.
-
-New development labels are explicit identifiers, not numerical upgrade comparisons. If you edited files manually, preserve and compare them; do not force the updater to overwrite unknown code.
-
-## Removal and recovery
-
-Use **Remove modules** with the game closed. The recorded original script table is verified before restoration. Settings, named loadouts, logs and saves remain local. Removal cannot undo inventory/progression changes already saved during play, including consumed souls or family cleanup.
-
-Keep the original backup, install record and matching package. A damaged/mismatched backup is refused. Do not replace scripts while the game runs, or use another player's backup.
+If game files were replaced after installation, restore the matching files or use a clean copy. Do not delete backups to bypass verification. Separate game folders are recommended for English and Russian installations.

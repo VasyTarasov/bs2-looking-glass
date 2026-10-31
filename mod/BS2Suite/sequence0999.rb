@@ -25,6 +25,9 @@ module BS2Suite
         elsif item.for_opponent?
           item.for_all? || item.for_random? ? targets.map { |t| t.index } : [targets.find { |t| t.index==action.target_index } ? action.target_index : (targets[0] && targets[0].index)]
         else;[];end
+        # A per-recipient fallback is one native hit, even for all/random scopes.
+        first_target=actor.instance_variable_get(:@bs2s_forecast_first_target)
+        ids=ids.select { |id| id==first_target } if actor.instance_variable_get(:@bs2s_forecast_first_hit) && !first_target.nil? && item.for_opponent?
         if ids.empty? || ids.include?(nil)
           step[:reason]='Нужна цель; союзный переход не подтверждён';stopped=true;@complete=false;next
         end
@@ -65,7 +68,7 @@ module BS2Suite
             costs<<[hp,mp,tp,gold]
             sample=BS2QoL::Forecast::Prediction.new(user,ids[0]==:self ? user : branch[:targets][ids[0]],item)
             raise BS2QoL::Forecast::Unsupported,sample.error if sample.error
-            repeats=sample.repeats
+            repeats=actor.instance_variable_get(:@bs2s_forecast_first_hit) ? 1 : sample.repeats
             raise BranchLimit if repeats>32
             user.instance_variable_set(:@hp,user.hp-hp);user.instance_variable_set(:@mp,user.mp-mp);user.instance_variable_set(:@tp,user.tp-tp)
             branch[:gold]-=gold;branch[:stock][consumed.id]-=1 if consumed
@@ -73,7 +76,7 @@ module BS2Suite
             damage=Hash[ids.map { |id| [id,{:min=>0,:max=>0,:mean=>0.0}] }]
             work=[branch.merge(:damage=>damage)]
             # Native random draws choose a target before its item.repeats hits.
-            selections=item.for_random? ? Array.new(item.number_of_targets) { nil } : ids
+            selections=item.for_random? ? Array.new(actor.instance_variable_get(:@bs2s_forecast_first_hit) ? 1 : item.number_of_targets) { nil } : ids
             step[:hit_count]=selections.size*repeats
             selections.each do |fixed|
               outcomes=[]
@@ -112,11 +115,13 @@ module BS2Suite
         end
         step[:cost]=(0..3).map { |n| [costs.map { |c| c[n] }.min,costs.map { |c| c[n] }.max] }
         ids.each do |id|
-          next if item.damage.none?
-          values=next_branches.map { |b| b[:damage][id] || {:min=>0,:max=>0,:mean=>0.0} }
-          next unless next_branches.any? { |b| b[:damage].has_key?(id) }
           target=id==:self ? actor : targets.find { |t| t.index==id }
-          step[:rows]<<{:target_index=>id,:name=>target.name,:resource=>item.damage.to_hp? ? 'HP' : 'MP',:min=>values.map { |v| v[:min] }.min,:max=>values.map { |v| v[:max] }.max,:mean=>next_branches.each_with_index.inject(0.0) { |n,(b,i)| n+b[:weight]*values[i][:mean] }}
+          damage_resources(item).each do |resource|
+            key=damage_key(item,id,resource)
+            next unless next_branches.any? { |b| b[:damage].has_key?(key) }
+            values=next_branches.map { |b| b[:damage][key] || {:min=>0,:max=>0,:mean=>0.0} }
+            step[:rows]<<{:target_index=>id,:name=>target.name,:resource=>resource,:min=>values.map { |v| v[:min] }.min,:max=>values.map { |v| v[:max] }.max,:mean=>next_branches.each_with_index.inject(0.0) { |n,(b,i)| n+b[:weight]*values[i][:mean] }}
+          end
         end
         hp_changed ||= (item.damage.to_hp? && step[:rows].any? { |r| r[:min]!=0 || r[:max]!=0 }) || item.effects.any? { |e| e.code==11 } || costs.any? { |c| c[0]>0 }
         branches=next_branches
@@ -127,6 +132,9 @@ module BS2Suite
           stopped=true;@complete=false;@limitations<<item.name+': особые события после действия'
         end
         if step[:partial];stopped=true;@complete=false;@limitations<<item.name+': подтверждено только первое попадание';end
+        if actor.instance_variable_get(:@bs2s_forecast_first_hit)
+          step[:partial]=true;step[:snapshot_only]=true;@complete=false
+        end
       end
       if @complete
         @steps.each { |s| s[:rows].each { |r| t=@totals[[r[:name],r[:resource]]] ||= {:min=>0,:max=>0,:mean=>0.0};[:min,:max,:mean].each { |k| t[k]+=r[k] } } }
@@ -137,6 +145,13 @@ module BS2Suite
     end
     def unsupported_note?(item)
       !!(item.note =~ /使用後追加行動|行動後遅延発動|使用者効果|ステート変化|変換攻撃|付与時/)
+    end
+    def damage_resources(item)
+      resources=item.damage.none? ? [] : [item.damage.to_hp? ? 'HP' : 'MP']
+      (resources+item.effects.select { |e| [11,12].include?(e.code) }.map { |e| e.code==11 ? 'HP' : 'MP' }).uniq
+    end
+    def damage_key(item,id,resource)
+      !item.damage.none? && resource==(item.damage.to_hp? ? 'HP' : 'MP') ? id : [id,resource]
     end
     def forecast_copy(b)
       c=copy_branch(b);c[:damage]={};(b[:damage] || {}).each { |id,v| c[:damage][id]=v.dup };c
@@ -167,7 +182,7 @@ module BS2Suite
         p=(@forecast09991_predictions && @forecast09991_predictions.delete(b.object_id)) || BS2QoL::Forecast::Prediction.new(user,target,item,true)
         raise BS2QoL::Forecast::Unsupported,p.error if p.error
         raise BS2QoL::Forecast::Unsupported,'Прикрытие требует отдельного перехода' unless p.target.source.equal?(target)
-        if p.repeats>1 && (item.damage.formula =~ /b\.(?:hp|mp|hp_rate|mp_rate)\b/ || (id==:self && item.damage.formula =~ /a\.(?:hp|mp|hp_rate|mp_rate)\b/))
+        if !@actor.instance_variable_get(:@bs2s_forecast_first_hit) && p.repeats>1 && (item.damage.formula =~ /b\.(?:hp|mp|hp_rate|mp_rate)\b/ || (id==:self && item.damage.formula =~ /a\.(?:hp|mp|hp_rate|mp_rate)\b/))
           raise BS2QoL::Forecast::Unsupported,'Повторы зависят от урона предыдущего попадания'
         end
         miss=forecast_weighted(b,1-p.chance) if p.chance<1

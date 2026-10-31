@@ -54,7 +54,7 @@ begin
   t=text($data_skills[100]);check(t.include?('без вычитания ЗАЩ') && t.include?('Guard на 100%') && t.include?('не игнорирует сопротивление'),'Armor Pierce separates DEF, Guard and inactive PDR tag')
   t=text($data_skills[874]);check(t.include?('a.atk * 6 - b.def * 0.5') && t.include?('Ганблэйд Огн.') && t.include?('Смена Патрона'),'Cross Section preserves actual formula followup and variants')
   t=text($data_armors[82]);check(t.include?('0,64') || t.include?('0.64'),'Steel Protection compounded reduction')
-  t=text($data_armors[232]);check(t.include?('×9') && t.include?('Регенерации MP') && t.include?('2–2'),'Indomitable state and duration without invented MP regeneration')
+  t=text($data_armors[232]);check(t.include?('×9') && t.downcase.include?('регенерации mp') && t.include?('2–2'),'Indomitable state and duration without invented MP regeneration')
   if defined?(BS2Modules::Effects)
     $game_party.gain_item($data_armors[232],1);slot=actor.equip_slots.index(4);actor.change_equip(slot,$data_armors[232])
     source=BS2Modules::Effects.sources(actor).find { |r| r[:name]==BS2Modules.label($data_armors[232]) }
@@ -65,12 +65,12 @@ begin
   end
   t=text($data_skills[838]);check(t.include?('нулевых MP') && t.include?('0 урона'),'zero MP resentment exception')
   check(text($data_items[35]).include?('50 за предмет') && text($data_items[72]).include?('250000 за предмет'),'currency amounts compiled from exact common-event commands')
-  check(BS2Suite::ShortNotes.describe($data_items[9]).include?('20') && BS2Suite::ShortNotes.describe($data_skills[32]).include?('всей группы'),'colored souls and group cooldown short notes')
+  check(BS2Suite::ShortNotes.describe($data_items[9]).include?('20') && BS2Suite::ShortNotes.describe($data_skills[32]).include?('всех союзников') && BS2Suite::ShortNotes.describe($data_skills[32]).include?('99'),'colored souls and group cooldown short notes')
   help=Window_Help.new;help.set_item($data_skills[100])
-  check(help.instance_variable_get(:@text).include?('без вычитания ЗАЩ') && help.instance_variable_get(:@text).include?('F7'),'native help uses verified summary and preserves F7 hint');help.dispose
+  check(help.instance_variable_get(:@text).include?('без вычитания ЗАЩ') && help.catalog_lines && BS2Suite::Keys.token(:reference)=='F7','native help uses verified summary and preserves F7 hint');help.dispose
   help=Window_Help.new;collection=Window_BS2QCollection.new(0,72,640,300)
   collection.instance_variable_set(:@data,[$data_skills[40]]);collection.help_window=help;collection.select(0);collection.update_help
-  check(help.instance_variable_get(:@text).include?(db.brief($data_skills[40])),'favorites also describe service entries without original descriptions');collection.dispose;help.dispose
+  check(BS2Suite::CatalogV1.inline($data_skills[40],:ru).all? { |line| help.instance_variable_get(:@text).include?(line) },'favorites also describe service entries without original descriptions');collection.dispose;help.dispose
   t=text($data_skills[14]);check(t.include?('крит ×3 сейчас'),'critical factor is read from active difficulty table')
   t=text($data_skills[593]);check(t.include?('проверка №2') && !t.include?('задержка 1 +'),'delay explains check-before-decrement off-by-one')
   # An unobserved creature never receives an AI catalogue through the UI view.

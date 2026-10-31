@@ -53,3 +53,11 @@ The sequence model already propagated TP and on-hit effects, but an older blanke
 Endure does not make a distribution nonlinear when every possible hit is safely below remaining HP. The mean and repeated-hit continuation now check that boundary. A possible activation after uncertain prior damage still declines an unverified result. MP clipping likewise requires an actual threshold crossing to force a large nonlinear distribution into the unsupported path. Self-flagellation → Triple Shot is also exercised across four physical weapons and four difficulty settings, including a safe Endure case. These checks broaden confidence; they are not a proof of every player build.
 
 A stopped continuation carries the preceding specific reason instead of losing it behind a generic “sequence not calculated” message. Diagnostic context is described in [troubleshooting](TROUBLESHOOTING.md).
+
+## 0.9993-dev selected plans and cache identity
+
+Selected-action inspection preserves explicitly owned preparation/finishing rows, source, executor and macro target. F7 captures whether it is inspecting the current action or an alternative from an item/skill/palette list. An alternative does not silently inherit instant rows from the action it would replace.
+
+The short panel now has one bounded result cache, keyed by the queue's action metadata and shared stock as well as the existing battle context/revision. The old inner partial key is removed. Replacing `[Carpenter Bolt, guard, attack]` with `[guard, attack]` therefore changes the tested estimate from approximately 719 to 564 instead of retaining the previous result. Repeated unchanged queries still reuse the result.
+
+This change repairs the selected execution context and stale results; it does not certify additional combat transitions or enlarge the probability branch limit. The numerical limitations above remain.

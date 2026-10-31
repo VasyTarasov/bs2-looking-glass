@@ -35,7 +35,7 @@ def main():
         try:call()
         except (ValueError,RuntimeError,OSError):check(True,name)
         else:raise AssertionError('Expected refusal: '+name)
-    for number,selected in enumerate((['effects'],['loadouts'],install.IDS)):
+    for number,selected in enumerate((['reference_cards'],['loadouts'],install.IDS)):
         game=fixture('choice'+str(number),qol=number==2)
         scripts=game/'Data/Scripts.rvdata2';original=scripts.read_bytes();saved=(game/'Save01.rvdata2').read_bytes()
         check(install.run(game)['compatible'],'check compatible')
@@ -46,7 +46,7 @@ def main():
         check((game/'BS2Suite/Scripts.original.rvdata2').read_bytes()==original,'exact backup')
         check((game/'BS2Suite/modules.ini').read_bytes()==install.config(selected),'selected config only')
         check(install.run(game,'install',selected)['configured'],'repeated install configures without duplicate')
-        check(install.run(game,'configure',['effects'])['configured'],'selection change')
+        check(install.run(game,'configure',['reference_cards'])['configured'],'selection change')
         (game/'BS2Suite/loadouts.ini').write_text('profile sentinel',encoding='utf8')
         check(install.run(game,'uninstall')['uninstalled'],'uninstall')
         check(scripts.read_bytes()==original,'exact restoration including preexisting QoL')
@@ -70,7 +70,7 @@ def main():
     refused(lambda:install.run(game,'uninstall'),'damaged backup refused')
     game=fixture('code');install.run(game,'install')
     (game/'Mods/BS2Suite/main.rb').write_text('# foreign edit',encoding='utf8')
-    refused(lambda:install.run(game,'configure',['effects']),'foreign code edit not replaced')
+    refused(lambda:install.run(game,'configure',['reference_cards']),'foreign code edit not replaced')
     refused(lambda:install.select('unknown'),'unknown module selection refused')
     refused(lambda:install.select(''),'empty module selection refused')
     result={'result':'PASS','checks':count,'fixture_only':True,'personal_saves_read':False,'live_game_modified':False}

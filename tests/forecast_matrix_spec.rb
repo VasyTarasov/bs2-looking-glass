@@ -166,7 +166,7 @@ end
     actor.remove_all_buffs;actor.recover_all;enemy.recover_all;plan(actor,[buff.id,repeated.id]);actor.instance_variable_set(:@action_input_index,1)
     step=BS2Suite::ForecastContext.step(repeated,actor,nil,enemy)
     card=BS2QoL::PracticalCard.new(repeated,actor,:ru);index=card.section_names.index('По целям');text=card.sections[index].join(' ')
-    check(text.include?('~'+card.n(step[:rows][0][:mean].round)) && text.include?('серии'),'actual F7 Targets uses the shared queued-state mean')
+    check(text.include?('≈ '+step[:rows][0][:mean].round.to_s+' HP'),'actual F7 Targets uses the shared queued-state mean')
     check(card.practical_cost.join.include?('11 MP') && card.practical_cost.join.include?('предыдущих'),'F7 execution price comes from the same queued-state cost')
     # Every progression difficulty changes the live stats/critical multiplier.
     source=qa_state(6050,[feat(22,2,1.0)]);actor.add_state(6050)

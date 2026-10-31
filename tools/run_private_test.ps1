@@ -1,4 +1,4 @@
-﻿param([Parameter(Mandatory=$true)][string]$Game, [int]$TimeoutSeconds = 45, [switch]$SteamProbe)
+﻿param([Parameter(Mandatory=$true)][string]$Game, [int]$TimeoutSeconds = 45, [switch]$SteamProbe, [switch]$DpiAware)
 $testRoot = [IO.Path]::GetFullPath($Game)
 $testExe = Join-Path $testRoot 'Game.exe'
 if (-not (Test-Path -LiteralPath $testExe)) { throw 'Test executable missing' }
@@ -101,7 +101,13 @@ public static class BS2PrivateTest {
   }
 }
 '@
-$execution = [BS2PrivateTest]::Run($testExe,$testRoot,$TimeoutSeconds)
+$previousCompatLayer = $env:__COMPAT_LAYER
+try {
+  if ($DpiAware) { $env:__COMPAT_LAYER = 'HIGHDPIAWARE' }
+  $execution = [BS2PrivateTest]::Run($testExe,$testRoot,$TimeoutSeconds)
+} finally {
+  $env:__COMPAT_LAYER = $previousCompatLayer
+}
 Write-Output $execution
 @{utc=[DateTime]::UtcNow.ToString('o');executable=$testExe;outcome=$execution;system_error_dialogs_isolated=$true} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $testRoot 'native_process_result.json') -Encoding utf8
 if (Test-Path -LiteralPath (Join-Path $testRoot 'test_result.txt')) {

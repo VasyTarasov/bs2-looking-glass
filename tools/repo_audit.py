@@ -2,7 +2,7 @@
 from pathlib import Path,PurePosixPath
 import argparse,hashlib,json,os,re,subprocess,sys,posixpath
 ROOT=Path(__file__).resolve().parents[1]
-ASSET_PATHS={'mod/BS2Suite/native/bs2_steam_bridge.dll','mod/BS2Suite/reference098.rvdata2'}
+ASSET_PATHS={'mod/BS2Suite/native/bs2_steam_bridge.dll','mod/BS2Suite/reference098.rvdata2','mod/BS2Suite/catalog_v1.rvdata2','mod/BS2Suite/catalog_v1.en.rvdata2'}
 FORBIDDEN_DIRS={'secrets','private','data','graphics','audio','system','fonts','userdata','work','outputs','validation','debug','.codex','.agents','bs2suite','bs2qol','bs2modules'}
 TEXT={'.rb','.py','.ps1','.cmd','.md','.svg','.json','.yml','.yaml','.txt','.c','.h','.cpp'}
 PRIVATE=re.compile(rb'[A-Za-z]:[\\/](?:Users[\\/]|PROJECT\s+CLOUD[\\/])|[\\/]userdata[\\/]\d+',re.I)
@@ -82,7 +82,7 @@ def link_errors(files):
 def audit(root=ROOT,staged=False):
  files,errors=read_files(root,staged)
  assets=json.loads(files.get('runtime-assets.json',b'{}'))
- expected={'mod/BS2Suite/native/bs2_steam_bridge.dll','mod/BS2Suite/reference098.rvdata2'}
+ expected={'mod/BS2Suite/native/bs2_steam_bridge.dll','mod/BS2Suite/reference098.rvdata2','mod/BS2Suite/catalog_v1.rvdata2','mod/BS2Suite/catalog_v1.en.rvdata2'}
  if set(assets)!=expected:errors.append({'path':'runtime-assets.json','rule':'unexpected binary allowlist'})
  for rel,data in files.items():
   for rule in inspect_file(rel,data,assets):errors.append({'path':rel,'rule':rule})
@@ -90,7 +90,7 @@ def audit(root=ROOT,staged=False):
   if rel not in files:errors.append({'path':rel,'rule':'missing runtime asset'})
  errors+=link_errors(files)
  project=json.loads(files.get('project.json',b'{}'))
- if project.get('stable_release') is not False or not project.get('version','').endswith('-dev'):errors.append({'path':'project.json','rule':'development status required'})
+ if project.get('version')!='1.0' or project.get('stable_release') is not True:errors.append({'path':'project.json','rule':'version 1.0 release metadata required'})
  if b'original descriptions from' in files.get('mod/BS2Suite/qol/lib/reference_data.rb',b'').lower():errors.append({'path':'reference_data.rb','rule':'original description export retained'})
  workflow=files.get('.github/workflows/checks.yml',b'')
  if workflow and (b'contents: read' not in workflow or b'persist-credentials: false' not in workflow):errors.append({'path':'.github/workflows/checks.yml','rule':'read-only checkout required'})

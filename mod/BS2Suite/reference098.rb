@@ -98,7 +98,8 @@ module BS2Modules::Effects
     def sources(actor)
       rows=bs2098_verified_sources(actor)
       rows.each do |row|
-        object=actor.equips.compact.find { |o| BS2Modules.label(o)==row[:name] }
+        object=row[:object]
+        next unless object.is_a?(RPG::EquipItem)
         next unless object && BS2Suite::Reference098.get(object)
         card=BS2QoL::PracticalCard.new(object,actor,:ru)
         row[:details]=card.section_names.zip(card.sections).reject { |label,lines| label=='Оружие N' }.map { |label,lines| lines }.flatten
@@ -141,11 +142,17 @@ class BS2QoL::PracticalCard
   def ref_facts(object);reference098.facts(object);end
   alias bs2098_old_use practical_use
   def practical_use
-    return bs2098_old_use unless reference098.get(@resolved)
+    return bs2098_old_use if language==:en || !reference098.get(@resolved)
     x=@resolved
     lead=ref_lines(x,'Кратко')
     lead=[reference098.brief(x)] if lead.empty? && x.damage.none?
-    rows=lead+practical_cost
+    # Keep the reviewed explanations when the compiled database supplies only
+    # a short mechanical summary (field skills and conditional techniques).
+    reviewed=editorial || []
+    unless BS2Suite.enabled?('field_skills')
+      reviewed=reviewed.reject { |line| line.include?('автоматическ') || line.include?('automatic') }
+    end
+    rows=reviewed+lead+practical_cost
     info=ref_facts(x)
     kind=info.find { |a,b| a=='Урон / элемент' };hit=info.find { |a,b| a=='Тип попадания' }
     if kind
@@ -180,15 +187,25 @@ class BS2QoL::PracticalCard
     if @bs2095_execution_weapon
       rows<<(@bs2096_sole_source ? 'Источник единственной техники: ' : 'Исполнение последнего действия: ')+@bs2095_execution_weapon.name
     end
-    if defined?(BS2Suite::BattleSupport) && BS2Suite::BattleSupport.gunbreak?(@object)
+    if BS2Suite::ActionRules.gunbreak?(@object)
       rows<<BS2Suite::Keys.token(:Z)+' — авто Gun Break при выделении в «Техники» или V.'
     end
     rows
   end
   alias bs2098_old_effects practical_effects
   def practical_effects
-    return bs2098_old_effects unless reference098.get(@resolved)
-    x=@resolved;rows=ref_lines(x,'Эффекты').reject { |s| s.start_with?('Вызывает событие:') }
+    x=@resolved
+    if language==:en || !reference098.get(x)
+      rows=bs2098_old_effects
+    else
+    rows=ref_lines(x,'Эффекты').reject { |s| s.start_with?('Вызывает событие:') }
+    if x.effects.any? { |e| [11,12].include?(e.code) && e.value1<=0 && e.value2<=0 && (e.value1<0 || e.value2<0) }
+      # Compiled RU summaries predate the signed resource-effect decoder.
+      # Replace resource lines only; retain reviewed state/event explanations.
+      rows.reject! { |s| s.start_with?('Восстановление HP:','Восстановление MP:') }
+      resource_rows=bs2098_old_effects.select { |s| s.start_with?('Потери HP:','Потери MP:','Восстановление HP:','Восстановление MP:','Эта часть потерь') }
+      rows=resource_rows+rows
+    end
     properties=ref_lines(x,'Свойства')
     rows+=['Свойства записи:']+properties unless properties.empty?
     # Expand states from their own verified cards; not their often inaccurate names.
@@ -201,10 +218,28 @@ class BS2QoL::PracticalCard
       summary=event_summary(effect.data_id)
       rows<<(summary ? t(summary[0],summary[1]) : 'Особое событие игры: исход зависит от его условий; численно не моделируется.')
     end
+    end
+    if x.tp_gain!=0
+      rows<<t('Пользователю за успешное попадание: TP +','User gains per successful hit: TP +')+n(x.tp_gain)+' × TCR.'
+    end
+    if actor
+      x.effects.select { |e| e.code==43 }.each do |effect|
+        skill=$data_skills[effect.data_id];next unless skill
+        rows<<(actor.skill_learn?(skill) ? t('Уже изучен этим персонажем: ','Already learned by this actor: ') : t('Ещё не изучен этим персонажем: ','Not yet learned by this actor: '))+name(skill)+'.'
+      end
+    end
     rows
   end
   alias bs2098_old_state_lines state_lines
   def state_lines(state)
+    if language==:en
+      rows=bs2098_old_state_lines(state)
+      if state.auto_removal_timing==3
+        rows.reject! { |s| s.include?('Duration counter:') || s.include?('ATB may decrease') }
+        rows.unshift('  Frame interval: '+state.turn_frame.to_s+' internal frames; '+(state.auto_remove? ? 'duration counter '+state.min_turns.to_s+'..'+state.max_turns.to_s+'.' : 'no automatic removal.'))
+      end
+      return rows
+    end
     return bs2098_old_state_lines(state) unless reference098.get(state)
     rows=ref_facts(state).reject { |a,b| a=='После боя' }.map { |a,b| '  '+a+': '+b }
     rows+=ref_lines(state,'Свойства').map { |s| '  '+s }
@@ -216,6 +251,14 @@ class BS2QoL::PracticalCard
   end
   alias bs2098_old_formula practical_formula
   def practical_formula
+    if language==:en
+      rows=bs2098_old_formula
+      if @resolved.damage.critical && defined?(Hi_ru_Difficulty)
+        factor=Hi_ru_Difficulty::DIFFICULTY_SETTING[11][$game_variables[Hi_ru_Difficulty::VARIABLES]]
+        rows<<'Current critical multiplier: ×'+n(factor)+'.'
+      end
+      return rows
+    end
     return bs2098_old_formula unless reference098.get(@resolved)
     x=@resolved;rows=['За одно попадание:',x.damage.formula.to_s.strip]+ref_lines(x,'Расчёт')
     used=x.damage.formula.scan(/\ba\.(atk|def|mat|mdf|mhp|mmp|hp|mp|agi|luk)\b/).flatten.uniq
@@ -230,49 +273,64 @@ class BS2QoL::PracticalCard
   alias bs2098_old_rules note_rules
   def note_rules(x)
     return bs2098_old_rules(x) unless reference098.get(x)
-    rows=ref_lines(x,'Особенности').reject { |s| s.start_with?('Мгновенно,') }
+    rows=language==:en ? bs2098_old_rules(x) : ref_lines(x,'Особенности').reject { |s| s.start_with?('Мгновенно,') }
     # The source decoder records the initial delay, while execution checks zero
     # before decrementing. State the actual check number, not N promised actions.
     if x.is_a?(RPG::UsableItem)
       rows.reject! { |s| s.start_with?('Отложенный эффект:') }
       x.note.scan(/<(行動後遅延発動|遅延発動)[:：]([^>]+)>/).each do |tag,value|
         parts=value.split(',').map { |v| v.to_i };linked=x.is_a?(RPG::Skill) ? $data_skills[parts[1]] : $data_items[parts[1]]
-        rows<<'Отложенно: '+name(linked)+'; проверка №'+(parts[2]+1).to_s+'–'+(parts[2]+(parts[3] || 0)+1).to_s+
-          (tag=='行動後遅延発動' ? ' после действий цели' : ' в конце хода')+'; шанс '+(parts[4] || 100).to_s+'%. При смерти/исчезновении цели не срабатывает.'
+        rows<<t('Отложенно: ','Delayed: ')+name(linked)+t('; проверка №','; check #')+(parts[2]+1).to_s+'–'+(parts[2]+(parts[3] || 0)+1).to_s+
+          (tag=='行動後遅延発動' ? t(' после действий цели',' after target actions') : t(' в конце хода',' at turn end'))+t('; шанс ','; chance ')+(parts[4] || 100).to_s+t('%. При смерти/исчезновении цели не срабатывает.','%. Does not trigger after target death/disappearance.')
       end
       if actor && x.is_a?(RPG::Skill) && /<クールタイム:(\d+)>/.match(x.note)
-        rows<<'КД сейчас: '+read_cooldown(x).to_s+'.'
+        rows<<t('КД сейчас: ','Cooldown now: ')+read_cooldown(x).to_s+'.'
       end
       # Do not pretend that a dormant action tag ignores PDR/MDR.
       row=reference098.get(x)
       if row[5].any? { |s| s.start_with?('Тег проникновения PDR/MDR') }
-        rows<<'Сам приём не игнорирует сопротивление физическому/магическому типу. Проникновение может дать отдельный пассивный источник.'
+        rows<<t('Сам приём не игнорирует сопротивление физическому/магическому типу. Проникновение может дать отдельный пассивный источник.','This action does not itself ignore physical/magical damage resistance. A separate passive source can provide penetration.')
       end
       x.note.scan(/<使用者効果\s*(\d+)\s*>/).each do |sid|
         linked=$data_skills[sid[0].to_i];next unless linked
-        rows+=ref_lines(linked,'Эффекты').map { |s| '  На пользователя: '+s }
+        effects=language==:en ? effect_lines(linked,false) : ref_lines(linked,'Эффекты')
+        rows+=effects.map { |s| t('  На пользователя: ','  On the user: ')+s }
         linked.effects.select { |e| e.code==21 && e.data_id>0 }.each do |e|
           rows+=state_lines($data_states[e.data_id]) if $data_states[e.data_id]
         end
-        rows<<'  Формула на пользователя: '+linked.damage.formula.to_s.strip unless linked.damage.none?
+        rows<<t('  Формула на пользователя: ','  User formula: ')+linked.damage.formula.to_s.strip unless linked.damage.none?
       end
       links=x.note.scan(/<使用後追加行動[:：](\d+),[^>]+>/).flatten.map { |sid| $data_skills[sid.to_i] }
       x.note.scan(/<(?:行動後遅延発動|遅延発動)[:：]([^>]+)>/).each do |value|
         sid=value[0].split(',')[1].to_i;links<<(x.is_a?(RPG::Skill) ? $data_skills[sid] : $data_items[sid])
       end
       links.compact.uniq.each do |linked|
-        rows<<'  '+name(linked)+': '+reference098.brief(linked).to_s
-        rows<<'  За попадание: '+linked.damage.formula.to_s.strip unless linked.damage.none?
+        rows<<'  '+name(linked)+(language==:en ? '' : ': '+reference098.brief(linked).to_s)
+        rows<<t('  За попадание: ','  Per hit: ')+linked.damage.formula.to_s.strip unless linked.damage.none?
       end
-      rows<<'Дополнительные действия имеют собственные условия, цену и цель. Прогноз всей цепочки может быть частичным.' unless links.compact.empty?
+      rows<<t('Дополнительные действия имеют собственные условия, цену и цель. Прогноз всей цепочки может быть частичным.','Follow-up actions have their own conditions, cost and target. A full-chain forecast can be partial.') unless links.compact.empty?
       if x.note.include?('<ステート変化:')
-        rows<<'Если подходят несколько вариантов, выбирается последний подходящий в порядке тегов.'
+        rows<<t('Если подходят несколько вариантов, выбирается последний подходящий в порядке тегов.','When several variants apply, the last matching note tag wins.')
       end
     end
     rows
   end
   alias bs2098_old_equipment equipment_card
   def equipment_card
+    if language==:en
+      bs2098_old_equipment
+      x=@object;actions=[]
+      ids=x.features.select { |f| f.code==43 }.map { |f| f.data_id }
+      x.note.scan(/<攻撃ID変更[:：](\d+)>/).each { |m| ids<<m[0].to_i }
+      ids.uniq.each do |id|
+        skill=$data_skills[id];next unless skill
+        actions<<name(skill)
+        actions<<'  Per hit: '+skill.damage.formula.to_s.strip unless skill.damage.none?
+        actions+=note_rules(skill).map { |s| '  '+s }
+      end
+      add('Skills / attack',actions)
+      return
+    end
     x=@object;return bs2098_old_equipment unless reference098.get(x)
     rows=ref_lines(x,'Кратко')
     rows=[reference098.brief(x)] if rows.empty?
@@ -280,6 +338,13 @@ class BS2QoL::PracticalCard
     add(t('Снаряжение','Equipment'),rows)
     add(t('Свойства','Properties'),ref_lines(x,'Свойства'))
     special=note_rules(x)
+    # These reviewed explanations are not represented by database traits:
+    # story purposes, storage restrictions and exact revival semantics.
+    special+=equipment_notes(x).select do |line|
+      (x.is_a?(RPG::Armor) && [141,152].include?(x.id)) ||
+        ['Нельзя сдать','Cannot deposit','Автовоскрешение','Auto-revival',
+         'После срабатывания этого воскрешения','After this revival'].any? { |prefix| line.start_with?(prefix) }
+    end
     if x.features.any? { |f| f.code==61 }
       special<<'Дополнительные слоты определяются при создании очереди. Смена оружия не добавляет их в уже сформированный ход.'
     end

@@ -21,8 +21,8 @@ module BS2Suite::ShortNotes
       if prefix=='N' && actor && BS2Suite::DirectWeapons.selected(actor)==obj
         text=enabled?(prefix) ? describe_final(obj).to_s : ''
         text+=' · [последнее действие]'
-      elsif actor && BS2Suite::BattleSupport.configured?(actor,obj)
-        text+=' · [поддержка'+(BS2Suite::BattleSupport.active? ? '' : ': пауза')+']'
+      elsif actor && BS2Suite::SupportState.configured?(actor,obj)
+        text+=' · [поддержка'+(BS2Suite::SupportState.active? ? '' : ': пауза')+']'
       end
       text
     end
@@ -60,7 +60,7 @@ module BS2Suite
       note=ShortNotes.for_row(row,@prefix).sub(/ · \[последнее действие\]\z/,'')
       first=@list[index][:name]
       first+=' [последнее]' if @prefix=='N' && DirectWeapons.selected(@actor)==row[:object]
-      first+=' [авто]' if @prefix!='N' && BattleSupport.configured?(@actor,row[:object])
+      first+=' [авто]' if @prefix!='N' && SupportState.configured?(@actor,row[:object])
       draw_text(rect.x,rect.y,rect.width,22,BS2Modules.fit(self,first,rect.width))
       if line_height>26
         contents.font.size=14

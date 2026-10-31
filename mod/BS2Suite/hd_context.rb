@@ -125,10 +125,11 @@ module BS2Suite::HDDisplay
     end
     def battle_rows(scene)
       actor=actor_for(scene);rows=[]
-      if actor && actor.actions.size>1 && BS2Suite.enabled?('action_queue')
+      if actor && (actor.actions.size>1 || actor.actions.any? { |a| !BS2Suite::ActionContext.attachments(a,actor).empty? }) && BS2Suite.enabled?('action_queue')
         rows<<row('T','Серия · '+actor.actions.size.to_s+' действия')
         actor.actions.take(6).each_with_index do |action,i|
           rows<<row(actor.input.equal?(action) ? 'A' : 'S',(i+1).to_s+'. '+(action.item ? action.item.name : 'выбор действия')+(defined?(BS2Suite::QueueEdit) ? BS2Suite::QueueEdit.mp(actor,i) : ''))
+          rows+=wrap_lines(BS2Suite::ActionContext.attachments(action,actor).map { |s| 'Мгновенно '+s }).map { |s| row('D',s) }
         end
         rows<<row('D','Ещё '+(actor.actions.size-6).to_s+' действий') if actor.actions.size>6
         rows<<row('D','Esc, Esc — сбросить неисполненную серию')

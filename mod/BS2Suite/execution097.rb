@@ -21,7 +21,7 @@ module BS2Suite::DirectWeapons
       index=actor.instance_variable_get(:@action_input_index).to_i if index.nil?
       action ||= actor.actions[index]
       return nil if action && action.forcing
-      return nil if BS2Suite::BattleSupport.quick?(item) || sole_source(actor,item,index,action)
+      return nil if BS2Suite::ActionRules.quick?(item) || sole_source(actor,item,index,action)
       return nil unless can_switch?(actor,weapon)
       view=actor.equips[0]==weapon ? BS2Suite::Projection.copy(actor) : BS2Suite::Projection.weapon(actor,weapon)
       view.usable?(item) ? weapon : nil

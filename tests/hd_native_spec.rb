@@ -54,9 +54,13 @@ begin
   check(write.call(text,text.bytesize)==1,'native panel accepts UTF-8 Cyrillic')
   check(write.call("\xff",1)==0,'invalid UTF-8 rejected without rendering garbage')
   check(read.call('',0)==1,'composite readback request accepted')
-  3.times { Graphics.update;Input.update }
-  w,h=hd.status[6,2];pixels=("\0"*(w*h*4)).force_encoding('ASCII-8BIT')
-  check(read.call(pixels,pixels.bytesize)==pixels.bytesize,'actual GPU composite readback includes HD panel')
+  w,h=hd.status[6,2];pixels=("\0"*(w*h*4)).force_encoding('ASCII-8BIT');read_size=0
+  90.times do |frame|
+    sprite.x=frame%2;Graphics.update;Input.update
+    read_size=read.call(pixels,pixels.bytesize);break if read_size==pixels.bytesize
+  end
+  log('readback_size='+read_size.to_s+' expected='+pixels.bytesize.to_s+' hd='+hd.status.inspect)
+  check(read_size==pixels.bytesize,'actual GPU composite readback includes HD panel')
   check(pixels.bytes.to_a.uniq.size>24,'composite contains rendered scene and antialiased text')
   header=[40,w,-h,1,32,0,pixels.bytesize,0,0,0,0].pack('LllSSLLLLLL')
   File.open('BS2QA_HD_native.bmp','wb') { |f| f.write('BM'+[54+pixels.bytesize,0,54].pack('L3')+header+pixels) }

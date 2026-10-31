@@ -13,9 +13,9 @@ module BS2Suite
       return nil unless actor
       [@revision,actor.id,actor.level,actor.class_id,actor.hp,actor.mp,actor.tp,actor.equips.map { |e| e && [e.class.to_s,e.id] },
        actor.instance_variable_get(:@states).hash,actor.instance_variable_get(:@state_turns).hash,actor.instance_variable_get(:@buffs).hash,actor.instance_variable_get(:@buff_turns).hash,
-       actor.actions.map { |a| [a.item && a.item.class.to_s,a.item && a.item.id,a.target_index,a.forcing,a.instance_variable_get(:@bs2s_direct_count),a.instance_variable_get(:@bs2s_normal_attack)] },
+       actor.actions.map { |a| BS2Suite::ActionContext.signature(a) },
        actor.instance_variable_get(:@action_input_index),defined?(BS2Suite::DirectWeapons) && BS2Suite::DirectWeapons.selected_id(actor),
-       $game_party.gold,$game_troop.members.map { |e| [e.index,e.hp,e.mp,e.hidden?,e.instance_variable_get(:@states).hash,e.instance_variable_get(:@state_turns).hash,e.instance_variable_get(:@buffs).hash,e.instance_variable_get(:@buff_turns).hash] },
+       $game_party.gold,$game_party.instance_variable_get(:@items).dup,$game_troop.members.map { |e| [e.index,e.hp,e.mp,e.tp,e.hidden?,e.instance_variable_get(:@states).hash,e.instance_variable_get(:@state_turns).hash,e.instance_variable_get(:@buffs).hash,e.instance_variable_get(:@buff_turns).hash] },
        Options.get('knowledge_threshold'),Options.get('palette_notes'),Options.get('weapon_notes'),
        $game_temp.instance_variable_get(:@cool_time).to_a.select { |b,v| b.equal?(actor) }.map { |b,v| v.hash }]
     end
@@ -121,10 +121,10 @@ module BS2Suite::QuickDamage
   class << self
     alias bs20991_cached_lines lines
     def lines(scene,object,actor,source=nil,target=nil,weapon=nil)
-      unless object && actor && $game_party.in_battle && object.respond_to?(:damage) && object.damage.to_hp? && !object.damage.recover? && object.for_opponent?
+      unless actor && $game_party.in_battle && hp_damage?(object) && object.for_opponent?
         BS2Suite::Performance.cancel_pending;return []
       end
-      key=[BS2Suite::Performance.context(actor),object.class.to_s,object.id,source && source.id,target && target.index,weapon && weapon.id]
+      key=[BS2Suite::Performance.context(actor),object.class.to_s,object.id,BS2Suite::ActionContext.object_key(source),target && target.index,BS2Suite::ActionContext.object_key(weapon)]
       BS2Suite::Performance.forecast(key) { bs20991_cached_lines(scene,object,actor,source,target,weapon) }
     end
   end

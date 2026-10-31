@@ -151,7 +151,7 @@ module BS2Modules
           end
           details += object.features.map { |f| feature(f) }+special(object)
           details << 'Дополнительных свойств нет.' if details.empty?
-          rows << {:name=>BS2Modules.label(object),:summary=>label,:details=>details,:kind=>:source}
+          rows << {:name=>BS2Modules.label(object),:summary=>label,:details=>details,:kind=>:source,:object=>object}
         end
         rows
       end

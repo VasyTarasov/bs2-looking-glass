@@ -1,180 +1,264 @@
 [
   {
-    "id": "combat_shortcuts",
-    "name": "Favorites and native commands",
+    "id": "hd_display",
+    "group": "display",
+    "name": "HD interface (recommended)",
+    "name_ru": "HD-интерфейс (рекомендуется)",
+    "name_en": "HD interface (recommended)",
+    "description_ru": "Чёткий текст, выбор разрешения и боковая информационная панель. Современные функции модпака разрабатываются прежде всего для этого интерфейса.",
+    "description_en": "Crisp text, resolution settings and a contextual side panel. Current mod features are designed primarily for this interface.",
     "default": true,
     "requires": [],
-    "name_ru": "Избранное и штатные команды",
-    "name_en": "Favorites and native commands"
-  },
-  {
-    "id": "action_queue",
-    "name": "Action queue",
-    "default": true,
-    "requires": [],
-    "name_ru": "Очередь действий",
-    "name_en": "Action queue"
-  },
-  {
-    "id": "reference_cards",
-    "name": "Reference cards and forecasts",
-    "default": true,
-    "requires": [],
-    "name_ru": "Справка и прогноз RU / EN",
-    "name_en": "Reference cards and forecasts"
-  },
-  {
-    "id": "effects",
-    "name": "Effect inspection",
-    "default": true,
-    "requires": [],
-    "name_ru": "Каталог эффектов",
-    "name_en": "Effect inspection"
-  },
-  {
-    "id": "loadouts",
-    "name": "Named equipment loadouts",
-    "default": true,
-    "requires": [],
-    "name_ru": "Полные комплекты",
-    "name_en": "Named equipment loadouts"
-  },
-  {
-    "id": "learned_books",
-    "name": "Learned-book status",
-    "default": true,
-    "requires": [],
-    "name_ru": "Изученные книги",
-    "name_en": "Learned-book status"
-  },
-  {
-    "id": "field_skills",
-    "name": "Field skills",
-    "default": true,
-    "requires": [],
-    "name_ru": "Полевые навыки",
-    "name_en": "Field skills"
-  },
-  {
-    "id": "saves",
-    "name": "Saves: sorting, labels, 100 slots",
-    "default": true,
-    "requires": [],
-    "name_ru": "Сохранения: сортировка, подписи, 100 слотов",
-    "name_en": "Saves: sorting, labels, 100 slots"
-  },
-  {
-    "id": "defeat",
-    "name": "Defeat screen",
-    "default": true,
-    "requires": [],
-    "name_ru": "Окно поражения",
-    "name_en": "Defeat screen"
-  },
-  {
-    "id": "retry",
-    "name": "Retry battle (requires defeat screen)",
-    "default": true,
-    "requires": [
-      "defeat"
-    ],
-    "name_ru": "Повтор боя (нужно окно поражения)",
-    "name_en": "Retry battle (requires defeat screen)"
-  },
-  {
-    "id": "battle_stats",
-    "name": "Battle statistics and journal",
-    "default": true,
-    "requires": [],
-    "name_ru": "Статистика боя",
-    "name_en": "Battle statistics and journal"
-  },
-  {
-    "id": "controls",
-    "name": "Key bindings",
-    "default": true,
-    "requires": [],
-    "name_ru": "Назначение клавиш",
-    "name_en": "Key bindings"
-  },
-  {
-    "id": "run_toggle",
-    "name": "Toggle running and item-speed options",
-    "default": true,
-    "requires": [],
-    "name_ru": "Переключаемый бег",
-    "name_en": "Toggle running and item-speed options"
-  },
-  {
-    "id": "sound",
-    "name": "Volume controls",
-    "default": true,
-    "requires": [],
-    "name_ru": "Громкость",
-    "name_en": "Volume controls"
-  },
-  {
-    "id": "debug",
-    "name": "Diagnostics (opt in)",
-    "default": false,
-    "requires": [],
-    "name_ru": "Диагностика и замечания",
-    "name_en": "Diagnostics (opt in)"
-  },
-  {
-    "id": "semantic_groups",
-    "name": "V/B/M groups and N weapons (recommended)",
-    "default": true,
-    "requires": [],
-    "name_ru": "Группы V/B/M и оружие N (рекомендуется)",
-    "name_en": "V/B/M groups and N weapons (recommended)"
-  },
-  {
-    "id": "legacy_shortcuts",
-    "name": "Legacy: Shift/Ctrl combinations (advanced)",
-    "default": false,
-    "requires": [],
-    "name_ru": "Legacy: Shift/Ctrl/Shift+Ctrl — Advanced",
-    "name_en": "Legacy: Shift/Ctrl combinations (advanced)"
-  },
-  {
-    "id": "soul_batch",
-    "name": "Batch soul consumption",
-    "default": true,
-    "requires": [],
-    "name_ru": "Массовое использование душ",
-    "name_en": "Batch soul consumption"
-  },
-  {
-    "id": "equipped_upgrade",
-    "name": "Upgrade equipped weapons",
-    "default": true,
-    "requires": [],
-    "name_ru": "Прокачка экипированного оружия",
-    "name_en": "Upgrade equipped weapons"
+    "group_ru": "Экран и Steam",
+    "group_en": "Display and Steam"
   },
   {
     "id": "steam_bridge",
-    "name": "Steam / OpenGL / screenshots (experimental)",
+    "group": "display",
+    "name": "Steam integration",
+    "name_ru": "Интеграция со Steam",
+    "name_en": "Steam integration",
+    "description_ru": "Включает поддержку оверлея и скриншотов Steam. Использует общий графический механизм с HD-интерфейсом.",
+    "description_en": "Enables Steam overlay and screenshot integration. Shares the graphics backend with the HD interface.",
     "default": true,
     "requires": [],
-    "name_ru": "Steam: OpenGL / скриншоты (эксперимент)",
-    "name_en": "Steam / OpenGL / screenshots (experimental)"
+    "group_ru": "Экран и Steam",
+    "group_en": "Display and Steam"
   },
   {
-    "id": "hd_display",
-    "name": "HD resolution and side panel (prototype)",
+    "id": "semantic_groups",
+    "group": "combat",
+    "name": "V/B/M/N combat groups",
+    "name_ru": "Боевые группы V/B/M/N",
+    "name_en": "V/B/M/N combat groups",
+    "description_ru": "Группирует техники, предметы, магию и оружие для быстрого выбора буквами и цифрами. Работает отдельно и совместно с Advanced Legacy.",
+    "description_en": "Groups techniques, items, magic and weapons for selection with letters and numbers. Works on its own or alongside Advanced Legacy.",
     "default": true,
     "requires": [],
-    "name_ru": "HD: разрешение / отдельная панель (прототип)",
-    "name_en": "HD resolution and side panel (prototype)"
+    "group_ru": "Управление в бою",
+    "group_en": "Battle controls"
+  },
+  {
+    "id": "legacy_shortcuts",
+    "group": "combat",
+    "name": "Advanced Legacy: keyboard shortcuts",
+    "name_ru": "Advanced Legacy: сочетания клавиш",
+    "name_en": "Advanced Legacy: keyboard shortcuts",
+    "description_ru": "Добавляет назначения действий через сочетания Shift/Ctrl с цифрами. Можно использовать самостоятельно или вместе с группами V/B/M/N.",
+    "description_en": "Assigns actions to Shift/Ctrl and number combinations. Can be used on its own or alongside V/B/M/N groups.",
+    "default": false,
+    "requires": [],
+    "group_ru": "Управление в бою",
+    "group_en": "Battle controls"
+  },
+  {
+    "id": "combat_shortcuts",
+    "group": "combat",
+    "name": "Battle-list favorites",
+    "name_ru": "Избранное в боевых списках",
+    "name_en": "Battle-list favorites",
+    "description_ru": "Позволяет отмечать нужные навыки и предметы и быстро находить их в боевых списках. Доступно со штатным управлением, группами и Advanced Legacy.",
+    "description_en": "Mark skills and items as favorites for quick access in battle lists. Supports native controls, combat groups and Advanced Legacy.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Управление в бою",
+    "group_en": "Battle controls"
+  },
+  {
+    "id": "action_queue",
+    "group": "combat",
+    "name": "Action queue display",
+    "name_ru": "Отображение очереди действий",
+    "name_en": "Action queue display",
+    "description_ru": "Показывает подготовленные и выполняемые действия персонажа. Помогает следить за последовательностью команд и оставшимися действиями.",
+    "description_en": "Displays prepared and executing actor actions. Helps track command order and remaining actions.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Управление в бою",
+    "group_en": "Battle controls"
+  },
+  {
+    "id": "macros",
+    "group": "combat",
+    "name": "Action macros",
+    "name_ru": "Макросы действий",
+    "name_en": "Action macros",
+    "description_ru": "Сохранённые последовательности до шести шагов с ручным запуском. Поддерживает навыки, предметы и оружие; требует группы V/B/M/N, но не комплекты снаряжения.",
+    "description_en": "Save sequences of up to six steps and trigger them manually. Supports skills, items and weapons; requires V/B/M/N groups, but not equipment loadouts.",
+    "default": true,
+    "requires": [
+      "semantic_groups"
+    ],
+    "group_ru": "Управление в бою",
+    "group_en": "Battle controls"
+  },
+  {
+    "id": "battle_support",
+    "group": "support",
+    "name": "Automatic battle support",
+    "name_ru": "Автоподдержка в бою",
+    "name_en": "Automatic battle support",
+    "description_ru": "Поддерживающие предметы, очищения и Gun Break при подходящих условиях. Каждый бой начинается без активных правил; нужные действия включаются отдельно прямо в бою.",
+    "description_en": "Maintains selected item effects, cleanses and Gun Break when appropriate. Each battle starts with no active rules; enable individual actions during battle.",
+    "default": false,
+    "requires": [],
+    "group_ru": "Помощь в бою",
+    "group_en": "Battle assistance"
+  },
+  {
+    "id": "battle_speed",
+    "group": "support",
+    "name": "Hold Ctrl to speed up battle",
+    "name_ru": "Ускорение боя по Ctrl",
+    "name_en": "Hold Ctrl to speed up battle",
+    "description_ru": "При удержании Ctrl сокращает анимации, паузы и переходы в бою. Выбор команд и целей остаётся ручным.",
+    "description_en": "Hold Ctrl to shorten battle animations, pauses and transitions. Commands and targets are still selected manually.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Помощь в бою",
+    "group_en": "Battle assistance"
+  },
+  {
+    "id": "reference_cards",
+    "group": "information",
+    "name": "Reference, effects and forecasts",
+    "name_ru": "Справка, эффекты и прогноз",
+    "name_en": "Reference, effects and forecasts",
+    "description_ru": "Подробные карточки F7, просмотр участников и эффектов через H и прогноз действий. Если результат нельзя надёжно рассчитать, справка показывает ограничение прогноза.",
+    "description_en": "Detailed F7 cards, H participant/effect inspection and action forecasts. When an outcome cannot be reliably calculated, its forecasting limitation is shown.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Информация",
+    "group_en": "Information"
+  },
+  {
+    "id": "battle_stats",
+    "group": "information",
+    "name": "Battle journal and statistics",
+    "name_ru": "Журнал и статистика боя",
+    "name_en": "Battle journal and statistics",
+    "description_ru": "Записывает произошедшие действия и результаты для просмотра журнала и итогов боя. Атаки противника появляются по мере их наблюдения.",
+    "description_en": "Records observed actions and results for the battle journal and summary. Enemy attacks appear as they are observed.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Информация",
+    "group_en": "Information"
+  },
+  {
+    "id": "loadouts",
+    "group": "equipment",
+    "name": "Equipment loadouts",
+    "name_ru": "Комплекты снаряжения",
+    "name_en": "Equipment loadouts",
+    "description_ru": "Сохраняет именованные наборы экипировки для ручного применения. Учитывает недоступные предметы и ограничения смены снаряжения.",
+    "description_en": "Save named equipment sets and apply them manually. Missing items and equipment-change restrictions are respected.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Снаряжение",
+    "group_en": "Equipment"
+  },
+  {
+    "id": "equipped_upgrade",
+    "group": "equipment",
+    "name": "Upgrade equipped weapons",
+    "name_ru": "Улучшение экипированного оружия",
+    "name_en": "Upgrade equipped weapons",
+    "description_ru": "Позволяет улучшать надетое оружие без предварительного снятия. Стоимость и условия улучшения определяются игрой.",
+    "description_en": "Upgrade currently equipped weapons without removing them first. The game determines upgrade costs and conditions.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Снаряжение",
+    "group_en": "Equipment"
   },
   {
     "id": "weapon_family_cleanup",
-    "name": "Equipment-family cleanup",
+    "group": "equipment",
+    "name": "Automatic obsolete-equipment cleanup",
+    "name_ru": "Автоочистка устаревшего снаряжения",
+    "name_en": "Automatic obsolete-equipment cleanup",
+    "description_ru": "Удаляет младшие варианты снаряжения при наличии соответствующих улучшенных версий. Изменяет инвентарь; отключение не возвращает уже удалённые предметы.",
+    "description_en": "Removes lower equipment variants when corresponding upgrades are owned. Changes inventory; disabling it does not restore items already removed.",
     "default": true,
     "requires": [],
-    "name_ru": "Убирать дубли снаряжения",
-    "name_en": "Equipment-family cleanup"
+    "group_ru": "Снаряжение",
+    "group_en": "Equipment"
+  },
+  {
+    "id": "map_highlight",
+    "group": "exploration",
+    "name": "Interaction highlighting",
+    "name_ru": "Подсветка взаимодействий",
+    "name_en": "Interaction highlighting",
+    "description_ru": "При удержании Alt отмечает доступные полезные взаимодействия на текущей карте. Помогает замечать объекты, с которыми ещё можно что-то сделать.",
+    "description_en": "Hold Alt to highlight available useful interactions on the current map. Helps find objects that still have something to offer.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Исследование и удобства",
+    "group_en": "Exploration and conveniences"
+  },
+  {
+    "id": "field_skills",
+    "group": "exploration",
+    "name": "Field skills",
+    "name_ru": "Полевые навыки",
+    "name_en": "Field skills",
+    "description_ru": "Собирает доступные вне боя навыки в отдельном меню. Для поддерживаемой скрытности доступно автообновление с обычным расходом MP.",
+    "description_en": "Provides a separate menu for skills available outside battle. Supported stealth can be renewed automatically at its normal MP cost.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Исследование и удобства",
+    "group_en": "Exploration and conveniences"
+  },
+  {
+    "id": "soul_batch",
+    "group": "exploration",
+    "name": "Batch soul consumption",
+    "name_ru": "Массовое использование душ",
+    "name_en": "Batch soul consumption",
+    "description_ru": "Позволяет использовать подходящие души сразу в выбранном количестве. Ключевые и сюжетные предметы исключены.",
+    "description_en": "Consume eligible souls in a chosen quantity. Key and story items are excluded.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Исследование и удобства",
+    "group_en": "Exploration and conveniences"
+  },
+  {
+    "id": "saves",
+    "group": "exploration",
+    "name": "Convenient saves",
+    "name_ru": "Удобные сохранения",
+    "name_en": "Convenient saves",
+    "description_ru": "Добавляет 100 слотов, сортировку, подписи и быстрый доступ к сохранению. В списке видны дополнительные сведения о прохождении.",
+    "description_en": "Adds 100 slots, sorting, labels and quick-save access. Save lists show additional progression information.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Исследование и удобства",
+    "group_en": "Exploration and conveniences"
+  },
+  {
+    "id": "basic_qol",
+    "group": "exploration",
+    "name": "Basic conveniences",
+    "name_ru": "Базовые удобства",
+    "name_en": "Basic conveniences",
+    "description_ru": "Переназначение клавиш, громкость, настройка бега и отметки изученных книг. Каждая возможность настраивается отдельно в игре.",
+    "description_en": "Key remapping, volume controls, running options and learned-book markers. Individual settings are available in the game.",
+    "default": true,
+    "requires": [],
+    "group_ru": "Исследование и удобства",
+    "group_en": "Exploration and conveniences"
+  },
+  {
+    "id": "debug",
+    "group": "additional",
+    "name": "Diagnostics",
+    "name_ru": "Диагностика",
+    "name_en": "Diagnostics",
+    "description_ru": "Сохраняет локальные журналы ошибок и сведения о производительности. Отчёты не отправляются автоматически.",
+    "description_en": "Keeps local error logs and performance information. Reports are not sent automatically.",
+    "default": false,
+    "requires": [],
+    "group_ru": "Дополнительно",
+    "group_en": "Additional"
   }
 ]

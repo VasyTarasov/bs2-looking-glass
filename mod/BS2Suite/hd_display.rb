@@ -323,7 +323,7 @@ class BS2Suite::SettingsCommands
   alias bs2090_display_commands make_command_list
   def make_command_list
     bs2090_display_commands
-    @list.insert(2,{:name=>'Экран и HD-интерфейс (прототип)',:symbol=>:hd_display,:enabled=>BS2Suite::HDDisplay.ready?,:ext=>nil})
+    @list.insert(2,{:name=>'Экран и HD-интерфейс (рекомендуется)',:symbol=>:hd_display,:enabled=>BS2Suite::HDDisplay.ready?,:ext=>nil})
   end
 end
 class BS2Suite::SettingsScene

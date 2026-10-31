@@ -47,7 +47,7 @@ module BS2Suite
       return unless @open && enabled? && actor.actor? && item.is_a?(RPG::Skill)
       values=%w(V M).map { |p| token(p,item.id) }.uniq
       weapon=actor.equips[0]
-      values<<token('N',weapon.id) if weapon && !(defined?(BattleSupport) && BattleSupport.quick?(item))
+      values<<token('N',weapon.id) if weapon && !ActionRules.quick?(item)
       values.each do |value|
         key=actor.id.to_s+':'+value
         next if !@current.has_key?(key) && @current.size>=160

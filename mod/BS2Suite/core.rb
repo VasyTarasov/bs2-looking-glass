@@ -4,7 +4,7 @@ module BS2Suite
     map={'F5'=>:stats,'F6'=>:bind,'F7'=>:reference,'F8'=>:language,'F9'=>:note,'F10'=>:fullscreen,'Enter'=>:C,'Esc'=>:B,'Q'=>:L,'E'=>:R,'A'=>:X,'S'=>:Y}
     text.to_s.gsub(/\b(F10|F11|F[5-9]|Enter|Esc|Q|E|A|S)\b/) { |key| Keys.token(map[key]) }
   end
-  NAMES=['Избранное и штатные команды','Очередь действий','Справка / прогноз RU+EN','Каталог эффектов','Комплекты','Изученные книги','Полевые навыки','Удобные сохранения','Окно поражения','Повтор боя','Статистика боя','Управление','Переключаемый бег','Громкость','Диагностика','Группы V/B/M и оружие N','Legacy: прежние сочетания (Advanced)','Массовое использование душ','Прокачка экипированного оружия','Steam: OpenGL / скриншоты (эксперимент)','HD-экран и интерфейс (прототип)','Убирать дубли снаряжения']
+  # Module labels and descriptions are generated from modules.json.
   module Store
     def self.path(name);File.join(Dir.pwd,'BS2Suite',name+'.ini');end
     def self.read(name,limit=32768)
@@ -21,7 +21,7 @@ module BS2Suite
   module Options
     # Register every option before the first lazy read (sound/HD can trigger it
     # during bootstrap). Late-added defaults used to discard saved 0.991 keys.
-    DEFAULTS={'interaction_highlight'=>1,'performance_trace'=>1,'instant_battle_ctrl'=>1,'navigation_aliases'=>1,'adaptive_priority'=>1,'priority_window'=>20,'tempo_hint'=>1,'experimental_support'=>0,'crisp_hd'=>1,'palette_notes'=>1,'weapon_notes'=>1,'bgm'=>100,'bgs'=>100,'me'=>100,'se'=>100,'run_mode'=>0,'fast_items'=>0,'steam_mode'=>1,'pad_fallback'=>1,'knowledge_threshold'=>2}
+    DEFAULTS={'learned_book_marks'=>1,'interaction_highlight'=>1,'performance_trace'=>1,'instant_battle_ctrl'=>1,'navigation_aliases'=>1,'adaptive_priority'=>1,'priority_window'=>20,'tempo_hint'=>1,'crisp_hd'=>1,'palette_notes'=>1,'weapon_notes'=>1,'bgm'=>100,'bgs'=>100,'me'=>100,'se'=>100,'run_mode'=>0,'fast_items'=>0,'steam_mode'=>1,'pad_fallback'=>1,'knowledge_threshold'=>2}
     def self.data
       return @data if @data
       @data=DEFAULTS.dup

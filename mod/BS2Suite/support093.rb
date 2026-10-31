@@ -1,37 +1,21 @@
 # encoding: UTF-8
 module BS2Suite
-  # Deliberately bounded, authored maintenance actions. No heals, cleanses,
-  # extra-action engines, equipment optimiser or enemy-plan/resistance inspection.
+  # Bounded authored upkeep and cleansing. Native use/payment only; no healing,
+  # equipment optimiser or enemy-plan/resistance inspection.
   module BattleSupport
     GUNBREAK=[17,18,19,20,875,877].freeze
     SKILLS=GUNBREAK
-    ITEMS=[22,56,57,58,59,60,61,100,101,104,33,34,97,105,24,31,46,50,52].freeze
+    ITEMS=[22,56,57,58,59,60,61,100,101,102,104,32,33,34,97,105,24,31,46,50,52,4,5,6,53,54,76,94,107].freeze
+    CLEANSES={4=>[2,3],5=>[26],6=>[28],53=>[5,29],54=>[55],76=>[56],94=>[17]}.freeze
     class << self
-      def hero; $game_party && $game_party.members.find { |a| a.id==1 };end
-      def definitions
-        return @definitions if @definitions
-        @definitions=[]
-        Store.read('battle_support',131072).each_line do |line|
-          a=line.strip.split('|')
-          if a.size==4 && a[0]=='a' && a[1]=~/\A[1-9][0-9]{0,3}\z/ && %w(skill item).include?(a[2]) && a[3]=~/\A[1-9][0-9]{0,3}\z/
-            @definitions<<{'actor'=>a[1].to_i,'kind'=>a[2],'id'=>a[3].to_i}
-          elsif a.size==5 && a[0]=='g' && a[1]=~/\A[1-9][0-9]{0,3}\z/ && %w(V B M).include?(a[2]) && a[3]=~/\A(?:progression|advanced|u[0-9]{1,4})\z/ && a[4]=~/\A(?:[1-9]|10)\z/
-            @definitions<<{'actor'=>a[1].to_i,'prefix'=>a[2],'profile'=>a[3],'group'=>a[4].to_i}
-          end
-          break if @definitions.size>=128
-        end
-        @definitions.uniq!
-        @definitions
-      end
-      def persist
-        text=definitions.map do |r|
-          r['kind'] ? ['a',r['actor'],r['kind'],r['id']].join('|') : ['g',r['actor'],r['prefix'],r['profile'],r['group']].join('|')
-        end.join("\n")
-        Store.write('battle_support',text+"\n")
-      end
+      # The game uses both actor records for the protagonist. Companions remain manual.
+      def hero; $game_party && $game_party.members.find { |a| [1,2].include?(a.id) };end
+      # A battle selection is session state, never an inherited saved preference.
+      def definitions;@definitions ||= [];end
       def reset
-        @master=false;@busy=false;@epoch=0;@actions_ref=nil;@clocks={};@last_clocks={};@history={};@attempts={};@pending=nil;@next_frame=0;@reason=nil
-        @expanded_key=nil;@expanded_values=nil
+        @master=false;@busy=false;@epoch=0;@period_ref=nil;@clocks={};@last_clocks={};@history={};@attempts={};@pending=nil;@next_frame=0;@reason=nil
+        @expanded_key=nil;@expanded_values=nil;@definitions=[]
+        @spent={};@wine_used={}
       end
       def active?;!!@master && $game_party && $game_party.in_battle;end
       def busy?;!!@busy;end
@@ -40,21 +24,30 @@ module BS2Suite
       def key(obj);[obj.is_a?(RPG::Item) ? 'item' : 'skill',obj.id];end
       def tracked(obj)
         return [] unless obj
-        obj.effects.select { |e| [31,32].include?(e.code) || (e.code==21 && e.data_id>0 && e.value1>0) }.map do |e|
+        obj.effects.select { |e| [31,32].include?(e.code) || (e.code==21 && e.data_id>0 && e.value1>0) || allowed_removal?(obj,e) }.map do |e|
           if e.code==21
             next if obj.is_a?(RPG::Item) && obj.id==31 && e.value1<0.1 # incidental special event state is not a maintenance objective
             [:state,e.data_id,1]
+          elsif e.code==22
+            [:remove_state,e.data_id,1]
           else
             [e.code==31 ? :buff : :debuff,e.data_id,e.value1.to_i]
           end
         end.compact.uniq
       end
       def gunbreak?(obj);obj.is_a?(RPG::Skill) && GUNBREAK.include?(obj.id);end
+      def resin_thaw?(obj,effect)
+        obj.is_a?(RPG::Item) && obj.id==32 && effect.code==22 && effect.data_id==162 && effect.value1==1 && effect.value2==0
+      end
+      def allowed_removal?(obj,effect)
+        return true if resin_thaw?(obj,effect)
+        obj.is_a?(RPG::Item) && effect.code==22 && effect.value1==1 && effect.value2==0 && (CLEANSES[obj.id] || []).include?(effect.data_id)
+      end
       def eligible?(obj)
         return false unless obj && (obj.is_a?(RPG::Item) ? ITEMS : SKILLS).include?(obj.id)
         return false if obj.is_a?(RPG::Item) && (!quick?(obj) || obj.damage.type!=0)
         return false unless obj.occasion==0 || obj.occasion==1
-        return false if obj.effects.any? { |e| [11,12,22,34,44].include?(e.code) }
+        return false if obj.effects.any? { |e| [11,12,34,44].include?(e.code) || (e.code==22 && !allowed_removal?(obj,e)) }
         return false if obj.note =~ /消費最大ＨＰ|使用後追加行動|使用者効果|ステート変化|行動後遅延/
         return false unless [1,2,7,8,11].include?(obj.scope)
         return false if obj.for_friend? && obj.damage.type!=0
@@ -73,7 +66,8 @@ module BS2Suite
         # Preserve native scopes: do not cast a party-wide buff onto companions.
         return false if obj.for_friend? && obj.for_all? && $game_party.alive_members.any? { |member| member!=actor }
         if obj.is_a?(RPG::Item)
-          return $game_party.item_number(obj)>0 && actor.usable?(obj)
+          stock=$game_party.item_number(obj)
+          return stock>0 && actor.usable?(obj)
         end
         provider=source(actor,obj)
         return false unless actor.skill_learn?(obj) || provider
@@ -81,8 +75,7 @@ module BS2Suite
         view.usable?(obj) && !view.skill_seal.include?(obj.id)
       end
       def expand(actor)
-        mode=Semantic.mode(actor);profile=Semantic.customs[mode]
-        cache_key=[actor.id,mode,definitions.hash,profile && profile.hash]
+        cache_key=[actor.id,definitions.hash]
         return @expanded_values if $game_party.in_battle && @expanded_key==cache_key && @expanded_values
         values=[]
         definitions.each do |r|
@@ -99,18 +92,14 @@ module BS2Suite
       def configured?(actor,obj)
         expand(actor).any? { |x| key(x)==key(obj) }
       end
-      def group_definition(actor,prefix,number)
-        {'actor'=>actor.id,'prefix'=>prefix,'profile'=>Semantic.mode(actor),'group'=>number}
-      end
       def toggle_definition(actor,definition)
-        return false unless actor && hero && actor.id==hero.id
-        before=definitions.dup
+        return false unless $game_party && $game_party.in_battle && actor && hero && actor.id==hero.id
         if definitions.include?(definition);definitions.delete(definition)
         else
           return false if definitions.size>=128
           definitions<<definition
         end
-        unless persist;@definitions=before;return false;end
+        @expanded_key=nil;@expanded_values=nil
         cancel_pending
         @master=!expand(actor).empty? if $game_party.in_battle
         @next_frame=Graphics.frame_count+1;@reason=nil
@@ -120,17 +109,6 @@ module BS2Suite
         return false unless eligible?(obj)
         kind,id=key(obj);toggle_definition(actor,{'actor'=>actor.id,'kind'=>kind,'id'=>id})
       end
-      def toggle_group(actor,prefix,number)
-        return false unless %w(V B M).include?(prefix)
-        return false unless Semantic.rows(actor,prefix,number).any? { |r| eligible?(r[:object]) }
-        toggle_definition(actor,group_definition(actor,prefix,number))
-      end
-      def toggle_master
-        @master=!@master;@reason=nil
-        cancel_pending unless @master
-        @next_frame=Graphics.frame_count+1
-        BS2QoL::Hotkeys.notice(@master ? 'Боевая поддержка включена: только ГГ и противники' : 'Боевая поддержка приостановлена')
-      end
       def clock(target,domain)
         @clocks ||= {};(@clocks[target.object_id] ||= Hash.new(0))[domain]
       end
@@ -139,8 +117,11 @@ module BS2Suite
         @clocks ||= {};(@clocks[target.object_id] ||= Hash.new(0))[domain]+=1
       end
       def new_epoch(actor)
-        return if @actions_ref.equal?(actor.actions)
-        @actions_ref=actor.actions;@epoch=(@epoch || 0)+1;@attempts={};@pending=nil
+        # ATB recreates arrays for other battlers and queue editing replaces them
+        # too. Only this actor's real paid-series completion opens a new period.
+        period=[actor.object_id,actor.instance_variable_get(:@bs2s_support_period).to_i]
+        return if @period_ref==period
+        @period_ref=period;@epoch=(@epoch || 0)+1;@attempts={};@pending=nil
         ([actor]+$game_troop.alive_members).each do |target|
           [:buff,1,2].each do |domain|
             k=[target.object_id,domain];now=clock(target,domain)
@@ -152,13 +133,7 @@ module BS2Suite
           end
         end
       end
-      def reserve(target,domain)
-        return 1 unless Options.get('experimental_support')==1
-        values=@history && @history[[target.object_id,domain]]
-        # No action_plus roll, action list, boss script, resistance or future skill is inspected.
-        observed=values && !values.empty? ? values.max : (target.actor? ? 0 : 1)
-        [[observed+1,1].max,32].min
-      end
+      def reserve(target,domain);1;end
       def due_component?(target,type,id,fresh)
         if type==:state
           return true unless target.state?(id)
@@ -177,30 +152,52 @@ module BS2Suite
       end
       def due?(obj,target)
         return false unless target && target.alive?
+        return false if obj.is_a?(RPG::Item) && obj.id==107 && (@wine_used || {})[target.id]
         # Native add_buff erases an opposing negative parameter level. Leave
         # that tactical cleansing decision to the player, even for a pure buff.
         return false if obj.for_friend? && tracked(obj).any? { |type,id,fresh| type==:buff && target.instance_variable_get(:@buffs)[id]<0 }
-        tracked(obj).any? { |type,id,fresh| due_component?(target,type,id,fresh) }
+        cleansing_due?(obj,target) || tracked(obj).any? { |type,id,fresh| type!=:remove_state && due_component?(target,type,id,fresh) }
+      end
+      def protected_madness?(target)
+        target.state?(28) && (target.instance_variable_get(:@bs2s_intentional_madness) || target.state?(223) || (target.actor? && configured?(target,$data_items[60])))
+      end
+      def cleansing_due?(obj,target)
+        return false unless obj.is_a?(RPG::Item) && target && target.actor?
+        return false if obj.id==32 # Resin cleanses frostbite only when its fire buff needs renewal.
+        tracked(obj).any? { |type,id,fresh| type==:remove_state && target.state?(id) && !(id==28 && protected_madness?(target)) }
+      end
+      def complete_component?(target,type,id)
+        return target.state?(id) if type==:state
+        return !target.state?(id) if type==:remove_state
+        type==:buff ? target.instance_variable_get(:@buffs)[id]>=2 : target.instance_variable_get(:@buffs)[id]<=-2
+      end
+      def spent(actor,obj);(@spent || {})[[actor.id,obj.id]].to_i;end
+      def note_use(actor,obj)
+        return unless actor.actor? && obj.is_a?(RPG::Item) && obj.id==107 && $game_party && $game_party.in_battle
+        @wine_used ||= {};@wine_used[actor.id]=true
       end
       def fingerprint(obj,target)
         tracked(obj).map do |type,id,fresh|
-          if type==:state;[type,id,target.state?(id),target.instance_variable_get(:@state_turns)[id]]
+          if type==:remove_state;[type,id,target.state?(id)]
+          elsif type==:state;[type,id,target.state?(id),target.instance_variable_get(:@state_turns)[id]]
           else;[type,id,target.instance_variable_get(:@buffs)[id],target.instance_variable_get(:@buff_turns)[id]];end
         end
       end
       def target_key(obj,target);[key(obj),target.object_id];end
       def next_plan(actor)
-        expand(actor).each do |obj|
+        expand(actor).sort_by { |obj| cleansing_due?(obj,actor) ? 0 : 1 }.each do |obj|
           next unless available?(actor,obj)
           targets=obj.for_friend? ? [actor] : $game_troop.alive_members.select { |e| !e.hidden? }
           targets.each do |target|
             next unless due?(obj,target)
             token=target_key(obj,target);attempt=(@attempts || {})[token]
-            next if attempt && (attempt[:count]>=4 || attempt[:failed] || attempt[:refreshed])
+            cleansing=cleansing_due?(obj,target)
+            attempt_limit=cleansing || (obj.is_a?(RPG::Item) && CLEANSES.has_key?(obj.id)) ? 1 : 4
+            next if attempt && (attempt[:count]>=attempt_limit || attempt[:failed] || attempt[:refreshed] || attempt[:cleansing])
             affected=obj.for_all? ? targets : [target]
             snapshots=affected.map do |who|
               {:target=>who,:token=>target_key(obj,who),:before=>fingerprint(obj,who),
-                :was_max=>tracked(obj).all? { |t,i,d| t==:state ? who.state?(i) : (t==:buff ? who.instance_variable_get(:@buffs)[i]>=2 : who.instance_variable_get(:@buffs)[i]<=-2) }}
+                :was_max=>tracked(obj).all? { |t,i,d| complete_component?(who,t,i) }}
             end
             return {:actor=>actor,:object=>obj,:target=>target,:source=>source(actor,obj),:snapshots=>snapshots}
           end
@@ -208,9 +205,15 @@ module BS2Suite
         nil
       end
       def record(plan)
+        obj=plan[:object]
+        if obj.is_a?(RPG::Item) && obj.consumable && plan[:stock_before]
+          @spent ||= {};token=[plan[:actor].id,obj.id]
+          @spent[token]=(@spent[token] || 0)+[plan[:stock_before]-$game_party.item_number(obj),0].max
+        end
         @attempts ||= {}
         plan[:snapshots].each do |row|
           entry=@attempts[row[:token]] ||= {:count=>0};entry[:count]+=1
+          entry[:cleansing]=true if plan[:cleanse_attempt]
           entry[:failed]=fingerprint(plan[:object],row[:target])==row[:before]
           entry[:refreshed]=row[:was_max]
         end
@@ -233,8 +236,10 @@ module BS2Suite
         affected=obj.for_all? && obj.for_opponent? ? $game_troop.alive_members.reject { |enemy| enemy.hidden? } : [target]
         plan[:snapshots]=affected.map do |who|
           {:target=>who,:token=>target_key(obj,who),:before=>fingerprint(obj,who),
-            :was_max=>tracked(obj).all? { |t,i,d| t==:state ? who.state?(i) : (t==:buff ? who.instance_variable_get(:@buffs)[i]>=2 : who.instance_variable_get(:@buffs)[i]<=-2) }}
+            :was_max=>tracked(obj).all? { |t,i,d| complete_component?(who,t,i) }}
         end
+        plan[:stock_before]=$game_party.item_number(obj) if obj.is_a?(RPG::Item)
+        plan[:cleanse_attempt]=cleansing_due?(obj,target)
         provider=plan[:source]
         return false if provider.is_a?(RPG::Weapon) && actor.equips[0]!=provider && !BS2QoL::Model.change_weapon(actor,provider)
         @setting=true
@@ -271,19 +276,55 @@ module BS2Suite
         window=scene.instance_variable_get(:@actor_command_window)
         window.set_handler(:bs2_support,lambda { scene.bs2s_support_accept })
         window.refresh;i=window.instance_variable_get(:@list).index { |r| r[:symbol]==:bs2_support };window.select(i) if i
-        BS2QoL::Hotkeys.notice('Поддержка: '+obj.name+' → '+plan[:target].name+' · Enter занять действие · другая команда заменить')
+        BS2QoL::Hotkeys.notice('Поддержка: '+obj.name+' → '+plan[:target].name+' · '+Keys.token(:C)+' занять действие · другая команда заменить')
       ensure
         @setting=false
       end
       def label
-        return 'Автопредметы: выкл' unless active?
-        count=hero ? expand(hero).size : 0
-        'Авто: '+count.to_s+' · D на предмете / Gun Break'+(@reason ? ' · '+@reason : '')
+        return '' unless active?
+        actor=hero;values=actor ? expand(actor) : []
+        'Авто: '+values.size.to_s+' · '+Keys.token(:Z)+' на предмете / Gun Break'+(@reason ? ' · '+@reason : '')
+      end
+      def reconcile_pending(actor,window)
+        if @pending && (!actor.input.equal?(@pending[:action]) || !actor.input.instance_variable_get(:@bs2s_support_plan).equal?(@pending))
+          @pending[:snapshots].each { |row| @attempts[row[:token]]={:count=>0,:failed=>true} }
+          @pending=nil;window.refresh
+        end
+      end
+      # A completed choice / new native input is a safe boundary. Finish bounded
+      # maintenance here before restoring its menu; never run through a hovered
+      # palette, reference, target picker or an uncommitted target cancellation.
+      def before_menu(scene)
+        entered=false
+        return if busy? || !active? || BattleManager.in_turn?
+        return if (defined?(Palette) && Palette.current(scene)) || scene.instance_variable_get(:@bs2s_macros)
+        return if defined?(BS2QoL::Reference) && BS2QoL::Reference.active?(scene)
+        return if [:@enemy_window,:@actor_window].any? { |key| w=scene.instance_variable_get(key);w && w.active }
+        actor=BattleManager.actor
+        return unless actor && actor==hero && actor.alive? && actor.inputable? && actor.input
+        window=scene.instance_variable_get(:@actor_command_window)
+        return unless window && window.active
+        return if scene.scene_changing? || $game_message.busy? || BattleManager.action_forced? || HZM_VXA::QuickSkill.quickSkill?
+        return unless BS2QoL::Keyboard.focused?
+        @busy=true;entered=true;new_epoch(actor);reconcile_pending(actor,window)
+        64.times do
+          break if scene.scene_changing? || BattleManager.in_turn? || BattleManager.actor!=actor || !actor.inputable? || !actor.input || actor.input.item || $game_message.busy? || BattleManager.action_forced?
+          plan=next_plan(actor);break unless plan
+          if quick?(plan[:object]);quick_run(scene,plan)
+          else;propose(scene,plan);break;end
+        end
+        @next_frame=Graphics.frame_count+8
+      rescue StandardError=>e
+        @master=false;@reason='ошибка поддержки'
+        BS2QoL::Hotkeys.notice('Поддержка остановлена: '+e.class.to_s)
+        BS2Suite::Debug.emit('support_error',{:class=>e.class.to_s,:message=>e.message,:backtrace=>e.backtrace}) if defined?(BS2Suite::Debug)
+      ensure
+        @busy=false if entered
       end
       def tick(scene)
         entered=false
         return if busy? || !active? || Graphics.frame_count<(@next_frame || 0)
-        return if Palette.current(scene) || (defined?(BS2QoL::Reference) && BS2QoL::Reference.active?(scene))
+        return if (defined?(Palette) && Palette.current(scene)) || (defined?(BS2QoL::Reference) && BS2QoL::Reference.active?(scene))
         return if [:@skill_window,:@item_window,:@enemy_window,:@actor_window].any? { |key| w=scene.instance_variable_get(key);w && w.active && w.visible }
         actor=BattleManager.actor;return unless actor && hero && actor.id==hero.id && actor.alive? && actor.inputable?
         window=scene.instance_variable_get(:@actor_command_window)
@@ -293,10 +334,7 @@ module BS2Suite
         return if BS2QoL::Keyboard.raw_fresh.any?
         @next_frame=Graphics.frame_count+8;@busy=true;entered=true
         new_epoch(actor)
-        if @pending && (!actor.input.equal?(@pending[:action]) || !actor.input.instance_variable_get(:@bs2s_support_plan).equal?(@pending))
-          @pending[:snapshots].each { |row| @attempts[row[:token]]={:count=>0,:failed=>true} }
-          @pending=nil;window.refresh
-        end
+        reconcile_pending(actor,window)
         return if actor.input.item
         plan=next_plan(actor);return unless plan
         quick?(plan[:object]) ? quick_run(scene,plan) : propose(scene,plan)
@@ -314,6 +352,13 @@ end
 
 # Track real elapsed countdown events, not frames, guessed rounds or hidden action plans.
 class Game_Battler
+  alias bs209993_support_period_end on_action_end
+  def on_action_end
+    bs209993_support_period_end
+    if actor? && $game_party && $game_party.in_battle && !HZM_VXA::QuickSkill.quickSkill?
+      @bs2s_support_period=(@bs2s_support_period || 0)+1
+    end
+  end
   alias bs2093_support_buff_tick update_buff_turns
   def update_buff_turns
     bs2093_support_buff_tick
@@ -412,45 +457,3 @@ class Game_Party
   end
 end
 
-module BS2Suite::Palette
-  class << self
-    alias bs2093_palette_update update
-    def update(scene)
-      popup=current(scene)
-      if popup && !popup.assignment && popup.transition.empty? && popup.group && (popup.prefix=='N' || popup.prefix=='B' || (popup.prefix=='V' && BS2Suite::BattleSupport.gunbreak?(popup.item))) && Input.trigger?(:Z) && BS2QoL::Keyboard.focused? && !(defined?(BS2QoL::Reference) && BS2QoL::Reference.active?(scene))
-        return if scene.instance_variable_get(:@bs2094_d_frame)==Graphics.frame_count
-        scene.instance_variable_set(:@bs2094_d_frame,Graphics.frame_count)
-        actor=popup.actor
-        if popup.prefix=='N' && popup.group && popup.item.is_a?(RPG::Weapon)
-          weapon=popup.item
-          if BS2Suite::DirectWeapons.selected(actor)==weapon
-            BS2Suite::DirectWeapons.clear(actor);BS2QoL::Hotkeys.notice('Исполняющее оружие снято')
-          elsif BS2Suite::DirectWeapons.select(actor,weapon)
-            BS2QoL::Hotkeys.notice('Последнее действие: '+weapon.name+' · N N снять')
-          end
-          Sound.play_ok
-        elsif popup.prefix!='N'
-          ok=BS2Suite::BattleSupport.toggle_object(actor,popup.item)
-          if ok;Sound.play_ok;BS2QoL::Hotkeys.notice('Автоприменение переключено для выбранной строки')
-          else;Sound.play_buzzer;BS2QoL::Hotkeys.notice('Авто: только разрешённые баффы/дебаффы, без лечения и очищения');end
-        end
-        command=scene.instance_variable_get(:@actor_command_window)
-        command.refresh if command
-        popup.refresh;update_header(scene);BS2QoL::Keyboard.consume;return
-      end
-      bs2093_palette_update(scene)
-    end
-  end
-end
-class Window_BS2QKeyHints
-  alias bs2093_support_display display
-  def display(scene,actor,context)
-    bs2093_support_display(scene,actor,context)
-    return unless actor && visible
-    text='Профиль: '+BS2Suite::Semantic.title(actor)+' · '+BS2Suite::BattleSupport.label
-    return if @bs2093_support_hint==text && @bs2093_support_context==@bs2s_signature
-    @bs2093_support_hint=text;@bs2093_support_context=@bs2s_signature
-    contents.clear_rect(0,20,contents_width,18);contents.font.size=14;change_color(normal_color)
-    draw_text(0,20,contents_width,18,text)
-  end
-end

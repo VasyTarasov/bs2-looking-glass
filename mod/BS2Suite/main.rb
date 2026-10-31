@@ -1,9 +1,21 @@
 # encoding: UTF-8
 unless defined?(BS2Suite::LOADED)
   module BS2Suite
-    VERSION='0.9992-dev'
+    VERSION='1.0'
     ROOT=File.dirname(__FILE__)
-    IDS=%w(combat_shortcuts action_queue reference_cards effects loadouts learned_books field_skills saves defeat retry battle_stats controls run_toggle sound debug semantic_groups legacy_shortcuts soul_batch equipped_upgrade steam_bridge hd_display weapon_family_cleanup)
+    module Locale
+      def self.current
+        return @current if @current
+        path=File.join(Dir.pwd,'BS2Suite','language.ini')
+        @current=File.file?(path) && File.size(path)<128 && File.open(path,'rb') { |f| f.read }.strip=='language=en' ? :en : :ru
+      end
+      def self.english?;current==:en;end
+    end
+    def self.load_part(path)
+      file=File.join(ROOT,Locale.english? ? 'en' : '',path+'.rb')
+      eval(File.open(file,'rb') { |f| f.read }.force_encoding('UTF-8'),TOPLEVEL_BINDING,file,1)
+    end
+    load_part('module_config')
     @enabled=[]
     path=File.join(Dir.pwd,'BS2Suite','modules.ini')
     if File.file?(path) && File.size(path)<8192
@@ -14,12 +26,8 @@ unless defined?(BS2Suite::LOADED)
         @enabled << match[1] if match && IDS.include?(match[1])
       end
     end
-    @enabled << 'defeat' if @enabled.include?('retry') && !@enabled.include?('defeat')
-    def self.enabled?(id);@enabled.include?(id.to_s);end
-    def self.load_part(path)
-      file=File.join(ROOT,path+'.rb')
-      eval(File.open(file,'rb') { |f| f.read }.force_encoding('UTF-8'),TOPLEVEL_BINDING,file,1)
-    end
+    @enabled=ModuleSelection.expand(@enabled)
+    def self.enabled?(id);@enabled.include?(MODULE_ALIASES[id.to_s] || id.to_s);end
     load_part('modules/common')
     module ::BS2Modules
       VERSION=BS2Suite::VERSION
@@ -27,6 +35,7 @@ unless defined?(BS2Suite::LOADED)
     end
     load_part('core')
     %w(model bindings windows hotkeys).each { |name| load_part('qol/lib/'+name) }
+    load_part('action_rules')
     load_part('input')
     load_part('weapon_families')
     %w(bindings_v2 hotkeys_v2).each { |name| load_part(name) }
@@ -36,6 +45,7 @@ unless defined?(BS2Suite::LOADED)
     if enabled?('reference_cards')
       %w(reference_data reference forecast_expression forecast forecast_reference reference_window).each { |name| load_part('qol/lib/'+name) }
     end
+    load_part('catalog_v1') if enabled?('reference_cards') || enabled?('semantic_groups')
     load_part('reference_utilitarian') if enabled?('reference_cards')
     load_part('modules/effects') if enabled?('effects')
     load_part('modules/loadouts') if enabled?('loadouts')
@@ -43,11 +53,14 @@ unless defined?(BS2Suite::LOADED)
     %w(learned_books field_skills saves sound run_toggle).each { |name| load_part(name) if enabled?(name) }
     load_part('quick_saves') if enabled?('saves')
     load_part('field_auto') if enabled?('field_skills')
-    load_part('battle_record') if enabled?('defeat') || enabled?('retry') || enabled?('battle_stats')
+    load_part('battle_record') if enabled?('battle_stats')
     load_part('debug') if enabled?('debug')
     load_part('settings')
+    if enabled?('semantic_groups') || enabled?('battle_support')
+      %w(semantic_catalog semantic_model arsenal_catalog direct_weapons).each { |part| load_part(part) }
+    end
     if enabled?('semantic_groups')
-      %w(semantic_catalog semantic_model arsenal_catalog direct_weapons semantic_ui semantic_reference).each { |part| load_part(part) }
+      %w(semantic_ui semantic_reference).each { |part| load_part(part) }
     end
     load_part('followup')
     if enabled?('steam_bridge') || enabled?('hd_display')
@@ -57,7 +70,9 @@ unless defined?(BS2Suite::LOADED)
     load_part('navigation')
     load_part('interface092')
     load_part('arsenal093') if enabled?('semantic_groups')
-    load_part('support093') if enabled?('semantic_groups')
+    load_part('support093') if enabled?('battle_support')
+    load_part('support_rules09999') if enabled?('battle_support')
+    load_part('combat_selection') if enabled?('semantic_groups')
     load_part('notes093') if enabled?('semantic_groups')
     load_part('combat_journal') if enabled?('battle_stats')
     load_part('family_inventory') if enabled?('weapon_family_cleanup')
@@ -74,15 +89,19 @@ unless defined?(BS2Suite::LOADED)
     load_part('display092dev') if enabled?('hd_display')
     %w(ux0991 performance0991 priority0991 tempo0992 followup0992).each { |name| load_part(name) }
     load_part('resources0993')
-    load_part('battle_speed0994')
+    load_part('battle_speed0994') if enabled?('battle_speed')
     load_part('diagnostics0995') if enabled?('debug')
     load_part('iteration0997')
     load_part('sequence0999') if enabled?('semantic_groups') && enabled?('reference_cards')
-    load_part('macros0997') if enabled?('semantic_groups') && enabled?('loadouts')
+    load_part('macros0997') if enabled?('macros')
     load_part('iteration0999')
     load_part('forecast09991') if enabled?('reference_cards')
     load_part('iteration09992')
-    load_part('map_highlight')
+    load_part('action_context09993')
+    load_part('menus09994') if %w(semantic_groups combat_shortcuts legacy_shortcuts action_queue).any? { |id| enabled?(id) }
+    load_part('map_highlight') if enabled?('map_highlight')
+    load_part('catalog_ui099992') if enabled?('reference_cards') || enabled?('semantic_groups')
+    load_part('catalog_repair099994') if enabled?('reference_cards') || enabled?('semantic_groups')
     BS2QoL.const_set(:LOADED,true)
     BS2Modules.const_set(:LOADED,true)
     LOADED=true

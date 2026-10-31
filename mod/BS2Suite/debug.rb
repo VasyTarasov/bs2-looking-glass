@@ -12,7 +12,12 @@ module BS2Suite::Debug
       when Array;'['+v.map { |x| json(x,depth+1) }.join(',')+']'
       when String,Symbol
         text=v.to_s
-        text=text.encode('UTF-8',:invalid=>:replace,:undef=>:replace,:replace=>'?') unless text.ascii_only? || (text.encoding.name=='UTF-8' && text.valid_encoding?)
+        # Ruby 1.9 can skip validation for UTF-8 -> UTF-8. Force an actual
+        # conversion before escaping so one malformed string cannot stop logging.
+        unless text.ascii_only? || (text.encoding.name=='UTF-8' && text.valid_encoding?)
+          intermediate=text.encoding.name=='UTF-16LE' ? 'UTF-16BE' : 'UTF-16LE'
+          text=text.encode(intermediate,:invalid=>:replace,:undef=>:replace,:replace=>'?').encode('UTF-8')
+        end
         '"'+text.gsub(/[\x00-\x1f"\\]/) { |c| c=='"' ? '\\"' : c=='\\' ? '\\\\' : '\\u%04x' % c.ord }+'"'
       when NilClass;'null'
       when TrueClass;'true'

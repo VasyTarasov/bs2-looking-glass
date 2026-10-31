@@ -4,6 +4,24 @@
 
 V/B/M/N open curated techniques, items, magic and weapons. Groups grow as useful choices accumulate, never exceed ten entries, and do not repeat the full inventory. Favorites and optional legacy shortcuts remain independent.
 
+## Descriptions and references (0.99993-dev)
+
+Normal game help retains its original atmospheric text and layout. The HD palette shows all ten group entries and a focused mechanics summary. F7 opens detailed mechanics and forecasts; use its normal arrow/page controls to read. Formula variables are pale blue for the user and pale red for the target. D toggles only a selected eligible row during battle; the next battle starts with no automatic rows enabled.
+
+## Repeated battle selection (0.9994-dev)
+
+After choosing an item, technique, magic or weapon, keep the same native list or V/B/M/N group, page and selection ready for another choice. Shift+Enter / Shift+digit in N still means a normal attack. With multiple eligible enemies/allies, use the native target picker; confirmation or cancellation returns to the originating menu. A sole eligible target needs no extra target step.
+
+Paid commands still fill native action slots. When the last paid slot commits the turn, menus stay inactive during execution and resume at that actor's next input. Explicit Esc exits the remembered menu. A depleted item stays selected but disabled, so repeated Enter cannot silently choose another consumable.
+
+The depleted row is temporary and stays only in its originating palette. Favorite/filter refreshes keep a depleted native item disabled and selected. A fresh explicit menu does not retain that marker. Duplicate custom slots and numeric choices resume at the exact chosen row. Confirming an unavailable entry leaves its menu open.
+
+Automatic support may service its configured maintenance at the completed native input boundary before reopening the remembered menu. It remains paused while hovering a palette, reading F7 or cancelling an uncommitted target. Native costs and retry-period limits still apply; any paid support proposal requires its normal confirmation.
+
+Press C directly from a V/B/M/N palette to open macros. From C, press V/B/M/N to switch directly back. In ordinary battle item/technique lists, **A** adds/removes the selected favorite and **S** toggles the favorites filter (or their remapped keys); the native footer and HD panel show those controls.
+
+Two separate Esc presses within 550 ms cancel the **unexecuted** queue even when the first press closes a palette, C, native list or target picker. The opening animation of the command window does not swallow the second press. Holding Esc is one press. Already executed actions and their costs retain the native rules.
+
 Repeat the active letter to go back one level; Esc exits. Q/E change groups. Inside F7 opened from V/B/M/N, Q/E change the object within the same group. Digits select eligible targets directly, including the hero and allies. A sole eligible hero target needs no extra confirmation.
 
 ## Three weapon decisions

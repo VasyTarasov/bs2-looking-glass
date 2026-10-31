@@ -1,10 +1,18 @@
 {
   "mod/BS2Suite/native/bs2_steam_bridge.dll": {
-    "sha256": "89407004b8f105074d39f601af31bd1c6847b93dec8d855572f4e234e067e980",
+    "sha256": "faae6139fc64f8f3bad25a74fbd5925b823f8c8096c988d10d7114ec98ac4bc1",
     "kind": "project-owned x86 helper; native/steam_bridge contains source and bundled licenses"
   },
   "mod/BS2Suite/reference098.rvdata2": {
-    "sha256": "48bdf826ab21c98566c62a1b20be3d9447c3bb483be73116c1cdfc3317bd6e12",
-    "kind": "generated factual reference view; no original description prose, maps, dialogue, save data or enemy AI tables"
+    "sha256": "1af132af8d2daf93c9afc0217cc6d74788d49b6095aadc6fb7646b43745a16bb",
+    "kind": "generated factual catalog; no original descriptions, dialogue, maps, save data or enemy AI tables"
+  },
+  "mod/BS2Suite/catalog_v1.rvdata2": {
+    "sha256": "dcd23a1a0201b3bdab78f885c0eb75c9a0a966f3e21f94a21678d6be583bb2f4",
+    "kind": "generated factual catalog; no original descriptions, dialogue, maps, save data or enemy AI tables"
+  },
+  "mod/BS2Suite/catalog_v1.en.rvdata2": {
+    "sha256": "fff078a898bf8f13239e39dd069b09ac8c61c70efaffda051350690cbe8922af",
+    "kind": "generated factual English catalog; exact native stats and names; no original descriptions or scripts"
   }
 }

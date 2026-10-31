@@ -1,7 +1,7 @@
 # encoding: UTF-8
 module BS2Suite
   module Macros
-    LIMIT=BS2Modules::Loadouts::LIMIT
+    LIMIT=8
     ROWS=6
     GROUPS=4
     def self.address(index,group);(group-1)*LIMIT+index;end
@@ -67,7 +67,7 @@ module BS2Suite
       return 'Нет источника / действия' unless obj
       row['kind']=='weapon' ? 'Атака: '+weapon.name : row['kind']=='guard' ? 'Оборона' : obj.name
     end
-    def self.paid(set,actor);set['rows'].count { |r| o=object(r,actor);!o || !BattleSupport.quick?(o) };end
+    def self.paid(set,actor);set['rows'].count { |r| o=object(r,actor);!o || !ActionRules.quick?(o) };end
     def self.remaining(actor);[actor.actions.size-actor.instance_variable_get(:@action_input_index).to_i,0].max;end
     def self.problem(set,actor)
       return 'Пустая связка' if set['rows'].empty?
@@ -108,7 +108,7 @@ module BS2Suite
       reason=problem(set,actor);return reason if reason
       paid=[];free=[];token=Object.new
       set['rows'].each do |r|
-        if BattleSupport.quick?(object(r,actor));free<<r.dup
+        if ActionRules.quick?(object(r,actor));free<<r.dup
         else
           a=action(actor,r,target);a.instance_variable_set(:@bs2s_macro_before,free);free=[]
           a.instance_variable_set(:@bs2s_macro_token,token);paid<<a
@@ -141,13 +141,13 @@ module BS2Suite
       BS2QoL::Hotkeys.notice('Связка остановлена: '+message)
     end
     def self.executor_allowed?(set,actor)
-      row=set['rows'].reverse.find { |r| o=object(r,actor);o && !BattleSupport.quick?(o) }
+      row=set['rows'].reverse.find { |r| o=object(r,actor);o && !ActionRules.quick?(o) }
       row && (row['kind']=='item' || row['kind']=='guard')
     end
     def self.requirements(set,actor)
       view=Projection.copy(actor);index=actor.instance_variable_get(:@action_input_index).to_i
       queued=actor.actions.take(index).map { |a| a.dup }
-      final_row=set['rows'].rindex { |r| o=object(r,actor);o && !BattleSupport.quick?(o) }
+      final_row=set['rows'].rindex { |r| o=object(r,actor);o && !ActionRules.quick?(o) }
       final_position=nil
       set['rows'].each_with_index do |r,i|
         a=action(actor,r,0);next unless a
@@ -424,7 +424,7 @@ module BS2Suite::HDDisplay
         end
         if set && set['rows']
           rows<<row('H',set['name'])
-          rows+=set['rows'].each_with_index.map { |r,i| o=BS2Suite::Macros.object(r,actor);row('S',(i+1).to_s+'. '+BS2Suite::Macros.label(r,actor)+(o && BS2Suite::BattleSupport.quick?(o) ? ' · мгновенно' : '')) }
+          rows+=set['rows'].each_with_index.map { |r,i| o=BS2Suite::Macros.object(r,actor);row('S',(i+1).to_s+'. '+BS2Suite::Macros.label(r,actor)+(o && BS2Suite::ActionRules.quick?(o) ? ' · мгновенно' : '')) }
         end
         return rows+[row('D','Цифра / '+BS2Suite::Keys.token(:C)+' выбрать · '+BS2Suite::Keys.token(:macros)+' / '+BS2Suite::Keys.token(:B)+' закрыть · '+BS2Suite::Keys.token(:combat_effects)+' эффекты')]
       end
@@ -487,6 +487,14 @@ module BS2QoL::Hotkeys
   end
 end
 class Game_Action
+  alias bs209993_macro_clear clear
+  def clear
+    @bs2s_macro_before=@bs2s_macro_after=@bs2s_macro_source=nil
+    @bs2s_macro_executor=@bs2s_macro_target=@bs2s_macro_token=nil
+    @bs2s_direct_count=@bs2s_direct_applied=nil
+    @bs2s_normal_attack=@bs2s_normal_source=nil
+    bs209993_macro_clear
+  end
   alias bs20997_macro_prepare prepare
   def prepare
     actor=subject;scene=SceneManager.scene
@@ -548,7 +556,7 @@ class Scene_Battle
   def bs2s_macro_quick(actor,row,target)
     action=BS2Suite::Macros.action(actor,row,target)
     raise 'предмет / источник недоступен' unless action
-    raise 'действие перестало быть мгновенным' unless BS2Suite::BattleSupport.quick?(action.item)
+    raise 'действие перестало быть мгновенным' unless BS2Suite::ActionRules.quick?(action.item)
     weapon=action.instance_variable_get(:@bs2s_macro_source)
     raise 'оружие-источник недоступно' if weapon && actor.equips[0]!=weapon && !BS2QoL::Model.change_weapon(actor,weapon)
     raise 'цена, КД или лимит: '+action.item.name unless actor.usable?(action.item)

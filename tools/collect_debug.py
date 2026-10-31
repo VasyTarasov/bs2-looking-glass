@@ -28,7 +28,7 @@ def collect(game, output):
             if path.is_symlink() or path.resolve().parent!=session.resolve(): continue
             if path.is_file() and (path.name.startswith('events_') and path.suffix=='.jsonl' or path.name in ('session.open','session.closed','session.failed')):
                 entries.append((path,'BS2Suite/debug/sessions/'+session.name+'/'+path.name))
-    for name in ('modules','options','keys','save_labels'):
+    for name in ('modules','options','keys','save_labels','language'):
         path=root/(name+'.ini')
         if path.is_file() and not path.is_symlink(): entries.append((path,'BS2Suite/'+path.name))
     for folder,names in [('BS2QoL',['preferences.ini','bindings.ini','reference.ini']),('BS2Modules',['loadouts.ini'])]:

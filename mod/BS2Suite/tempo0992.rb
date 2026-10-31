@@ -229,7 +229,7 @@ module BS2Suite
             user.instance_variable_set(:@mp,user.mp-mp);user.instance_variable_set(:@tp,user.tp-tp);user.instance_variable_set(:@hp,user.hp-hp)
             user.cool_time[item.id]=item.cool_time if item.cool_time
           end
-          w[:user]=user;w[:last]=item.next_ap unless defined?(BattleSupport) && BattleSupport.quick?(item)
+          w[:user]=user;w[:last]=item.next_ap unless ActionRules.quick?(item)
         end
         ids=if item.for_user?;[:self]
         elsif item.for_opponent?;item.for_all? ? enemies.map { |e| e.index } : [a.target_index]

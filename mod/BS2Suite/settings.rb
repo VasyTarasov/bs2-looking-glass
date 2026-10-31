@@ -4,7 +4,7 @@ module BS2Suite
     def window_width;Graphics.width;end
     def visible_line_number;15;end
     def make_command_list
-      add_command('Выбор модулей (после перезапуска)',:modules)
+      add_command('Состав модпака (после перезапуска)',:modules)
       add_command('Назначения клавиш',:keys) if BS2Suite.enabled?('controls')
       if BS2Suite.enabled?('run_toggle')
         add_command('Предметы: '+(Options.get('fast_items')==1 ? 'почти мгновенно' : 'обычная скорость'),:fast_items)
@@ -15,6 +15,7 @@ module BS2Suite
       end
       add_command('Заметки V/B/M: '+(Options.get('palette_notes')==1 ? 'вкл' : 'выкл'),:palette_notes)
       add_command('Заметки оружия N: '+(Options.get('weapon_notes')==1 ? 'вкл' : 'выкл'),:weapon_notes)
+      add_command('Отметки изученных книг: '+(Options.get('learned_book_marks')==1 ? 'вкл' : 'выкл'),:learned_book_marks) if BS2Suite.enabled?('basic_qol')
       add_command('Последний бой',:stats) if BS2Suite.enabled?('battle_stats')
       if BS2Suite.enabled?('debug')
         add_command('Записать замечание в журнал',:note)
@@ -32,7 +33,7 @@ module BS2Suite
       @commands.set_handler(:modules,lambda { SceneManager.call(ModuleScene) })
       @commands.set_handler(:keys,lambda { SceneManager.call(KeysScene) })
       @commands.set_handler(:stats,lambda { SceneManager.call(StatsScene) }) if BS2Suite.enabled?('battle_stats')
-      %w(palette_notes weapon_notes).each { |id| @commands.set_handler(id.to_sym,lambda { option(id,Options.get(id)==1 ? 0 : 1) }) }
+      %w(learned_book_marks palette_notes weapon_notes).each { |id| @commands.set_handler(id.to_sym,lambda { option(id,Options.get(id)==1 ? 0 : 1) }) }
       @commands.set_handler(:fast_items,lambda { option('fast_items',Options.get('fast_items')==1 ? 0 : 1) })
       @commands.set_handler(:run,lambda { option('run_mode',(Options.get('run_mode')+1)%3) })
       %w(bgm bgs me se).each { |id| @commands.set_handler(id.to_sym,lambda { option(id,(Options.get(id)+10)%110);BS2Suite::Sound.refresh }) } if BS2Suite.enabled?('sound')
@@ -55,9 +56,30 @@ module BS2Suite
       @selection=selection;super(0,72);BS2Modules.style(self)
     end
     def window_width;Graphics.width;end
-    def visible_line_number;14;end
+    def visible_line_number;10;end
+    def update_help
+      return unless @help_window
+      id=current_symbol && current_symbol.to_s;index=IDS.index(id)
+      @help_window.set_text(index ? DESCRIPTIONS[index] : '')
+    end
     def make_command_list
       IDS.each_with_index { |id,i| add_command((@selection.include?(id) ? '[✓] ' : '[ ] ')+NAMES[i],id.to_sym) }
+    end
+  end
+  class ModuleDescription < Window_Help
+    attr_reader :wrapped_lines
+    def initialize;super(4);BS2Modules.style(self);end
+    def set_text(text)
+      @text=text.to_s;contents.clear;contents.font.size=18
+      @wrapped_lines=[];line=''
+      @text.split(/\s+/).each do |word|
+        candidate=line.empty? ? word : line+' '+word
+        if !line.empty? && text_size(candidate).width>contents_width
+          @wrapped_lines<<line;line=word
+        else;line=candidate;end
+      end
+      @wrapped_lines<<line unless line.empty?
+      @wrapped_lines.each_with_index { |value,index| draw_text(0,index*20,contents_width,20,value) }
     end
   end
   class ModuleScene < Scene_MenuBase
@@ -65,16 +87,20 @@ module BS2Suite
       super
       @selection=[]
       Store.read('modules').each_line { |l| @selection << $1 if l.strip =~ /\A([a-z_]+)=1\z/ && IDS.include?($1) }
-      @header=BS2Modules::Header.new;@header.text=['Выбор модулей','Enter вкл/выкл · Esc назад · изменения после перезапуска игры']
+      @header=BS2Modules::Header.new;@header.text=['Состав модпака','Enter вкл/выкл · Esc назад · изменения после перезапуска игры']
+      @selection=ModuleSelection.expand(@selection)
       @commands=ModuleCommands.new(@selection)
+      @help_window=ModuleDescription.new;@help_window.y=Graphics.height-@help_window.height
+      @commands.height=[@help_window.y-72,@commands.height].min
+      @commands.create_contents;@commands.refresh
+      @commands.help_window=@help_window
+      @commands.update_help
       IDS.each { |id| @commands.set_handler(id.to_sym,lambda { toggle(id) }) }
       @commands.set_handler(:cancel,method(:return_scene))
     end
     def toggle(id)
       old=@selection.dup
-      @selection.include?(id) ? @selection.delete(id) : @selection << id
-      @selection << 'defeat' if id=='retry' && @selection.include?('retry') && !@selection.include?('defeat')
-      @selection.delete('retry') if id=='defeat' && !@selection.include?('defeat')
+      @selection=ModuleSelection.toggle(@selection,id)
       unless Store.write('modules',IDS.map { |key| key+'='+(@selection.include?(key) ? '1' : '0') }.join("\n")+"\n")
         @selection.replace(old);::Sound.play_buzzer
       end

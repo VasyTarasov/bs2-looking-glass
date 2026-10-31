@@ -74,6 +74,10 @@ module BS2QoL
   end
 
   module Model
+    def self.battle_skill_visible?(actor,object)
+      return true unless $game_party && $game_party.in_battle && object.is_a?(RPG::Skill) && [17,18,19,20,875,877].include?(object.id)
+      actor && actor.skills.include?(object) && !actor.skill_seal.include?(object.id) && actor.usable?(object)
+    end
     def self.kind(object)
       return :skill if object.is_a?(RPG::Skill)
       return :item if object.is_a?(RPG::Item)
@@ -108,7 +112,7 @@ module BS2QoL
       else
         values = $game_party.items.select { |i| [0,1].include?(i.occasion) }
       end
-      ordered(values + favorites(kind),false,kind)
+      ordered(values + favorites(kind),false,kind).select { |object| battle_skill_visible?(actor,object) }
     end
     def self.weapon_enabled?(actor, weapon)
       return false unless actor && weapon && actor.equip_command_usable
@@ -141,7 +145,7 @@ module BS2QoL
       return [] unless actor
       actor.actions.each_with_index.map do |action,index|
         object = action && action.item
-        {:slot => index, :name => object ? object.name : '—',
+        {:slot => index, :name => BS2Suite::ActionContext.label(action,actor),
          :target => action && action.target_index,
          :current => index == actor.instance_variable_get(:@action_input_index)}
       end

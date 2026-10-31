@@ -83,7 +83,7 @@ module BS2Suite
         hint=if popup.prefix=='N'
           popup.group ? 'Цифра надеть · '+key+' последнее · N N снять · Q/E группы · F7' : 'Оружейные группы · N N снять исполнителя · Esc выйти'
         else
-          popup.group ? 'Цифра применить · буква назад · F7'+(((popup.prefix=='B' && BS2Suite::BattleSupport.eligible?(popup.item)) || (popup.prefix=='V' && BS2Suite::BattleSupport.gunbreak?(popup.item))) ? ' · '+key+' авто строки' : '') : 'Цифра открыть · Esc выйти'
+          popup.group ? 'Цифра применить · буква назад · F7'+(((popup.prefix=='B' && BS2Suite::SupportState.eligible?(popup.item)) || (popup.prefix=='V' && BS2Suite::SupportState.gunbreak?(popup.item))) ? ' · '+key+' авто строки' : '') : 'Цифра открыть · Esc выйти'
         end
         scene.instance_variable_get(:@bs2s_palette_header).text=[popup.banner,hint]
       end

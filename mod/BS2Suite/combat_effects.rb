@@ -9,13 +9,14 @@ module BS2Suite
       unit.states.each do |s|
         next unless s.icon_index>0
         turns=(unit.instance_variable_get(:@state_turns) || {})[s.id]
-        label=s.auto_removal_timing==0 ? '∞' : turns.nil? ? '?' : (turns.to_i+1).to_s+(s.auto_removal_timing==1 ? 'д' : s.auto_removal_timing==3 ? 'т' : '')
+        permanent=s.auto_removal_timing==0 || (s.auto_removal_timing==3 && !s.auto_remove?)
+        label=permanent ? '∞' : turns.nil? ? '?' : turns.to_i.to_s+(s.auto_removal_timing==1 ? 'д' : s.auto_removal_timing==3 ? 'т' : '')
         rows<<[s.icon_index,label,s.name]
       end
       (unit.instance_variable_get(:@buffs) || []).each_with_index do |level,id|
         next if level==0
         turns=(unit.instance_variable_get(:@buff_turns) || {})[id]
-        rows<<[unit.buff_icon_index(level,id),turns.nil? ? '?' : (turns.to_i+1).to_s+(defined?(ATB::BUFF_TURN_COUNT) && ATB::BUFF_TURN_COUNT==1 ? 'д' : ''),BS2Modules::PARAMS[id]]
+        rows<<[unit.buff_icon_index(level,id),turns.nil? ? '?' : turns.to_i.to_s+(defined?(ATB::BUFF_TURN_COUNT) && ATB::BUFF_TURN_COUNT==1 ? 'д' : ''),BS2Modules::PARAMS[id]]
       end
       rows
     end
@@ -59,6 +60,13 @@ module BS2Suite
     end
     def item_max;@rows.size+1;end
     def item;@rows[index] && @rows[index][2];end
+    def help_text
+      keys=BS2Suite::Keys;parts=[]
+      parts<<keys.token(:C)+' / '+keys.token(:reference)+' сведения' if BS2Suite.enabled?('reference_cards')
+      parts<<keys.token(:combat_effects)+' / '+keys.token(:B)+' закрыть'
+      parts<<keys.token(:UP)+'/'+keys.token(:DOWN)+' прокрутка'
+      parts.join(' · ')
+    end
     def process_handling
       return unless open? && active
       return process_cancel if Input.trigger?(:B)
@@ -72,8 +80,8 @@ module BS2Suite
       rect=item_rect(index)
       if index==@rows.size
         contents.font.size=14
-        draw_text(rect.x,rect.y,contents_width,20,'Enter / F7 сведения · H / Esc закрыть · ↑/↓ прокрутка')
-        draw_text(rect.x,rect.y+18,contents_width,20,'∞ без отсчёта · д действия · т такты · без буквы ходы')
+        draw_text(rect.x,rect.y,contents_width,20,BS2Modules.fit(self,help_text,contents_width))
+        draw_text(rect.x,rect.y+18,contents_width,20,'Счётчики ATB: ∞ без снятия · д действия · т такты · без буквы ходы')
         return
       end
       label,icons=@rows[index]

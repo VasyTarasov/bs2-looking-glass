@@ -4,7 +4,7 @@ class Scene_Battle
   alias bs20997_next_command next_command
   def next_command
     actor=BattleManager.actor;action=actor && actor.input;item=action && action.item
-    if item && BS2Suite::BattleSupport.quick?(item)
+    if item && BS2Suite::ActionRules.quick?(item)
       index=actor.instance_variable_get(:@action_input_index)
       @hzm_vxa_quickSkill_skill=item
       hzm_vxa_quickSkill_run
@@ -23,7 +23,7 @@ module BS2Suite::DirectWeapons
   class << self
     def arm(actor)
       return unless actor && actor.actor?
-      paid=actor.actions.select { |a| a && a.item && !BS2Suite::BattleSupport.quick?(a.item) }
+      paid=actor.actions.select { |a| a && a.item && !BS2Suite::ActionRules.quick?(a.item) }
       actor.instance_variable_set(:@bs2s_direct_final,paid.last)
       paid.each { |a| a.instance_variable_set(:@bs2s_direct_count,paid.size) }
     end

@@ -191,7 +191,7 @@ class BS2Suite::SettingsCommands
     @list.insert(-2,{:name=>'Альтернатива W/A/S/Z: '+(BS2Suite::Options.get('navigation_aliases')==1 ? 'вкл' : 'выкл'),:symbol=>:navigation_aliases,:enabled=>true,:ext=>nil})
     @list.insert(-2,{:name=>'Клавиши альтернативной навигации…',:symbol=>:navigation_keys,:enabled=>true,:ext=>nil})
     if BS2Suite.enabled?('semantic_groups')
-      @list.insert(-2,{:name=>'Приоритеты V/M/N (эксп.): '+(BS2Suite::Options.get('adaptive_priority')==1 ? 'вкл' : 'выкл'),:symbol=>:adaptive_priority,:enabled=>true,:ext=>nil})
+      @list.insert(-2,{:name=>'Приоритеты V/M/N: '+(BS2Suite::Options.get('adaptive_priority')==1 ? 'вкл' : 'выкл'),:symbol=>:adaptive_priority,:enabled=>true,:ext=>nil})
       @list.insert(-2,{:name=>'История приоритетов: '+BS2Suite::Options.get('priority_window').to_s+' боёв',:symbol=>:priority_window,:enabled=>true,:ext=>nil})
     end
     @list.insert(-2,{:name=>'Звёздочки темпа противников: '+(BS2Suite::Options.get('tempo_hint')==1 ? 'вкл' : 'выкл'),:symbol=>:tempo_hint,:enabled=>true,:ext=>nil})

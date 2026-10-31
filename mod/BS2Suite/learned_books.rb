@@ -5,11 +5,13 @@ module BS2Suite::Books
     item.effects.select { |e| e.code==43 && $data_skills[e.data_id] }.map { |e| $data_skills[e.data_id] }.uniq
   end
   def self.status(item,actor)
+    return nil unless BS2Suite::Options.get('learned_book_marks')==1
     ids=skills(item);return nil if ids.empty? || !actor
     count=ids.count { |s| actor.skill_learn?(s) }
     count==ids.size ? :learned : count>0 ? :partial : :new
   end
   def self.description(item,actor)
+    return '' unless BS2Suite::Options.get('learned_book_marks')==1
     list=skills(item);return '' if list.empty? || !actor
     actor.name+': '+list.map { |s| (actor.skill_learn?(s) ? '✓ ' : '○ ')+s.name }.join(', ')
   end

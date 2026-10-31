@@ -129,7 +129,12 @@ end
 class Scene_ItemSynthesis
   alias bs2091_family_craft do_syntetic
   def do_syntetic(number)
-    result=BS2Suite::FamilyInventory.suspend { bs2091_family_craft(number) }
+    family=BS2Suite::FamilyInventory;pending=family.pending?;result=false
+    begin
+      result=family.suspend { bs2091_family_craft(number) }
+    ensure
+      family.instance_variable_set(:@pending,pending) if result==false
+    end
     BS2Suite::FamilyInventory.normalize unless result==false
     result
   end

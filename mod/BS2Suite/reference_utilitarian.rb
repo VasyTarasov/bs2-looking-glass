@@ -106,9 +106,11 @@ module BS2QoL
         case e.code
         when 11,12
           resource=e.code==11 ? 'HP' : 'MP'
-          parts=[];parts<<pct(e.value1)+t(' от максимума цели',' of target maximum') if e.value1!=0
-          parts<<n(e.value2) if e.value2!=0
-          lines<<t('Восстановление ','Restore ')+resource+': '+parts.join(' + ')+t('; учитывает REC цели','; affected by target REC')+(x.is_a?(RPG::Item) ? t(' и PHA пользователя.',' and user PHA.') : '.')
+          loss=e.value1<=0 && e.value2<=0 && (e.value1<0 || e.value2<0)
+          parts=[];parts<<pct(loss ? -e.value1 : e.value1)+t(' от максимума цели',' of target maximum') if e.value1!=0
+          parts<<n(loss ? -e.value2 : e.value2) if e.value2!=0
+          lines<<(loss ? t('Потери ','Loss of ') : t('Восстановление ','Restore '))+resource+': '+parts.join(' + ')+t('; учитывает REC цели','; affected by target REC')+(x.is_a?(RPG::Item) ? t(' и PHA пользователя.',' and user PHA.') : '.')
+          lines<<t('Эта часть потерь не зависит от элемента, крита и сопротивления основной формуле.','This loss component is independent of the main formula element, critical and damage-rate resistance.') if loss && !x.damage.none?
         when 21
           if e.data_id>0 && $data_states[e.data_id]
             state=$data_states[e.data_id]

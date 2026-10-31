@@ -31,13 +31,16 @@ module BS2Suite
       result
     end
     def self.apply(mode)
+      return false unless [:colors,:black,:currency].include?(mode)
       return false if $game_party.in_battle || $game_message.busy? || $game_map.interpreter.running?
-      who=actor;return false unless who && $game_party.members.include?(who)
+      who=actor
+      return false unless mode==:currency || (who && $game_party.members.include?(who))
       rows=plan(mode);return false if rows.empty?
       gain=rows.inject(0) { |sum,r| sum+(r[2] || 0)*r[1] }
       return false if mode==:currency && $game_party.gold+gain>$game_party.max_gold
       inventory=Marshal.load(Marshal.dump($game_party.instance_variable_get(:@items)))
-      params=who.instance_variable_get(:@param_plus).dup;sen=$game_variables[38];gold=$game_party.gold
+      params=who && who.instance_variable_get(:@param_plus).dup;sen=$game_variables[38];gold=$game_party.gold
+      display=(101..108).map { |id| [id,$game_variables[id]] }
       rows.each do |item,n,value|
         raise 'Inventory changed' unless $game_party.item_number(item)==n
         $game_party.lose_item(item,n)
@@ -52,6 +55,15 @@ module BS2Suite
           $game_variables[38]-=10*factor*n
         end
       end
+      # The original colored-soul events also refresh their displayed-stat
+      # variables. Preserve that observable result when bypassing their dialogs.
+      viewer=$game_switches[676] ? $game_actors[11] : ((2..10).include?($game_variables[14]) ? $game_actors[$game_variables[14]] : nil)
+      if viewer
+        rows.each do |item,n,value|
+          next unless COLORS[item.id]
+          $game_variables[101+EVENTS[item.id]-223]=viewer.param(COLORS[item.id][0])
+        end
+      end
       true
     rescue StandardError
       $game_party.instance_variable_set(:@items,inventory) if inventory
@@ -59,6 +71,7 @@ module BS2Suite
       who.refresh if who && params
       $game_variables[38]=sen unless sen.nil?
       $game_party.instance_variable_set(:@gold,gold) unless gold.nil?
+      display.to_a.each { |id,value| $game_variables[id]=value }
       false
     end
   end

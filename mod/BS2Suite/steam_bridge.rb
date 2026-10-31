@@ -97,7 +97,7 @@ module BS2Suite
       end
       def lines
         poll
-        [@error || @restart_error || 'Экспериментальный графический мост включён.',
+        [@error || @restart_error || 'Графический мост включён.',
          'Режим: '+(BS2Suite.enabled?('hd_display') ? 'HD OpenGL' : Options.get('steam_mode')==0 ? 'только скриншоты' : 'OpenGL и скриншоты'),
          'Захвачено кадров: '+stats[2].to_i.to_s+' · показано OpenGL: '+stats[3].to_i.to_s,
          'Steam API скриншотов: '+(stats[16]==1 ? 'доступен' : 'недоступен'),

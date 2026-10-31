@@ -97,7 +97,7 @@ class BS2Suite::SequenceForecast
       if (uncertain || user.instance_variable_get(:@bs2s_forecast_hp_uncertain)) && notes =~ /(?:self|a|b|user)\.(?:hp|mp|hp_rate|mp_rate)\b/
         raise BS2QoL::Forecast::Unsupported,'Особое правило зависит от ресурсов после урона'
       end
-      if count>1 && (notes =~ /変換攻撃|自動蘇生|全回避時スキル|使用後追加行動|行動後遅延発動|使用者効果|遅延発動/ || item.damage.drain? || item.damage.recover? || item.effects.any? { |e| [41,42,43,44].include?(e.code) || e.code==21 && e.data_id==1 })
+      if count>1 && (notes =~ /変換攻撃|全回避時スキル|使用後追加行動|行動後遅延発動|使用者効果|遅延発動/ || item.damage.drain? || item.damage.recover? || item.effects.any? { |e| [41,42,43,44].include?(e.code) || e.code==21 && e.data_id==1 })
         raise BS2QoL::Forecast::Unsupported,'Повторная атака с дополнительными событиями/переносом ресурсов: полный урон не подтверждён'
       end
       formula_text=item.damage.formula.to_s
@@ -134,7 +134,7 @@ class BS2Suite::SequenceForecast
         raise BS2QoL::Forecast::Unsupported,'Ответный урон между попаданиями не рассчитан' if count>1
         step[:followup_unknown]='Ответный урон может изменить продолжение серии'
       end
-      if notes =~ /変換攻撃|自動蘇生|全回避時スキル|使用後追加行動|行動後遅延発動|使用者効果|遅延発動/
+      if notes =~ /変換攻撃|全回避時スキル|使用後追加行動|行動後遅延発動|使用者効果|遅延発動/
         step[:direct_only]=true;step[:followup_unknown]='Дополнительные события не входят в прямой урон'
       end
       formula=p.rows.find { |r| r[:formula] }
@@ -163,7 +163,11 @@ class BS2Suite::SequenceForecast
         step[:direct_only]=true if item.effects.any? { |e| e.code==44 }
       end
     end
-    bs209991_forecast_hit(branches,id,item,step)
+    outcomes=bs209991_forecast_hit(branches,id,item,step)
+    if outcomes.any? { |b| (id==:self ? b[:user] : b[:targets][id]).instance_variable_get(:@bs2s_forecast_may_die) }
+      step[:followup_unknown]='Возможная смерть цели меняет продолжение серии'
+    end
+    outcomes
   ensure
     @forecast09991_predictions=nil
   end
@@ -172,9 +176,26 @@ class BS2Suite::SequenceForecast
     if [11,12].include?(effect.code)
       branches.each do |b|
         target=id==:self ? b[:user] : b[:targets][id]
+        if target.instance_variable_get(:@bs2s_forecast_may_die) && (effect.value1!=0 || effect.value2!=0)
+          raise BS2QoL::Forecast::Unsupported,'Эффект после возможной смерти: состояния и максимумы ресурсов могли измениться'
+        end
         resource=effect.code==11 ? 'HP' : 'MP';snapshot=BS2QoL::Forecast::Snapshot.new(target)
-        if snapshot.rate_sum(resource+'回復無効')>0 || snapshot.rate_sum(resource+'回復反転')>0
+        maximum=effect.code==11 ? target.mhp : target.mmp
+        amount=(maximum*effect.value1+effect.value2)*target.rec
+        amount*=b[:user].pha if item.is_a?(RPG::Item)
+        if amount>0 && (snapshot.rate_sum(resource+'回復無効')>0 || snapshot.rate_sum(resource+'回復反転')>0)
           raise BS2QoL::Forecast::Unsupported,'Восстановление под запретом/инверсией: переход ресурсов не подтверждён'
+        end
+        # Native HP/MP recovery effects can be NEGATIVE: percentage damage is
+        # applied after formula damage and ignores its element/PDR/critical roll.
+        # Accumulate in the matching resource; never add an MP effect to HP.
+        value=-amount.to_i;key=damage_key(item,id,resource)
+        damage=b[:damage][key] ||= {:min=>0,:max=>0,:mean=>0.0}
+        damage[:min]+=value;damage[:max]+=value;damage[:mean]+=value
+        if resource=='HP' && value>0
+          floor=target.instance_variable_get(:@bs2s_forecast_hp_floor) || target.hp
+          target.instance_variable_set(:@bs2s_forecast_hp_floor,[floor-value,0].max)
+          target.instance_variable_set(:@bs2s_forecast_may_die,true) if value>=floor
         end
       end
     end
@@ -213,16 +234,19 @@ end
 
 if defined?(BS2Suite::SequenceForecast)
 module BS2Suite::ForecastContext
-  def self.step(object,actor,source=nil,unit=nil,weapon=nil,selected=false)
+  def self.step(object,actor,source=nil,unit=nil,weapon=nil,selected=false,first_hit=false)
     return nil unless object && actor
     view=source.is_a?(RPG::Weapon) ? BS2Suite::Projection.weapon(actor,source) : BS2Suite::Projection.copy(actor)
     index=actor.instance_variable_get(:@action_input_index).to_i
     return nil unless actor.actions[index]
     action=Game_Action.new(view)
-    if object.is_a?(RPG::Item);action.set_item(object.id)
-    elsif selected
+    original=actor.actions[index]
+    selected=selected && original.item==object
+    if selected
       action.instance_variable_get(:@item).object=object
-      original=actor.actions[index];action.instance_variable_set(:@default_use_skill_id,original.default_use_skill_id)
+      action.instance_variable_set(:@default_use_skill_id,original.default_use_skill_id)
+      BS2Suite::ActionContext.copy_selected(original,action)
+    elsif object.is_a?(RPG::Item);action.set_item(object.id)
     else;action.set_skill(object.id);end
     action.target_index=unit.index if unit
     BS2Suite::DirectWeapons.copy_action_context(actor.actions[index],action,object)
@@ -230,6 +254,13 @@ module BS2Suite::ForecastContext
       action.instance_variable_set(:@bs2s_normal_attack,true);action.instance_variable_set(:@bs2s_normal_source,weapon.id)
     end
     actions=actor.actions.map { |a| a.dup };actions[index]=action
+    if first_hit
+      action.instance_variable_set(:@bs2s_direct_count,actor.actions.size)
+      view.instance_variable_set(:@bs2s_forecast_first_hit,true)
+      view.instance_variable_set(:@bs2s_forecast_first_target,unit.index) if unit && unit.enemy?
+      view.instance_variable_set(:@bs2s_forecast_final_index,index==actor.actions.size-1 ? 0 : -1)
+      actions=[action];index=0
+    end
     view.instance_variable_set(:@actions,actions)
     BS2Suite::SequenceForecast.new(view,BS2Suite::DirectWeapons.selected(actor)).steps[index]
   end
@@ -248,6 +279,7 @@ class BS2QoL::PracticalCard
     # Capture the selection platform before older F7 wrappers project the final
     # executor. That executor belongs only to its action, not to preceding slots.
     @forecast09991_actor=actor
+    @forecast09991_selected=BS2Suite::ActionContext.selected?(actor,object)
     if actor && $game_party.in_battle && object.is_a?(RPG::Skill)
       @forecast09991_resolved=$data_skills[object.skill_change_state(actor,object.id)] || object
     end
@@ -266,7 +298,7 @@ class BS2QoL::PracticalCard
     shared=nil
     @forecast09991_steps=targets.map do |target|
       hidden=target.enemy? && !BS2Suite::Knowledge.allowed?(target)
-      step=hidden ? nil : (shared || BS2Suite::ForecastContext.step(@object,user,nil,target))
+      step=hidden ? nil : (shared || BS2Suite::ForecastContext.step(@object,user,nil,target,nil,@forecast09991_selected))
       shared=step if !hidden && (x.for_all? || x.for_random?)
       [target,step,hidden]
     end
@@ -274,7 +306,8 @@ class BS2QoL::PracticalCard
   alias bs209991_snapshot_compact_forecast compact_forecast
   def compact_forecast
     return bs209991_snapshot_compact_forecast unless forecast09991_context?
-    if @resolved.damage.none? && @resolved.effects.any? { |e| [11,12,13].include?(e.code) }
+    negative_resource=@resolved.effects.any? { |e| [11,12].include?(e.code) && (e.value1<0 || e.value2<0) }
+    if @resolved.damage.none? && !negative_resource && @resolved.effects.any? { |e| [11,12,13].include?(e.code) }
       return bs209991_snapshot_compact_forecast if @forecast09991_actor.instance_variable_get(:@action_input_index).to_i==0
       return [t('? Лечение/восстановление после предыдущих действий: численный итог не подтверждён. Эффекты — в соседнем разделе.','? Recovery after preceding actions: total unverified; see Effects.')]
     end
@@ -284,11 +317,19 @@ class BS2QoL::PracticalCard
       rows<<'— '+forecast_name(target)+' —'
       if hidden;rows<<t('? Сведения о цели ещё закрыты.','? Target knowledge is locked.');next;end
       unless step && !step[:reason]
-        rows<<'? '+(step && step[:reason] || t('Нет редактируемого действия.','No editable action slot.'));next
+        rows<<'? '+(step && step[:reason] || t('Нет редактируемого действия.','No editable action slot.'))
+        first=BS2Suite::ForecastContext.step(@object,@forecast09991_actor,nil,target,nil,@forecast09991_selected,true)
+        if first && !first[:reason]
+          first[:rows].select { |r| r[:target_index]==(target.equal?(@forecast09991_actor) ? :self : target.index) }.each do |r|
+            rows<<t('Сейчас, первое попадание: ','Current state, first hit: ')+forecast_amount(r[:resource],[r[:min],r[:max]])+'; ~'+n(r[:mean].round)+'.'
+          end
+          rows<<t('Без предыдущих действий серии; это не сумма повторов и не итог выбранной очереди.','Excludes preceding actions; this is not a repeated-action or queued total.')
+        end
+        next
       end
-      row=step[:rows].find { |r| r[:target_index]==(target.equal?(@forecast09991_actor) ? :self : target.index) }
-      if row
-        rows<<forecast_amount(row[:resource],[row[:min],row[:max]])+'; ~'+n(row[:mean].round)+'.'
+      matching=step[:rows].select { |r| r[:target_index]==(target.equal?(@forecast09991_actor) ? :self : target.index) }
+      if !matching.empty?
+        matching.each { |row| rows<<forecast_amount(row[:resource],[row[:min],row[:max]])+'; ~'+n(row[:mean].round)+'.' }
       elsif @resolved.damage.none?
         rows<<t('Без прямого урона; поддержанные эффекты учтены для продолжения.','No direct damage; supported effects are carried forward.')
       else;rows<<t('? Численный результат не подтверждён.','? Numerical result is unverified.');end

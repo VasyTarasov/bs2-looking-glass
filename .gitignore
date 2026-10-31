@@ -21,6 +21,8 @@
 *.rvdata
 *.rvdata2
 !mod/BS2Suite/reference098.rvdata2
+!mod/BS2Suite/catalog_v1.rvdata2
+!mod/BS2Suite/catalog_v1.en.rvdata2
 *.exe
 *.dll
 !mod/BS2Suite/native/bs2_steam_bridge.dll

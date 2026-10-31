@@ -4,6 +4,7 @@ module BS2Suite
     def self.route(window)
       return false unless defined?(BattleSupport) && Input.trigger?(:Z) && window.active && window.open? && window.visible
       scene=SceneManager.scene
+      return false unless scene.is_a?(Scene_Battle) && $game_party.in_battle
       return true if scene.instance_variable_get(:@bs2094_d_frame)==Graphics.frame_count
       return false if (defined?(BS2QoL::Reference) && BS2QoL::Reference.active?(scene)) || scene.instance_variable_get(:@bs2080_effects)
       object=window.respond_to?(:item) && window.item
@@ -14,7 +15,7 @@ module BS2Suite
       actor=$game_party.in_battle ? BattleManager.actor : $game_party.menu_actor || $game_party.leader
       ok=BattleSupport.toggle_object(actor,object)
       ok ? ::Sound.play_ok : ::Sound.play_buzzer
-      BS2QoL::Hotkeys.notice(ok ? 'Авто '+(BattleSupport.configured?(actor,object) ? 'включено: ' : 'выключено: ')+object.name : 'Авто недоступно: лечение, очищение и обычные предметы остаются ручными')
+      BS2QoL::Hotkeys.notice(ok ? 'Авто '+(BattleSupport.configured?(actor,object) ? 'включено: ' : 'выключено: ')+object.name : 'Авто недоступно для этого предмета или приёма')
       BS2QoL::Keyboard.consume;true
     end
   end
@@ -41,34 +42,6 @@ end
     end
   end
 end
-if BS2Suite.enabled?('semantic_groups')
-class Scene_Battle
-  alias bs2094_armed_start start
-  def start
-    bs2094_armed_start
-    support=BS2Suite::BattleSupport
-    actor=support.hero
-    support.instance_variable_set(:@master,actor && !support.expand(actor).empty?)
-  end
-end
-end
-class BS2Suite::SettingsCommands
-  alias bs2094_settings_list make_command_list
-  def make_command_list
-    bs2094_settings_list
-    if BS2Suite.enabled?('semantic_groups')
-      @list.insert(-2,{:name=>'Автопредметы: '+(BS2Suite::Options.get('experimental_support')==1 ? 'эксперимент · запас по темпу' : 'простое поддержание'),:symbol=>:experimental_support,:enabled=>true,:ext=>nil})
-    end
-  end
-end
-class BS2Suite::SettingsScene
-  alias bs2094_settings_start start
-  def start
-    bs2094_settings_start
-    @commands.set_handler(:experimental_support,lambda { option('experimental_support',BS2Suite::Options.get('experimental_support')==1 ? 0 : 1) })
-  end
-end
-
 if defined?(BS2Suite::CombatEffects)
 module BS2Suite
   module ContextEffects

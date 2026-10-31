@@ -38,6 +38,7 @@ module BS2Suite
         end
       else
         @entries=@prefix=='N' ? DirectWeapons.rows(@actor,@group,@page) : Semantic.rows(@actor,@prefix,@group)
+        @entries.select! { |row| BS2QoL::Model.battle_skill_visible?(@actor,row[:object]) }
       end
       @entries.each do |row|
         text=row[:name] || (row[:object] ? row[:object].name : 'Недоступно')

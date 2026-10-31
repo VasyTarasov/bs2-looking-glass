@@ -1,0 +1,16 @@
+# encoding: UTF-8
+module BS2Suite
+  module ActionRules
+    GUNBREAK=[17,18,19,20,875,877].freeze
+    def self.quick?(object);!!(object && object.hzm_vxa_note_match(HZM_VXA::QuickSkill::QUICK_KEYS));end
+    def self.gunbreak?(object);object.is_a?(RPG::Skill) && GUNBREAK.include?(object.id);end
+  end
+  module SupportState
+    def self.available?;BS2Suite.enabled?('battle_support') && defined?(BS2Suite::BattleSupport);end
+    def self.configured?(actor,object);available? ? BattleSupport.configured?(actor,object) : false;end
+    def self.eligible?(object);available? ? BattleSupport.eligible?(object) : false;end
+    def self.gunbreak?(object);available? && ActionRules.gunbreak?(object);end
+    def self.active?;available? ? BattleSupport.active? : false;end
+    def self.label;available? ? BattleSupport.label : '';end
+  end
+end

@@ -28,7 +28,7 @@ class BS2QoL::PracticalCard
         rows<<t('МЗЩ в формуле: ','MDF in formula: ')+(formula =~ /\bb\.mdf\b/ ? t('учитывается явно.','explicitly included.') : t('не вычитается.','not subtracted.')) if @resolved.magical?
       end
     end
-    if defined?(BS2Suite::BattleSupport) && BS2Suite::BattleSupport.gunbreak?(@object)
+    if BS2Suite::ActionRules.gunbreak?(@object)
       rows<<t(BS2Suite::Keys.token(:Z)+' — авто Gun Break: выделите его в «Техники» или в V.',BS2Suite::Keys.token(:Z)+' — auto Gun Break: highlight it in Techniques or V.')
     end
     rows
@@ -90,31 +90,27 @@ end
 if defined?(BS2Suite::HDDisplay) && defined?(BS2Suite::PaletteWindow)
 module BS2Suite
   module QuickDamage
+    def self.hp_damage?(object)
+      object && object.respond_to?(:damage) && ((object.damage.to_hp? && !object.damage.recover?) || object.effects.any? { |e| e.code==11 && (e.value1<0 || e.value2<0) })
+    end
     def self.signature(unit)
       [unit.hp,unit.mp,unit.tp,(0..7).map { |i| unit.param(i) },unit.cri,unit.cev,unit.states.map { |s| s.id },unit.instance_variable_get(:@buffs).dup,unit.actor? ? unit.equips.map { |e| e && [e.class.to_s,e.id] } : unit.enemy_id]
     end
     def self.lines(scene,object,actor,source=nil,target=nil,weapon=nil)
-      return [] unless object && actor && $game_party.in_battle && object.respond_to?(:damage) && object.damage.to_hp? && !object.damage.recover?
+      return [] unless actor && $game_party.in_battle && hp_damage?(object)
       targets=target ? [target] : $game_troop.alive_members.reject { |e| e.hidden? }
       return [] if targets.empty? || !object.for_opponent?
       return ['≈ ? · сведения о цели закрыты'] if targets.any? { |e| !Knowledge.allowed?(e) }
-      key=[object.id,object.class.to_s,signature(actor),source && source.id,weapon && weapon.id,DirectWeapons.selected_id(actor),targets.map { |e| [e.index,signature(e)] },actor.actions.map { |a| [a.item && a.item.id,a.target_index] },actor.instance_variable_get(:@action_input_index),$game_variables[Hi_ru_Difficulty::VARIABLES]]
-      key<<actor.actions.map { |a| [a.instance_variable_get(:@bs2s_direct_count),a.forcing,a.instance_variable_get(:@bs2s_normal_attack)] }
-      key<<Projection.copy(actor).cool_time.dup
-      key<<$game_party.gold
-      key<<$game_party.instance_variable_get(:@items).dup
-      resolved=DirectWeapons.selected(actor)
-      key<<[resolved && resolved.id,resolved && DirectWeapons.can_switch?(actor,resolved)]
-      key<<DirectWeapons.variable_signature(actor,object,targets)
-      return @value if @key==key
-      @key=key;@value=calculate(object,actor,source,targets,target,weapon)
+      # Performance.forecast owns the only result cache. A second partial key
+      # here used to survive revision bumps and resurrect cancelled preparation.
+      calculate(object,actor,source,targets,target,weapon)
     rescue StandardError
       ['≈ ? · особое правило расчёта']
     end
     def self.calculate(object,actor,source,targets,target,weapon)
       view=source.is_a?(RPG::Weapon) ? Projection.weapon(actor,source) : Projection.copy(actor)
       index=actor.instance_variable_get(:@action_input_index).to_i
-      final=DirectWeapons.execution_weapon(actor,object,index) if index==actor.actions.size-1 && !BattleSupport.quick?(object)
+      final=DirectWeapons.execution_weapon(actor,object,index) if index==actor.actions.size-1 && !ActionRules.quick?(object)
       if object.for_random?
         view=Projection.weapon(view,final) if final
         weights=targets.inject(0.0) { |sum,t| sum+t.tgr };return ['≈ ?'] if weights<=0
@@ -174,7 +170,7 @@ module BS2Suite::HDDisplay
         rows<<row('H',object.name)
         rows+=wrap_lines([BS2Suite::ShortNotes.describe(object)]).map { |s| row('S',s) } if BS2Suite::Options.get('palette_notes')==1
         rows+=BS2Suite::QuickDamage.lines(scene,object,actor,nil,target).map { |s| row('S',s) }
-        if window && BS2Suite::BattleSupport.eligible?(object)
+        if window && BS2Suite::SupportState.eligible?(object)
           rows<<row('D',BS2Suite::Keys.token(:Z)+' — авто выделенного предмета / Gun Break')
         end
       end

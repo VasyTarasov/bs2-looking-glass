@@ -17,10 +17,15 @@ module SuiteCapture
     pid=api.call('kernel32','GetCurrentProcessId',[],'L').call;owner=[0].pack('L')
     api.call('user32','GetWindowThreadProcessId',['L','P'],'L').call(window,owner)
     raise 'Not own QA window' unless window!=0 && owner.unpack('L')[0]==pid
+    rect=([0]*4).pack('l*')
+    okay=api.call('user32','GetClientRect',['L','P'],'I').call(window,rect)
+    bounds=rect.unpack('l*')
+    raise 'QA capture exceeds own client bounds' unless okay!=0 && width>0 && height>0 && width<=bounds[2]-bounds[0] && height<=bounds[3]-bounds[1]
     dc=api.call('user32','GetDC',['L'],'L').call(window)
     mem=api.call('gdi32','CreateCompatibleDC',['L'],'L').call(dc)
     bmp=api.call('gdi32','CreateCompatibleBitmap',['L','I','I'],'L').call(dc,width,height)
     select=api.call('gdi32','SelectObject',['L','L'],'L');old=select.call(mem,bmp)
+    api.call('gdi32','PatBlt',['L','I','I','I','I','L'],'I').call(mem,0,0,width,height,0x00000042)
     ok=api.call('gdi32','BitBlt',['L','I','I','I','I','L','I','I','L'],'I').call(mem,0,0,width,height,dc,0,0,0x00CC0020)
     select.call(mem,old)
     pixels=("\0"*(width*height*4)).force_encoding('ASCII-8BIT')
