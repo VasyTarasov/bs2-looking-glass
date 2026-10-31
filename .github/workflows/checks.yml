@@ -20,7 +20,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m unittest discover -s tests -p 'test_*.py'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python tools/package.py --output "$env:RUNNER_TEMP/LookingGlass-dev.zip"
+          python tools/package.py --output "$env:RUNNER_TEMP/BLACK-SOULS-II-QoL-Pack.zip"
           exit $LASTEXITCODE
       - name: Parse Windows PowerShell scripts
         shell: powershell
@@ -31,3 +31,12 @@ jobs:
             [Management.Automation.Language.Parser]::ParseFile($_.FullName,[ref]$tokens,[ref]$errors) | Out-Null
             if ($errors.Count) { throw ('Parse failure: '+$_.Name) }
           }
+      - name: Build and test offline Windows distribution
+        shell: pwsh
+        run: |
+          python tools/build_distribution.py --download --python-archive "$env:RUNNER_TEMP/python-embed.zip" --output "$env:RUNNER_TEMP/QoL-Pack.zip"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Expand-Archive -LiteralPath "$env:RUNNER_TEMP/QoL-Pack.zip" -DestinationPath "$env:RUNNER_TEMP/Offline QA"
+          $root=Join-Path "$env:RUNNER_TEMP/Offline QA" 'BLACK-SOULS-II-QoL-Pack-1.0'
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/Test-distribution.ps1 -Root $root
+          exit $LASTEXITCODE

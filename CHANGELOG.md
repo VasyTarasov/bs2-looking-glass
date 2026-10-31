@@ -8,6 +8,8 @@ Early releases were reconstructed from retained archives and their READMEs, chan
 
 ## 1.0 — Modular feature selection and bilingual installer
 
+- The public Windows ZIP bundles an isolated, checksum-verified Python runtime for offline installation, updates and diagnostic collection; no separate Python installation or pip packages are needed. The Russian guide is now on the repository landing page.
+- The pack is now named **BLACK SOULS II — QoL Pack**; the repository URL and version 1.0 are retained.
 - 20 choices in seven sections. Everything defaults on except Advanced Legacy, automatic support and diagnostics.
 - V/B/M/N and Advanced Legacy work separately or together; support is independent, and macros no longer require equipment loadouts.
 - Highlighting and Ctrl acceleration are separate choices; reference/effects and basic conveniences are grouped appropriately.

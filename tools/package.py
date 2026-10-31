@@ -10,7 +10,7 @@ def package(output):
  if any(p.casefold()=='secrets' for p in output.parts):raise ValueError('Protected output refused')
  report=audit()
  if report['result']!='PASS':raise ValueError('Repository audit failed; inspect tools/repo_audit.py output')
- files,_=read_files(ROOT);version=json.loads(files['project.json'])['version'];prefix='LookingGlass-'+version+'/'
+ files,_=read_files(ROOT);version=json.loads(files['project.json'])['version'];prefix='BLACK-SOULS-II-QoL-Pack-'+version+'/'
  manifest={rel:hashlib.sha256(data).hexdigest() for rel,data in sorted(files.items())}
  output.parent.mkdir(parents=True,exist_ok=True)
  with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:

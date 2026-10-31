@@ -2,7 +2,7 @@
 
 [Home](../README.md) · [English / Русский details](LOCALIZATION-099995.md)
 
-Use Windows, Python 3.12 on PATH and Windows PowerShell 5.1. No Python packages are needed. The native helper is x86, matching RGSS3.
+Use Windows 10/11 and Windows PowerShell 5.1. Download the full release ZIP and extract it completely: CPython and its standard-library dependencies are included and checked automatically. Installation works offline, does not install Python system-wide and needs no pip packages. The bundled Python and native game helper are x86 and work on 32-bit or 64-bit Windows. GitHub's automatic source-only archives require a separately installed Python 3.12 or newer; use the release asset for normal installation.
 
 1. Extract the mod separately and close the game.
 2. Run `Install.cmd`, select the folder containing `Game.exe`, and choose **Check**.

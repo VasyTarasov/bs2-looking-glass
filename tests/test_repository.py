@@ -64,7 +64,7 @@ class RepositoryTests(unittest.TestCase):
   try:
    result=packager.package(path);self.assertEqual(result['result'],'PASS');self.assertFalse(result['release_created'])
    with zipfile.ZipFile(path) as z:
-    prefix='LookingGlass-1.0/';manifest=json.loads(z.read(prefix+'SHA256.json'))
+    prefix='BLACK-SOULS-II-QoL-Pack-1.0/';manifest=json.loads(z.read(prefix+'SHA256.json'))
     self.assertTrue(all(hashlib.sha256(z.read(prefix+k)).hexdigest()==v for k,v in manifest.items()))
     self.assertFalse(any('/.git/' in k or k.endswith('/Game.exe') or '/Data/' in k for k in z.namelist()))
   finally:

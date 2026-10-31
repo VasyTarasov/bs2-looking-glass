@@ -50,6 +50,7 @@ userdata/
 /artifacts/
 /build/
 /dist/
+/runtime/
 SHA256.json
 installation_result.json
 test_result.txt

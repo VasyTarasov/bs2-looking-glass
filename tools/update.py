@@ -35,7 +35,7 @@ def run(game,apply=False):
     if apply and running:raise RuntimeError('The game is running. Save and close it before updating.')
     directory=game/'BS2Suite';record_path=directory/'install.json';config_path=directory/'modules.ini'
     record_bytes=record_path.read_bytes();record=json.loads(record_bytes)
-    if not record.get('active'):raise ValueError('Install Looking Glass / BS2Suite before updating.')
+    if not record.get('active'):raise ValueError('Install BLACK SOULS II — QoL Pack / BS2Suite before updating.')
     if record.get('storage')=='archive':
         from packed_game import read_scripts,sha_file
         if sha_file(game/'Game.rgss3a')!=record['installed_archive_sha256']:raise ValueError('Game archive changed; update canceled.')

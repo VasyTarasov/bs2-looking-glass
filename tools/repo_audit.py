@@ -12,6 +12,7 @@ ASSIGNED=re.compile(rb'(?i)(?:api[_-]?key|client[_-]?secret|access[_-]?token|pas
 def path_issue(rel,assets):
  p=PurePosixPath(rel);parts=[s.casefold() for s in p.parts]
  if p.is_absolute() or '..' in p.parts:return 'path traversal'
+ if parts and parts[0]=='runtime':return 'release-only Python runtime; use the pinned distribution builder'
  if any(s in FORBIDDEN_DIRS and not (s=='bs2suite' and i==1 and parts[0]=='mod') for i,s in enumerate(parts[:-1])):return 'private/runtime directory'
  if any(s in {'secrets','private','.codex','.agents'} for s in parts):return 'protected/private path'
  name=p.name.casefold();ext=p.suffix.casefold()
@@ -53,10 +54,13 @@ def read_files(root,staged=False):
   parent=Path(base)
   for d in dirs[:]:
    path=parent/d;rel=path.relative_to(root).as_posix()
-   if d in {'.git','__pycache__'}:dirs.remove(d);continue
+   # Runtime is generated only from the pinned official archive, never copied
+   # from a checkout by read_files/package. Staged runtime paths are rejected.
+   if d in {'.git','__pycache__','runtime'}:dirs.remove(d);continue
    if path.is_symlink() or path.is_junction():errors.append({'path':rel,'rule':'linked directory'});dirs.remove(d);continue
    if d.casefold() in FORBIDDEN_DIRS and rel!='mod/BS2Suite':errors.append({'path':rel,'rule':'private/runtime directory'});dirs.remove(d)
   for name in names:
+   if parent==root and name=='SHA256.json':continue # Generated release manifest, never an input to source packaging.
    path=parent/name;rel=path.relative_to(root).as_posix()
    if path.is_symlink():errors.append({'path':rel,'rule':'linked file'});continue
    # Refuse secret-shaped file names before opening them.

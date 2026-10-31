@@ -13,7 +13,7 @@
 
 Before staging: `python tools/repo_audit.py`. Before upload: `python tools/repo_audit.py --staged`. This checks paths, privacy patterns, encodings, relative documentation links, hashes and forbidden binaries. It is a gate, not proof against every possible future secret.
 
-Game-free checks: `python -m unittest discover -s tests -p test_repository.py`. Package with `python tools/package.py --output <outside-repository.zip>`; it audits, writes an archive manifest and verifies it. It does not create a GitHub release.
+Game-free checks: `python -m unittest discover -s tests -p 'test_*.py'`. `tools/package.py` builds the audited source-only package. For users, build the full offline distribution with `python tools/build_distribution.py --download --python-archive <outside-repository-cache.zip> --output <outside-repository-release.zip>`. The builder checks the pinned official Python archive, retains its licenses, adds an isolated runtime and verifies every file against the final manifest. Neither builder publishes a GitHub release. Runtime binaries are release assets, excluded from Git and from source packaging.
 
 Build the DLL from an **x86 Native Tools Command Prompt for Visual Studio**, with Windows SDK, using `native/steam_bridge/build.cmd`. Preserve MinHook notices. Review a rebuilt DLL and explicitly update `runtime-assets.json` before packaging. Never distribute or replace Game.exe, RGSS301.dll or steam_api.dll.
 

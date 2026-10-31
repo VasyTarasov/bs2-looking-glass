@@ -10,8 +10,9 @@ $save.Title='Куда сохранить локальный диагностич
 $save.Filter='ZIP (*.zip)|*.zip'
 $save.FileName='BS2_debug_'+(Get-Date -Format 'yyyyMMdd_HHmmss')+'.zip'
 if ($save.ShowDialog() -ne 'OK') { exit }
-$python=Get-Command python -ErrorAction Stop
-$result=& $python.Source (Join-Path $PSScriptRoot 'tools\collect_debug.py') --game $target --output $save.FileName
+. (Join-Path $PSScriptRoot 'tools\Pack-Python.ps1')
+$python=Get-PackPython $PSScriptRoot 'ru'
+$result=& $python -I -B -X utf8 (Join-Path $PSScriptRoot 'tools\entrypoint.py') collect_debug --game $target --output $save.FileName
 $parsed=($result -join "`n") | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0) { throw $parsed.error }
 [System.Windows.Forms.MessageBox]::Show('Отчёт сохранён. Ничего не отправлено в интернет. Личные сейвы не включены.','Диагностика BLACK SOULS II') | Out-Null
