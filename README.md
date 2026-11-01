@@ -4,7 +4,7 @@
 
 [**Скачать модпак с готовым установщиком**](https://github.com/VasyTarasov/bs2-looking-glass/releases/latest) · [История изменений](docs/CHANGELOG-RU.md) · [Version history](CHANGELOG.md)
 
-Распакуйте **весь** ZIP из раздела Releases и запустите `Install.cmd`. Python и необходимые библиотеки уже включены; отдельная установка и интернет для установки модпака не нужны. Автоматические архивы «Source code» предназначены для разработчиков и не содержат встроенный Python.
+Распакуйте **весь** ZIP из раздела Releases и запустите `Install.cmd`. Python и необходимые библиотеки уже включены; отдельная установка и интернет для установки модпака не нужны. 
 
 [Руководство в Steam](https://steamcommunity.com/sharedfiles/filedetails/?id=3830469599)
 
