@@ -4,7 +4,7 @@
 
 **Version 1.0 · Russian and English game versions · Windows 10/11**
 
-[**Download the pack and installer**](https://github.com/VasyTarasov/bs2-looking-glass/releases/latest) · [Version history](CHANGELOG.md)
+[**Download the pack and installer**](https://github.com/VasyTarasov/bs2-looking-glass/releases/latest) · [Steam guide (English)](https://steamcommunity.com/sharedfiles/filedetails/?id=3830468719) · [Version history](CHANGELOG.md)
 
 Extract the **entire** release ZIP and run `Install.cmd`. Python and the required libraries are included; no additional installations or internet connection are needed to install the pack.
 
@@ -46,10 +46,6 @@ Main features:
 <a id="section-02"></a>
 
 ## Installation
-
-**Download the pack from the Releases section of its GitHub page:**
-
-[https://github.com/VasyTarasov/bs2-looking-glass](https://github.com/VasyTarasov/bs2-looking-glass)
 
 The pack supports both an intact Game.rgss3a archive and an unpacked game. The installer backs up the files it needs to change, and the modules can be removed later. No separate mod loader is required.
 
