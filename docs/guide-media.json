@@ -210,6 +210,298 @@
       "source": "https://images.steamusercontent.com/ugc/9887032274348985476/4856621CF6FD74CE94DC86A35551AB5676B1070F/",
       "section": 10,
       "alt": "Состояние Steam-моста и оверлея"
+    },
+    "docs/assets/guide/en-01.png": {
+      "sha256": "ca99e07ac97eb8cb8a3f225749d45302ef1e544355476b5d5badc3ea86a2d0a8",
+      "bytes": 145484,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Battle interface with the HD information panel and action queue",
+      "sections": [
+        1
+      ]
+    },
+    "docs/assets/guide/en-02.png": {
+      "sha256": "3527894affcd0eb3a8666d28e593e0a8ce1fbb84b253dfbfbca632a27af9ef1e",
+      "bytes": 40941,
+      "width": 936,
+      "height": 619,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "English installer with module selection",
+      "sections": [
+        2
+      ]
+    },
+    "docs/assets/guide/en-03.png": {
+      "sha256": "645384f7f70bd61076ff5da24cfc2c0f13bf04e57d13c1b87176a872787f7882",
+      "bytes": 63399,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "In-game mod settings",
+      "sections": [
+        2
+      ]
+    },
+    "docs/assets/guide/en-04.png": {
+      "sha256": "1ba4632ebce03ee6b234268b028b172e728512ad18c950d418d7d16563255e81",
+      "bytes": 263938,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Dung Pie: detailed item effects",
+      "sections": [
+        4
+      ]
+    },
+    "docs/assets/guide/en-05.png": {
+      "sha256": "b030a6e4f5cd86907f0482a5646d74fa62adf075dad5cad42bdf5089c75e8756",
+      "bytes": 274220,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Demonbeasthunter Sawblade: weapon properties",
+      "sections": [
+        4
+      ]
+    },
+    "docs/assets/guide/en-06.png": {
+      "sha256": "0220d37732b50897b2d142de59a9e847376188f942488ef80c58e74869d621bd",
+      "bytes": 288430,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Selected technique with a damage forecast for each target",
+      "sections": [
+        4
+      ]
+    },
+    "docs/assets/guide/en-07.png": {
+      "sha256": "acba0c424fa0891650a4f7fce8146178f5b680526304f537c89ade442047f3f5",
+      "bytes": 334731,
+      "width": 3200,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Enemy reference: damage multipliers and state susceptibility",
+      "sections": [
+        4,
+        6
+      ]
+    },
+    "docs/assets/guide/en-08.gif": {
+      "sha256": "42cb75a0a10a7ae20087dacdccabc00670cceddc366d3e76a899a177917f82cc",
+      "bytes": 2073054,
+      "width": 576,
+      "height": 324,
+      "frames": 73,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Combat menus, action selection and execution — animated demonstration",
+      "sections": [
+        5
+      ]
+    },
+    "docs/assets/guide/en-09.png": {
+      "sha256": "411aa6efbec4a0c93438819c89ff7048347561a94dddf12f9602e7567362446a",
+      "bytes": 196578,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Favorite items in the standard battle list",
+      "sections": [
+        5
+      ]
+    },
+    "docs/assets/guide/en-10.png": {
+      "sha256": "c77f98f3f42ae7ba04e95e5fcd5850f329e5470e0049de470d95671889786076",
+      "bytes": 168389,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Combatants and their active effects",
+      "sections": [
+        6
+      ]
+    },
+    "docs/assets/guide/en-12.png": {
+      "sha256": "b52a29202d71dc789c745e5a8f23efd34308203dfd6c7e19d38550dbda7d7a79",
+      "bytes": 180526,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Journal of observed combat actions",
+      "sections": [
+        6
+      ]
+    },
+    "docs/assets/guide/en-14.png": {
+      "sha256": "897315731397c56a60df91e51bb2ee18d306163c94af4ccba40fc41dcc8bf054",
+      "bytes": 106618,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Hidden Body: field-skill reference",
+      "sections": [
+        7
+      ]
+    },
+    "docs/assets/guide/en-15.gif": {
+      "sha256": "0e7523752f3c3bb4002578965c35269e7567adf79295ebe9efdd6332a6d6cea5",
+      "bytes": 1698225,
+      "width": 640,
+      "height": 360,
+      "frames": 157,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Creating a macro and using it in battle — animated demonstration",
+      "sections": [
+        8
+      ]
+    },
+    "docs/assets/guide/en-16.png": {
+      "sha256": "2dcef6c1637665e62cf631ebb915dfba96aa544a032011a9bde6f9d5ed3169b7",
+      "bytes": 105233,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Equipment loadouts and a missing-item check",
+      "sections": [
+        9
+      ]
+    },
+    "docs/assets/guide/en-17.png": {
+      "sha256": "3485ef5d2ce07d29e0d12cd2f0a3581ba7a1593d22a98357fac733bb5f817cdf",
+      "bytes": 251786,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Learned-book indicators",
+      "sections": [
+        9
+      ]
+    },
+    "docs/assets/guide/en-18.png": {
+      "sha256": "4ee882803ea8a21abbad291ecb7aad6c623b347f48254846dc62afb8a775c58b",
+      "bytes": 207891,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Bulk soul use confirmation",
+      "sections": [
+        9
+      ]
+    },
+    "docs/assets/guide/en-19.png": {
+      "sha256": "f226945dd2d561b822ecd047b2e378c8b7dfe9131c9f07f27cb3653b9c6272fd",
+      "bytes": 47511,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Manual and quick saves",
+      "sections": [
+        9
+      ]
+    },
+    "docs/assets/guide/en-20.png": {
+      "sha256": "fba22c3a1b220211e108bc2ab9d3a06a986e663ddef06636eb6bfcb0e2d36125",
+      "bytes": 148347,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Recognized interactions highlighted on the map",
+      "sections": [
+        10
+      ]
+    },
+    "docs/assets/guide/en-21.png": {
+      "sha256": "03df5a349e02e65ac2bffae82a74c6628302e5fcafb445d160ddbd6d000838ea",
+      "bytes": 159460,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Gear of Madness: manual SEN selection",
+      "sections": [
+        10
+      ]
+    },
+    "docs/assets/guide/en-22.png": {
+      "sha256": "3276926c26b99082886d45a3711a37128c1324f4bf0920c023e3c8562a5a24a6",
+      "bytes": 61434,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Display and HD settings",
+      "sections": [
+        10
+      ]
+    },
+    "docs/assets/guide/en-23.png": {
+      "sha256": "18f961142db86648e6ac177c270165eecebd425d70a4879f3f88c8bdfea783e1",
+      "bytes": 50659,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Key bindings",
+      "sections": [
+        10
+      ]
+    },
+    "docs/assets/guide/en-25.png": {
+      "sha256": "864113e18f5f95873bdfff5bdc1366243b637d5e7ad7719715693d87271a4b73",
+      "bytes": 874389,
+      "width": 2560,
+      "height": 1440,
+      "frames": 1,
+      "source": "English NASGE guide export, 2026-11-01",
+      "language": "en",
+      "alt": "Steam overlay over the game; the Steam client is set to Russian",
+      "sections": [
+        10
+      ]
     }
+  },
+  "english_source": {
+    "format": "NASGE version 2",
+    "date": "2026-11-01",
+    "chapters": 12
   }
 }
