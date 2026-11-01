@@ -126,3 +126,10 @@ module BS2Modules
     end
   end
 end
+
+# Saved automatic labels can outlive the language of the installation. Keep
+# custom user names intact; English generation supplies reviewed old labels.
+module BS2Suite::Locale
+  def self.saved_label(value);value;end
+  def self.saved_notice(value);value;end
+end

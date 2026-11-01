@@ -157,9 +157,8 @@ def run(game,mode='check',selected=None,language='auto'):
     selected=expand(selected)
     if mode=='configure' or active:
         if not active: raise ValueError('Install modules before configuring')
-        if record['version']!=VERSION:
-            from update import run as update
-            update(game,True)
+        from update import run as update
+        update(game,True)
         # The GUI offers changing selection, not silently replacing installed code.
         verify_own_modules(game)
         atomic_write(directory/'modules.ini',config(selected))

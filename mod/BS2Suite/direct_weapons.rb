@@ -178,7 +178,7 @@ module BS2Suite
             profile['groups'].keys.select { |k| k[0,1]=='N' }.map { |k| k[1,k.size].to_i }+[1,2]).uniq.sort
           return numbers.map { |n| {:number=>n,:name=>(profile['groups']['N'+n.to_s] || 'Моя группа')+' · '+label(behavior(actor,n))} }
         end
-        layout(actor)['groups'].map { |g| {:number=>g['number'],:name=>g['name']+' · '+label(g['behavior'])} }
+        layout(actor)['groups'].map { |g| {:number=>g['number'],:name=>BS2Suite::Locale.saved_label(g['name'])+' · '+label(g['behavior'])} }
       end
       def rows(actor,group,page=0)
         shelf(actor).select { |e| e['group']==group && (e['page'] || 0)==page }.map do |e|

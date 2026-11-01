@@ -107,9 +107,8 @@ def run(game,mode,selected,language):
     selected=installer.expand(installer.DEFAULTS if selected is None else selected)
     if set(selected)-set(installer.IDS):raise ValueError('Unknown module')
     if active:
-        if record['version']!=installer.VERSION:
-            from update import run as update
-            update(game,True)
+        from update import run as update
+        update(game,True)
         installer.verify_own_modules(game)
         installer.atomic_write(directory/'modules.ini',installer.config(selected))
         installer.atomic_write(directory/'language.ini',b'language=en\n')

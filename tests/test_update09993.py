@@ -60,6 +60,27 @@ class Update09993Tests(unittest.TestCase):
                 with self.assertRaises(ValueError):update.run(game,True)
             self.assertTrue(all((game/k).read_bytes()==v for k,v in before.items()))
 
+    def test_known_same_version_revision_preserves_settings_and_updates(self):
+        with synthetic_root() as folder:
+            game,source=self.fixture(Path(folder))
+            record=game/'BS2Suite/install.json';data=json.loads(record.read_bytes());data['version']='1.0';record.write_text(json.dumps(data))
+            old=game/'Mods/BS2Suite/main.rb'
+            (source/'tools/previous_100_initial.json').write_text(json.dumps({'main.rb':update.sha(old.read_bytes()),'action_context09993.rb':None}))
+            keep={str(p.relative_to(game)):p.read_bytes() for p in [game/'Game.exe',game/'Data/Scripts.rvdata2',game/'Save01.rvdata2',game/'BS2Suite/modules.ini',game/'BS2Suite/macros.ini']}
+            with patch.object(update,'ROOT',source),patch.object(update,'target_running',return_value=False):
+                self.assertEqual(update.run(game)['own_files_to_update'],2)
+                self.assertEqual(update.run(game,True)['own_files_updated'],2)
+                self.assertTrue(update.run(game,True)['already_updated'])
+            self.assertTrue(all((game/k).read_bytes()==v for k,v in keep.items()))
+
+    def test_same_version_unknown_edit_is_refused(self):
+        with synthetic_root() as folder:
+            game,source=self.fixture(Path(folder))
+            record=game/'BS2Suite/install.json';data=json.loads(record.read_bytes());data['version']='1.0';record.write_text(json.dumps(data))
+            (source/'tools/previous_100_initial.json').write_text(json.dumps({'main.rb':'0'*64,'action_context09993.rb':None}))
+            with patch.object(update,'ROOT',source),patch.object(update,'target_running',return_value=False):
+                with self.assertRaises(ValueError):update.run(game,True)
+
     def test_partial_write_failure_restores_old_files_and_profile(self):
         with synthetic_root() as folder:
             game,source=self.fixture(Path(folder))

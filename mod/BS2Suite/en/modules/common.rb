@@ -128,8 +128,35 @@ module BS2Modules
   end
 end
 
+# Saved automatic labels can outlive the language of the installation. Keep
+# custom user names intact; English generation supplies reviewed old labels.
+module BS2Suite::Locale
+  def self.saved_label(value);value;end
+  def self.saved_notice(value);value;end
+end
+
 module BS2Modules
   def self.element_name(id);names=["None", "Physical", "Absorb", "Fire", "Ice", "Lightning", "", "", "Vs sleep", "Light", "Dark", "Double bleeding", "Helbreath", "Vs beasts", "Vs Jabberwock", "Double stun", "Vs vulnerability", "Falling", "Vs poison", "Vs rapiers"];value=id>=0 && names[id];value && !value.empty? ? value : "Type #"+id.to_s;end
   def self.weapon_type(id);names=["", "Axe", "Claws", "Spear", "Sword", "Katana", "Bow", "Dagger", "Hammer", "Staff", "Gun"];value=id>=0 && names[id];value && !value.empty? ? value : "Type #"+id.to_s;end
   def self.armor_type(id);names=["", "General armor", "Magic armor", "Light armor", "Heavy armor", "Small shield", "Large shield"];value=id>=0 && names[id];value && !value.empty? ? value : "Type #"+id.to_s;end
+end
+
+module BS2Suite::Locale
+  SAVED_LABELS={"N: \u0446\u0438\u0444\u0440\u0430 \u043d\u0430\u0434\u0435\u0442\u044c \u0441\u0435\u0439\u0447\u0430\u0441 \u00b7 D \u043d\u0430\u0437\u043d\u0430\u0447\u0438\u0442\u044c \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u0438\u043c \u00b7 N N \u0441\u043d\u044f\u0442\u044c"=>"N: number to equip \u00b7 D to assign as final \u00b7 N N to clear","\u0410\u0442\u0430\u043a\u0438, \u0441\u0438\u043b\u0430 \u0438 \u043e\u0441\u043e\u0431\u044b\u0435 \u0443\u0441\u043b\u043e\u0432\u0438\u044f"=>"Attacks, power and special conditions","\u0410\u0442\u0430\u043a\u0443\u044e\u0449\u0438\u0435 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u044b"=>"Attack items","\u0412\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435"=>"Recovery","\u0412\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 MP"=>"MP recovery","\u0417\u0430\u0449\u0438\u0442\u0430"=>"Guard","\u0418\u0437\u0443\u0447\u0435\u043d\u043d\u044b\u0435 \u0431\u043e\u0435\u0432\u044b\u0435 \u0442\u0435\u0445\u043d\u0438\u043a\u0438"=>"Learned combat techniques","\u0418\u0437\u0443\u0447\u0435\u043d\u043d\u044b\u0435 \u043f\u0440\u0438\u0451\u043c\u044b"=>"Learned techniques","\u041a\u043e\u043d\u0442\u0440\u043e\u043b\u044c \u0438 \u043e\u0442\u0432\u0435\u0442"=>"Control and response","\u041b\u0435\u0447\u0435\u043d\u0438\u0435 HP"=>"HP healing","\u041c\u0430\u0433\u0438\u044f \u0438 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430"=>"Magic and support","\u041c\u0430\u0441\u0441\u043e\u0432\u044b\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f"=>"Area actions","\u041d\u0430 \u0441\u0435\u0431\u044f \u0438 \u0441\u043e\u044e\u0437\u043d\u0438\u043a\u043e\u0432"=>"Self and allies","\u041e\u0434\u0438\u043d\u043e\u0447\u043d\u044b\u0435 \u0437\u0430\u043a\u043b\u0438\u043d\u0430\u043d\u0438\u044f"=>"Single-target spells","\u041e\u0441\u043b\u0430\u0431\u043b\u0435\u043d\u0438\u0435"=>"Debuffs","\u041e\u0441\u043e\u0431\u044b\u0435 \u043e\u0434\u0438\u043d\u043e\u0447\u043d\u044b\u0435 \u0437\u0430\u043a\u043b\u0438\u043d\u0430\u043d\u0438\u044f"=>"Special single-target spells","\u041e\u0441\u043e\u0431\u044b\u0435 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u044b"=>"Special items","\u041e\u0447\u0438\u0449\u0435\u043d\u0438\u0435"=>"Cleansing","\u041f\u043e \u043f\u0440\u043e\u0442\u0438\u0432\u043d\u0438\u043a\u0443"=>"Against enemies","\u041f\u043e\u0434\u0433\u043e\u0442\u043e\u0432\u043a\u0430"=>"Preparation","\u041f\u0440\u0435\u0434\u043c\u0435\u0442\u044b"=>"Items","\u0420\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0443\u0435\u043c\u044b\u0439 \u0430\u0440\u0441\u0435\u043d\u0430\u043b"=>"Recommended arsenal","\u0420\u0435\u0441\u0443\u0440\u0441\u044b \u0438 \u043e\u0441\u043e\u0431\u044b\u0435 \u0442\u0435\u0445\u043d\u0438\u043a\u0438"=>"Resources and special techniques","\u0421\u0435\u0440\u0438\u0438 \u0438 \u043e\u0441\u043e\u0431\u044b\u0435 \u0430\u0442\u0430\u043a\u0438"=>"Combos and special attacks","\u0421\u0435\u0440\u0438\u0438 \u0443\u0434\u0430\u0440\u043e\u0432"=>"Combos","\u0421\u0438\u043b\u0430 \u0438 \u043e\u0441\u043e\u0431\u044b\u0435 \u0443\u0441\u043b\u043e\u0432\u0438\u044f"=>"Power and special conditions","\u0421\u0438\u043b\u0430, \u043a\u0440\u0438\u0442 \u0438 \u0442\u043e\u0447\u043d\u043e\u0441\u0442\u044c"=>"Power, critical and accuracy","\u0421\u043b\u0443\u0447\u0430\u0439\u043d\u044b\u0435 \u0446\u0435\u043b\u0438"=>"Random targets","\u0421\u043c\u043e\u043b\u044b"=>"Resins","\u0421\u0442\u0438\u0445\u0438\u0438 \u0438 \u043e\u0441\u043e\u0431\u044b\u0435 \u0443\u0441\u043b\u043e\u0432\u0438\u044f"=>"Elements and special conditions","\u0422\u043e\u0447\u0435\u0447\u043d\u044b\u0435 \u0443\u0434\u0430\u0440\u044b"=>"Single-target attacks","\u0423\u0441\u0438\u043b\u0435\u043d\u0438\u044f"=>"Buffs"}.freeze
+  def self.saved_label(value)
+    return value unless value.is_a?(String)
+    return SAVED_LABELS[value] if SAVED_LABELS.has_key?(value)
+    numbered=/\A(.+?)( [0-9]+)\z/.match(value)
+    return SAVED_LABELS[numbered[1]]+numbered[2] if numbered && SAVED_LABELS.has_key?(numbered[1])
+    value.split(' / ').map { |part| SAVED_LABELS[part] || part }.join(' / ')
+  end
+  def self.saved_notice(value)
+    text=saved_label(value)
+    return text if text!=value || !defined?(BS2Suite::CatalogV1)
+    move=/\A([VBMN][0-9]{2} → [VBMN][0-9]{2}(?: ·)? )(.*)\z/.match(text)
+    return text unless move
+    @saved_object_names ||= Hash[BS2Suite::CatalogV1.entries.map { |row| [row['names']['ru'],row['names']['en']] }]
+    name=@saved_object_names[move[2]]
+    name ? move[1]+name : text
+  end
 end

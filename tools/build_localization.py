@@ -38,6 +38,29 @@ def compile_source(relative,text,mapping):
         for method,labels in groups.items():
             text+='  def self.'+method+'(id);names='+json.dumps(labels)+';value=id>=0 && names[id];value && !value.empty? ? value : "Type #"+id.to_s;end\n'
         text+='end\n'
+        labels=json.loads((ROOT/'localization/saved-labels.json').read_text(encoding='utf8'))
+        if any(key not in mapping or mapping[key]!=value or CYR.search(value) for key,value in labels.items()):
+            raise ValueError('Unreviewed saved-label translation')
+        pairs=[json.dumps(k,ensure_ascii=True)+'=>'+json.dumps(v,ensure_ascii=True) for k,v in sorted(labels.items())]
+        text+='\nmodule BS2Suite::Locale\n  SAVED_LABELS={'+','.join(pairs)+'}.freeze\n'
+        text+='''  def self.saved_label(value)
+    return value unless value.is_a?(String)
+    return SAVED_LABELS[value] if SAVED_LABELS.has_key?(value)
+    numbered=/\\A(.+?)( [0-9]+)\\z/.match(value)
+    return SAVED_LABELS[numbered[1]]+numbered[2] if numbered && SAVED_LABELS.has_key?(numbered[1])
+    value.split(' / ').map { |part| SAVED_LABELS[part] || part }.join(' / ')
+  end
+  def self.saved_notice(value)
+    text=saved_label(value)
+    return text if text!=value || !defined?(BS2Suite::CatalogV1)
+    move=/\\A([VBMN][0-9]{2} → [VBMN][0-9]{2}(?: ·)? )(.*)\\z/.match(text)
+    return text unless move
+    @saved_object_names ||= Hash[BS2Suite::CatalogV1.entries.map { |row| [row['names']['ru'],row['names']['en']] }]
+    name=@saved_object_names[move[2]]
+    name ? move[1]+name : text
+  end
+end
+'''
     if relative=='modules/effects.rb':
         text=text.replace('$data_system.elements[id]', 'BS2Modules.element_name(id)')
         text=text.replace('$data_system.weapon_types[id]', 'BS2Modules.weapon_type(id)')

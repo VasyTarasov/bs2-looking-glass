@@ -1,3 +1,11 @@
+## English saved-layout correction, 1 November 2026
+
+The 1.0 English interface now translates automatic group labels and historical movement notices loaded from an earlier Russian save. This changes presentation only: stored group membership, order, digits and custom user names are preserved. A known-hash update route accepts the original published 1.0 runtime, preserves module choices and macro profiles, backs up replaced files, and rejects unknown edits.
+
+The actual English VM passes 32,966 localization assertions, including all 2,401 factual catalog entries and transferred automatic labels. The package passes 47 game-free tests, including same-version update and unknown-edit refusal. English generation remains reproducible. These checks supplement, rather than replace, the historical full 1.0 verification below.
+
+Original English game text and encoded dialogue are unchanged. A local cross-language save conversion is separate from the distributed mod and is not shipped with any personal save or original game data.
+
 # Verification of version 1.0
 
 The final frozen runtime passes **66 native profiles / 104,609 assertions**, plus nine focused native profiles / 62 checks and two distributed-preparer profiles / 86 checks. Counts include repeated database records and contracts, not independent features. All 179 Russian/English Ruby files compile in the native game VM.

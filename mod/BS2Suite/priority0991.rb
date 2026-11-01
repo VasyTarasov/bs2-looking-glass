@@ -135,7 +135,7 @@ module BS2Suite::Semantic
     end
     alias bs20991_priority_moves pending_moves
     def pending_moves(actor,prefix)
-      bs20991_priority_moves(actor,prefix)+BS2Suite::Priorities.messages(actor,prefix)
+      (bs20991_priority_moves(actor,prefix)+BS2Suite::Priorities.messages(actor,prefix)).map { |s| BS2Suite::Locale.saved_notice(s) }
     end
     alias bs20991_priority_acknowledge acknowledge
     def acknowledge(actor,prefix)

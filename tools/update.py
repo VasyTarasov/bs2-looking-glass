@@ -1,4 +1,4 @@
-"""Update verified own modules through 0.99993-dev; never replace game binaries or script data."""
+"""Update verified own modules, including recognized 1.0 revisions."""
 from pathlib import Path, PurePosixPath
 import argparse,datetime,hashlib,json,sys,re
 sys.dont_write_bytecode=True
@@ -50,6 +50,8 @@ def run(game,apply=False):
     labels_path=ROOT/('tools/previous_'+previous_versions.get(record['version'],'092')+'_labels.json')
     labels=json.loads(labels_path.read_text(encoding='utf8')) if labels_path.is_file() and record['version']!=VERSION else {}
     source=ROOT/'mod/BS2Suite';changes=[]
+    revision_path=ROOT/'tools/previous_100_initial.json'
+    revision=json.loads(revision_path.read_text(encoding='utf8')) if record['version']==VERSION and revision_path.is_file() else {}
     for path in sorted(source.rglob('*')):
         if not path.is_file():continue
         rel=path.relative_to(source).as_posix();parts=PurePosixPath(rel)
@@ -57,6 +59,7 @@ def run(game,apply=False):
         target=game/'Mods/BS2Suite'/rel;old=target.read_bytes() if target.exists() else None;new=path.read_bytes()
         expected=sha(new) if record['version']==VERSION else previous.get(rel)
         verified=matches_own_ruby(old,expected,rel,canonical.get(rel))
+        if not verified and rel in revision:verified=matches_own_ruby(old,revision[rel],rel)
         if not verified and rel in labels:verified=matches_own_ruby(old,labels[rel],rel)
         if not verified:raise ValueError('An installed mod file has changed: '+rel)
         if old!=new:changes.append((rel,old,new))
@@ -65,16 +68,18 @@ def run(game,apply=False):
         old=retired.read_bytes()
         if sha(old)!=previous.get('scaling.rb'):raise ValueError('The old scaling module has changed; removal canceled.')
         changes.append(('scaling.rb',old,None))
-    if record['version']==VERSION:return {'result':'PASS','already_updated':True,'target_running':running,'changes':False}
+    if record['version']==VERSION and not changes:return {'result':'PASS','already_updated':True,'target_running':running,'changes':False}
     if config_path.stat().st_size>8192:raise ValueError('Unexpected module configuration size')
     config_bytes=config_path.read_bytes();text=config_bytes.decode('utf8')
     lines=[line for line in text.splitlines() if line.split('=',1)[0].strip() not in {'scaling','defeat','retry'}]
     if not any(line.startswith('weapon_family_cleanup=') for line in lines):lines.append('weapon_family_cleanup=1')
     from module_selection import migrate,configuration
     config_new=configuration(migrate(text))
+    if record['version']==VERSION:config_new=config_bytes
     macro_path=directory/'macros.ini'
     macro_old=macro_path.read_bytes() if macro_path.is_file() else None
     macro_new=grouped_macros(macro_old)
+    if record['version']==VERSION:macro_new=macro_old
     if not apply:return {'result':'PASS','compatible':True,'target_running':running,'own_files_to_update':len(changes),'changes':False}
     if target_running(game/'Game.exe'):raise RuntimeError('The game started during the update. Update canceled.')
     backup=directory/('rollback-'+VERSION+'-'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f'))

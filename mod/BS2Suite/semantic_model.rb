@@ -223,7 +223,7 @@ module BS2Suite
         sync(actor) unless $game_party.in_battle
         layout=state['layouts'][layout_key(actor,prefix)]
         return [] unless layout
-        layout['groups'].each_with_index.map { |g,i| {:number=>i+1,:name=>g['name']} }
+        layout['groups'].each_with_index.map { |g,i| {:number=>i+1,:name=>BS2Suite::Locale.saved_label(g['name'])} }
       end
       def object_row(actor,prefix,group,digit,kind,id,anchor=0)
         kind=kind.to_sym

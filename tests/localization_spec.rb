@@ -72,6 +72,30 @@ rgss_main do
     BS2Suite::ArmorFamilies094::GROUPS.each { |name,ids| check(ids[1..-1].all? { |id| parents[id] },'native English armor family '+name) }
     english(BS2Modules::Loadouts.lines(actor,nil),'empty loadout details')
     check(BS2Suite::CatalogV1.entries.size==2401,'complete factual catalog')
+    # A transferred save retains automatic Russian group names. A new-game-only
+    # check cannot detect this: exercise persisted layouts without rebuilding or
+    # clearing their bindings, ordering, known entries or numeric assignments.
+    locale=BS2Suite::Locale
+    locale::SAVED_LABELS.each do |old,current|
+      check(locale.saved_label(old)==current,'saved automatic label translation')
+      check(locale.saved_label(old+' 2')==current+' 2','saved numbered group translation')
+    end
+    check(locale.saved_label('My personal group')=='My personal group','custom group name preserved')
+    custom_name="\u041c\u043e\u044f \u043b\u0438\u0447\u043d\u0430\u044f \u0433\u0440\u0443\u043f\u043f\u0430"
+    check(locale.saved_label(custom_name)==custom_name,'user-entered Cyrillic is not rewritten')
+    %w(V B M).each do |prefix|
+      BS2Suite::Semantic.sync(actor)
+      layout=BS2Suite::Semantic.state['layouts'][BS2Suite::Semantic.layout_key(actor,prefix)]
+      next if layout['groups'].empty?
+      old="\u041f\u043e\u0434\u0433\u043e\u0442\u043e\u0432\u043a\u0430 2"
+      layout['groups'][0]['name']=old
+      before=Marshal.dump(layout)
+      check(BS2Suite::Semantic.groups(actor,prefix)[0][:name]=='Preparation 2','transferred '+prefix+' menu is English')
+      check(Marshal.dump(layout)==before,'localization preserves saved '+prefix+' layout')
+    end
+    weapon=catalog.entry($data_weapons[232])
+    old='N12 → N11 '+weapon['names']['ru']
+    check(locale.saved_notice(old)=='N12 → N11 '+weapon['names']['en'],'historical move notice uses native English name')
     log('result=PASS; assertions='+@checks.to_s)
   rescue Exception=>e
     log('result=FAIL; '+e.class.to_s+': '+e.message);log(e.backtrace.join("\n"))
