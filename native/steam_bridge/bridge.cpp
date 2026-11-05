@@ -298,6 +298,10 @@ extern "C" int WINAPI BS2_RestartStatus(LONG* out){if(!out)return 0;LONG v[4]={1
 extern "C" int WINAPI BS2_Restart(){
  if(!enabled||!restartRequest||restartChild)return 0;
  InterlockedExchange(&restartRequest,0);
+ // An external loader must not be bypassed by restarting Game.exe directly.
+ // Its launcher also owns a single named pipe, so spawning another launcher
+ // before this process exits would race it. Keep the current game running.
+ if(GetModuleHandleW(L"ModLoader.dll")){restartError=ERROR_NOT_SUPPORTED;return 0;}
  // A QA fixture must never recursively launch itself or escape its runner.
  if(GetFileAttributesW(L"test_prepare_profile.json")!=INVALID_FILE_ATTRIBUTES){restartError=ERROR_NOT_SUPPORTED;return 0;}
  wchar_t exe[32768]={};DWORD n=GetModuleFileNameW(0,exe,32768);

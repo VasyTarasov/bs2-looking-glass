@@ -6,6 +6,7 @@ rgss_main do
   begin
     File.open('test_result.txt','w') { |f| f.puts 'Live BS2 compatibility contracts' }
     check(BS2Suite::VERSION=='1.02','current compatibility release boots')
+    check(BS2Suite::SteamBridge.game_window!=0,'bridge selects this process RGSS window')
     DataManager.init;DataManager.setup_new_game
     SceneManager.instance_variable_set(:@background_bitmap,Bitmap.new(Graphics.width,Graphics.height))
     actor=$game_party.leader;actor.change_class(1);actor.change_level(70,false);actor.recover_all;$game_party.menu_actor=actor
@@ -53,6 +54,9 @@ rgss_main do
     check(scene.instance_variable_get(:@actor_command_window).active,'F7 restores battle input')
     scene.terminate;$game_party.on_battle_end
     check(Graphics.width==640 && Graphics.height==480,'source-frame size remains compatible')
+    BS2Suite::SteamBridge.poll
+    check(BS2Suite::SteamBridge.error.nil?,'graphical bridge booted without a window error')
+    check(BS2Suite::SteamBridge.stats[4]==1,'native HD renderer is ready')
     log('result=PASS; checks='+@checks.to_s)
   rescue Exception=>e
     log('result=FAIL; '+e.class.to_s+': '+e.message);log(e.backtrace.join("\n"))

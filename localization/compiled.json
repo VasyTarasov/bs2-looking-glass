@@ -62,6 +62,10 @@
       "source_sha256": "33dc96f9bb87fe8c0e70f5470ea950149dff3851191256e0f922ab730147dca6",
       "en_sha256": "4f0418d30c27794189a472a6cf7e5ce1a6a11e9f56f83b85997eb016022a60f8"
     },
+    "compatibility_runtime.rb": {
+      "source_sha256": "d5f3611a4566d9aab66284beaa30da5efb3d0e8a762f7b5efef841fc39592e1b",
+      "en_sha256": "e8b4ff48699ba1557675e03ce9d951fc231b74fa252740f551081e5878be5b9a"
+    },
     "core.rb": {
       "source_sha256": "73a2083e0add75e01c2e3990b832664de99c7b2decc3c45d50d1bf78c863a5ee",
       "en_sha256": "de5e556079f985619c1743715b8f12ffe1dc1d5939fa7d953a91782a402215da"
@@ -315,8 +319,8 @@
       "en_sha256": "cdd0bb1ad8d208103b8306d2580e789df1912b658913af38c289da62e5c869e7"
     },
     "steam_bridge.rb": {
-      "source_sha256": "b5ca33df8a5eca4d2cabfa0cd05ae93654ea553175665cc4e14d99ce2ae3ec58",
-      "en_sha256": "d714c0e7a6f9100b1e606ab758e77cd52e749b7f95e8f04442701126fa5a37d7"
+      "source_sha256": "377fbf81a1e7cf7e98f35fa9c8669a2f9d994e56f9131d40aa7f3aa00d684fa4",
+      "en_sha256": "29ead1987264d9e948a6f530326ed5f401a1d3b5f34267b905f5e2eb010585ee"
     },
     "support093.rb": {
       "source_sha256": "db154aecf3ab3a062506bc5873c765c89b128bfadfb2c7498a54d5e33170b265",
@@ -359,5 +363,5 @@
       "en_sha256": "f6c5ab00d69dfa93ab3b32c46ffbb29a047bb4842d54313ecea22cf8ef7c4fca"
     }
   },
-  "translations_sha256": "12cc9af6586d6e00712245d9b5bd43f6709fab8479f4a139ef58f787449ba422"
+  "translations_sha256": "7f2997b66a8fb121661304dcb09967b6bc4918271a4bba615dd9f2237a556829"
 }

@@ -3496,5 +3496,7 @@
   "Сохраняет локальные журналы ошибок и сведения о производительности. Отчёты не отправляются автоматически.": "Keeps local error logs and performance information. Reports are not sent automatically.",
   "Состав модпака (после перезапуска)": "Mod selection (restart required)",
   "Состав модпака": "Mod selection",
-  "Отметки изученных книг: ": "Learned-book markers: "
+  "Отметки изученных книг: ": "Learned-book markers: ",
+  "ModLoader: выйдите из игры и снова запустите Loader.exe.": "ModLoader: exit the game, then launch Loader.exe again.",
+  "недоступен при ModLoader": "unavailable with ModLoader"
 }

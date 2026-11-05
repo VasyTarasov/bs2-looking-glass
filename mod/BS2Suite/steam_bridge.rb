@@ -7,6 +7,20 @@ module BS2Suite
       def input_status;@input_status || [];end
       def active?;@running && stats[20]==1;end
       def rendering?;@running && (Options.get('steam_mode')!=0 || BS2Suite.enabled?('hd_display')) && !@error;end
+      def game_window
+        # Steam/background starts need not give this thread an active window.
+        # Select only this process's actual RGSS window, never another game.
+        find=Win32API.new('user32','FindWindowExW',['L','L','P','P'],'L')
+        owner=Win32API.new('user32','GetWindowThreadProcessId',['L','P'],'L')
+        process=Win32API.new('kernel32','GetCurrentProcessId',[],'L').call
+        klass="RGSS Player\0".encode('UTF-16LE');window=0
+        256.times do
+          window=find.call(0,window,klass,0);return 0 if window==0
+          pid=[0].pack('L');owner.call(window,pid)
+          return window if pid.unpack('L')[0]==process
+        end
+        0
+      end
       def boot
         path=File.join(BS2Suite::ROOT,'native','bs2_steam_bridge.dll')
         unless File.file?(path);@error='Файл графического моста отсутствует.';return false;end
@@ -23,7 +37,7 @@ module BS2Suite
         @native_shot=Win32API.new(path,'BS2_Screenshot',[],'I')
         size=Win32API.new(path,'BS2_SourceSize',['I','I'],'I')
         raise 'Не поддерживается размер исходного кадра' unless size.call(Graphics.width,Graphics.height)==1
-        window=Win32API.new('user32','GetActiveWindow',[],'L').call
+        window=game_window
         raise 'Не удалось подключить вывод кадров' unless @native_boot.call(window,(BS2Suite.enabled?('hd_display') || Options.get('steam_mode')!=0 ? 1 : 0) | (BS2Suite.enabled?('steam_bridge') ? 2 : 0))==1
         @running=true;@error=nil;poll;true
       rescue StandardError=>e
@@ -53,9 +67,9 @@ module BS2Suite
             stop;SceneManager.exit;return
           end
           @restarting=false
-          @restart_error='Не удалось перезапустить игру; текущая сессия остаётся открытой.'
-          BS2QoL::Hotkeys.notice(@restart_error)
           raw=([0]*4).pack('l*');@native_restart_status.call(raw)
+          @restart_error=defined?(::ModLoader) && raw.unpack('l*')[3]==50 ? 'ModLoader: выйдите из игры и снова запустите Loader.exe.' : 'Не удалось перезапустить игру; текущая сессия остаётся открытой.'
+          BS2QoL::Hotkeys.notice(@restart_error)
           BS2Suite::Debug.emit('f12_restart_failed',{:code=>raw.unpack('l*')[3]}) if defined?(BS2Suite::Debug)
         end
         signature=[stats[4],stats[5],stats[16],stats[18],stats[19],stats[20],input_status[1],input_status[3]]
@@ -101,11 +115,11 @@ module BS2Suite
          'Режим: '+(BS2Suite.enabled?('hd_display') ? 'HD OpenGL' : Options.get('steam_mode')==0 ? 'только скриншоты' : 'OpenGL и скриншоты'),
          'Захвачено кадров: '+stats[2].to_i.to_s+' · показано OpenGL: '+stats[3].to_i.to_s,
          'Steam API скриншотов: '+(stats[16]==1 ? 'доступен' : 'недоступен'),
-         'Чистый перезапуск по F12: '+(input_status[1]==1 ? 'включён' : 'НЕ ПОДКЛЮЧЕН'),
+         'Чистый перезапуск по F12: '+(defined?(::ModLoader) ? 'недоступен при ModLoader' : input_status[1]==1 ? 'включён' : 'НЕ ПОДКЛЮЧЕН'),
          'Графический модуль оверлея загружен: '+(input_status[3]==1 ? 'да' : 'нет'),
          'Overlay сообщает о подключении: '+(stats[19]==1 ? 'да' : 'нет'),
          'Последний скриншот: '+(stats[18]==1 ? 'Steam подтвердил запись' : stats[18]==-1 ? 'ожидание подтверждения' : stats[18].to_i==0 ? 'не запрашивался' : 'ошибка записи'),
-         'F12 — перезапуск к титульному экрану. Кнопка снимка выбирается в Steam.',
+         (defined?(::ModLoader) ? 'ModLoader: выйдите из игры и снова запустите Loader.exe.' : 'F12 — перезапуск к титульному экрану. Кнопка снимка выбирается в Steam.'),
          'Shift+Tab — оверлей Steam. Работа с HD, мышью и снимками подтверждена в игре пользователем.',
          'Steam Recording / повторы пока не подтверждены. Настройки записи Steam автоматически не меняются.',
          'Для отключения снимите модуль Steam и перезапустите игру.']

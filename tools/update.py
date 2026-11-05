@@ -55,6 +55,8 @@ def run(game,apply=False):
     source=ROOT/'mod/BS2Suite';changes=[]
     revision_path=ROOT/'tools/previous_100_initial.json'
     revision=json.loads(revision_path.read_text(encoding='utf8')) if record['version'] in (VERSION,'1.0','1.01') and revision_path.is_file() else {}
+    initial_102_path=ROOT/'tools/previous_102_initial.json'
+    initial_102=json.loads(initial_102_path.read_text(encoding='utf8')) if record['version']=='1.02' and initial_102_path.is_file() else {}
     for path in sorted(source.rglob('*')):
         if not path.is_file():continue
         rel=path.relative_to(source).as_posix();parts=PurePosixPath(rel)
@@ -63,6 +65,7 @@ def run(game,apply=False):
         expected=sha(new) if record['version']==VERSION else previous.get(rel)
         verified=matches_own_ruby(old,expected,rel,canonical.get(rel))
         if not verified and rel in revision:verified=matches_own_ruby(old,revision[rel],rel)
+        if not verified and rel in initial_102:verified=matches_own_ruby(old,initial_102[rel],rel)
         if not verified and rel in labels:verified=matches_own_ruby(old,labels[rel],rel)
         if not verified:raise ValueError('An installed mod file has changed: '+rel)
         if old!=new:changes.append((rel,old,new))

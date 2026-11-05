@@ -304,7 +304,7 @@ The **Steam / OpenGL** module enables the Steam overlay and screenshots, includi
 
 [![Steam overlay over the game; the Steam client is set to Russian](docs/assets/guide/en-25.png)](docs/assets/guide/en-25.png)
 
-Choose a Steam screenshot key other than **F12**: with the bridge enabled, F12 is used to return to the title screen through a restart.
+Choose a Steam screenshot key other than **F12**: with the bridge enabled, F12 is used to return to the title screen through a restart. With RMModLoader, automatic restart is disabled to avoid launching without its mods: exit the game and launch Loader.exe again.
 
 <a id="section-11"></a>
 

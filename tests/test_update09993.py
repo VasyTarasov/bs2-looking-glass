@@ -82,6 +82,18 @@ class Update09993Tests(unittest.TestCase):
             with patch.object(update,'ROOT',source),patch.object(update,'target_running',return_value=False):
                 with self.assertRaises(ValueError):update.run(game,True)
 
+    def test_initial_102_updates_without_losing_selection_or_macros(self):
+        with synthetic_root() as folder:
+            game,source=self.fixture(Path(folder))
+            record=game/'BS2Suite/install.json';data=json.loads(record.read_bytes());data['version']='1.02';record.write_text(json.dumps(data))
+            old=game/'Mods/BS2Suite/main.rb'
+            (source/'tools/previous_102_initial.json').write_text(json.dumps({'main.rb':update.sha(old.read_bytes()),'action_context09993.rb':None}))
+            keep={p:p.read_bytes() for p in [game/'BS2Suite/modules.ini',game/'BS2Suite/macros.ini',game/'Save01.rvdata2']}
+            with patch.object(update,'ROOT',source),patch.object(update,'target_running',return_value=False):
+                self.assertTrue(update.run(game,True)['own_files_updated'])
+                self.assertTrue(update.run(game,True)['already_updated'])
+            self.assertTrue(all(p.read_bytes()==v for p,v in keep.items()))
+
     def test_partial_write_failure_restores_old_files_and_profile(self):
         with synthetic_root() as folder:
             game,source=self.fixture(Path(folder))

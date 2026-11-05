@@ -8,6 +8,20 @@ module BS2Suite
       def input_status;@input_status || [];end
       def active?;@running && stats[20]==1;end
       def rendering?;@running && (Options.get('steam_mode')!=0 || BS2Suite.enabled?('hd_display')) && !@error;end
+      def game_window
+        # Steam/background starts need not give this thread an active window.
+        # Select only this process's actual RGSS window, never another game.
+        find=Win32API.new('user32','FindWindowExW',['L','L','P','P'],'L')
+        owner=Win32API.new('user32','GetWindowThreadProcessId',['L','P'],'L')
+        process=Win32API.new('kernel32','GetCurrentProcessId',[],'L').call
+        klass="RGSS Player\0".encode('UTF-16LE');window=0
+        256.times do
+          window=find.call(0,window,klass,0);return 0 if window==0
+          pid=[0].pack('L');owner.call(window,pid)
+          return window if pid.unpack('L')[0]==process
+        end
+        0
+      end
       def boot
         path=File.join(BS2Suite::ROOT,'native','bs2_steam_bridge.dll')
         unless File.file?(path);@error='Graphics bridge file is missing.';return false;end
@@ -24,7 +38,7 @@ module BS2Suite
         @native_shot=Win32API.new(path,'BS2_Screenshot',[],'I')
         size=Win32API.new(path,'BS2_SourceSize',['I','I'],'I')
         raise 'Unsupported source frame size' unless size.call(Graphics.width,Graphics.height)==1
-        window=Win32API.new('user32','GetActiveWindow',[],'L').call
+        window=game_window
         raise 'Could not attach frame output' unless @native_boot.call(window,(BS2Suite.enabled?('hd_display') || Options.get('steam_mode')!=0 ? 1 : 0) | (BS2Suite.enabled?('steam_bridge') ? 2 : 0))==1
         @running=true;@error=nil;poll;true
       rescue StandardError=>e
@@ -54,9 +68,9 @@ module BS2Suite
             stop;SceneManager.exit;return
           end
           @restarting=false
-          @restart_error='Could not restart the game; the current session remains open.'
-          BS2QoL::Hotkeys.notice(@restart_error)
           raw=([0]*4).pack('l*');@native_restart_status.call(raw)
+          @restart_error=defined?(::ModLoader) && raw.unpack('l*')[3]==50 ? 'ModLoader: exit the game, then launch Loader.exe again.' : 'Could not restart the game; the current session remains open.'
+          BS2QoL::Hotkeys.notice(@restart_error)
           BS2Suite::Debug.emit('f12_restart_failed',{:code=>raw.unpack('l*')[3]}) if defined?(BS2Suite::Debug)
         end
         signature=[stats[4],stats[5],stats[16],stats[18],stats[19],stats[20],input_status[1],input_status[3]]
@@ -102,11 +116,11 @@ module BS2Suite
          'Mode: '+(BS2Suite.enabled?('hd_display') ? 'HD OpenGL' : Options.get('steam_mode')==0 ? 'screenshots only' : 'OpenGL and screenshots'),
          'Frames captured: '+stats[2].to_i.to_s+' · OpenGL presented: '+stats[3].to_i.to_s,
          'Steam screenshot API: '+(stats[16]==1 ? 'available' : 'unavailable'),
-         'Clean F12 restart: '+(input_status[1]==1 ? 'enabled' : 'NOT ATTACHED'),
+         'Clean F12 restart: '+(defined?(::ModLoader) ? 'unavailable with ModLoader' : input_status[1]==1 ? 'enabled' : 'NOT ATTACHED'),
          'Overlay graphics module loaded: '+(input_status[3]==1 ? 'yes' : 'none'),
          'Overlay reports connected: '+(stats[19]==1 ? 'yes' : 'none'),
          'Last screenshot: '+(stats[18]==1 ? 'Steam confirmed saving' : stats[18]==-1 ? 'waiting for confirmation' : stats[18].to_i==0 ? 'not requested' : 'save error'),
-         'F12 — restart to title. The screenshot key is selected in Steam.',
+         (defined?(::ModLoader) ? 'ModLoader: exit the game, then launch Loader.exe again.' : 'F12 — restart to title. The screenshot key is selected in Steam.'),
          'Shift+Tab — Steam overlay. HD, mouse and screenshot operation was confirmed in-game by the user.',
          'Steam Recording / replays remain unconfirmed. Steam recording settings are not changed automatically.',
          'To disable, deselect the Steam module and restart the game.']

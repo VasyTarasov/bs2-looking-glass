@@ -15,6 +15,7 @@ def target_running(executable):
     api.Process32NextW.argtypes=[w.HANDLE,ctypes.POINTER(ENTRY)];api.Process32NextW.restype=w.BOOL
     api.OpenProcess.argtypes=[w.DWORD,w.BOOL,w.DWORD];api.OpenProcess.restype=w.HANDLE
     api.QueryFullProcessImageNameW.argtypes=[w.HANDLE,w.DWORD,w.LPWSTR,ctypes.POINTER(w.DWORD)];api.QueryFullProcessImageNameW.restype=w.BOOL
+    api.GetExitCodeProcess.argtypes=[w.HANDLE,ctypes.POINTER(w.DWORD)];api.GetExitCodeProcess.restype=w.BOOL
     api.CloseHandle.argtypes=[w.HANDLE];api.CloseHandle.restype=w.BOOL
     snapshot=api.CreateToolhelp32Snapshot(2,0)
     if snapshot==ctypes.c_void_p(-1).value:raise RuntimeError('Cannot inspect running game safely')
@@ -24,12 +25,17 @@ def target_running(executable):
         while okay:
             if row.szExeFile.casefold()==executable.name.casefold():
                 process=api.OpenProcess(0x1000,False,row.th32ProcessID)
-                if not process:raise RuntimeError('A running Game.exe could not be identified; close it before installation')
+                if not process:
+                    if ctypes.get_last_error()==87: # Exited after the snapshot.
+                        okay=api.Process32NextW(snapshot,ctypes.byref(row));continue
+                    raise RuntimeError('A running Game.exe could not be identified; close it before installation')
                 try:
                     buffer=ctypes.create_unicode_buffer(32768);length=w.DWORD(len(buffer))
                     if not api.QueryFullProcessImageNameW(process,0,buffer,ctypes.byref(length)):
-                        raise RuntimeError('Cannot identify running Game.exe safely')
-                    if Path(buffer.value).resolve()==executable.resolve():return True
+                        status=w.DWORD(259)
+                        if not api.GetExitCodeProcess(process,ctypes.byref(status)) or status.value==259:
+                            raise RuntimeError('Cannot identify running Game.exe safely')
+                    elif Path(buffer.value).resolve()==executable.resolve():return True
                 finally:api.CloseHandle(process)
             okay=api.Process32NextW(snapshot,ctypes.byref(row))
         return False

@@ -35,7 +35,7 @@ class Transaction:
         try:
             self.temp=self.game/('.bs2suite-transaction-'+uuid.uuid4().hex)
             self.temp.mkdir()
-            for rel in ('BS2Suite','Mods/BS2Suite','Data/Scripts.rvdata2','Game.rgss3a','mod_loader/mod_loader.json',BOOTSTRAP):
+            for rel in ('BS2Suite','Mods/BS2Suite','Data/Scripts.rvdata2','Game.rgss3a','steam_appid.txt','mod_loader/mod_loader.json',BOOTSTRAP):
                 src=checked(self.game/rel,self.game);dst=self.temp/rel
                 kind='dir' if src.is_dir() else 'file' if src.is_file() else 'absent'
                 self.saved.append((src,dst,kind))

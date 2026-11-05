@@ -52,6 +52,8 @@ def run(game,mode,selected,language,installer):
         if not boot.is_file() or installer.digest(boot.read_bytes())!=record['installed_scripts_sha256']:
             raise ValueError('QoL loader bootstrap changed after installation; keep it for recovery before removing')
         restore_config(game,record,installer);boot.unlink()
+        appid=game/'steam_appid.txt'
+        if record.get('steam_appid_created') and appid.is_file() and appid.read_bytes()==b'3855540\n':appid.unlink()
         installer.atomic_write(marker,json.dumps(dict(record,active=False),indent=2).encode())
         return {'uninstalled':True,'storage':'loader','game_files_changed':False,'loader_settings_restored':True,'saves_touched':False}
     read=reader(game);raw=read('Data/Scripts.rvdata2')
@@ -105,11 +107,17 @@ def run(game,mode,selected,language,installer):
     installer.atomic_write(directory/'modules.ini',installer.config(selected))
     installer.atomic_write(directory/'language.ini',('language='+report['language']+'\n').encode('ascii'))
     installer.atomic_write(config,installed_config)
+    appid=game/'steam_appid.txt';appid_created=bool(active and record.get('steam_appid_created'))
+    if not appid.exists() and (game/'steam_api.dll').is_file():
+        # A direct Loader launch has no Steam launch environment. The game's
+        # own Steam API needs its public app id; never replace a user's file.
+        installer.atomic_write(appid,b'3855540\n');appid_created=True
     installer.atomic_write(boot,expected)
     record={'version':installer.VERSION,'active':True,'storage':'loader','language':report['language'],
             'installed_scripts_sha256':installer.digest(expected),'original_scripts_sha256':installer.digest(raw),
             'loader_config_existed':original_existed,'loader_config_original_sha256':original_hash,
-            'loader_config_installed_sha256':installer.digest(installed_config),'loader_owned_settings':owned}
+            'loader_config_installed_sha256':installer.digest(installed_config),'loader_owned_settings':owned,
+            'steam_appid_created':appid_created}
     installer.atomic_write(marker,json.dumps(record,indent=2).encode())
     set_probe(installer,report,policy)
     return dict(report,installed=True,storage='loader',modules=selected,game_files_changed=False,saves_touched=False)

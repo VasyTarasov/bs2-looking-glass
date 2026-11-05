@@ -23,3 +23,13 @@ If an object's mechanics differ from the reference catalog, its old explanatory 
 DisplayMod is excluded. A replaced engine, damaged database, missing required game classes, or changed files belonging to an active QoL installation can still prevent installation. These checks protect native display/input hooks and recoverability. Apply translations and game patches before QoL Pack. Do not delete installation records or backups to force an update.
 
 The test harness uses isolated copies, disables Steam calls and audio for tests, and creates its own game state. It does not copy player saves. Passing these tests does not certify every operating system, GPU, Steam overlay, third-party script or playthrough route.
+
+## Real Steam launch follow-up
+
+Six genuine Steam launches (clean English, both restoration archives, Larry before/after fixes, BS2RU_v5) and three Loader launches with Steam running passed startup, HD presentation and battle-reference checks. Game audio and Input remained active. These are controlled scenarios, not complete playthroughs.
+
+A background-start bug was fixed: the bridge now finds this process's RGSS window instead of assuming it is the active window. Loader installations create `steam_appid.txt` only if the game's Steam API is present and no app-id file exists. Existing files and later user edits are preserved; uninstall removes only an unchanged file created by the pack. API and overlay attachment were separately confirmed with Loader 2.6. The first English test fixture omitted `steam_api.dll`; including that file from the complete official patch resolved the pre-mod startup failure. Always install the complete patch.
+
+Automatic restart through Game.exe is blocked while ModLoader.dll is loaded, because it would discard the loader and its mods. This includes F12 and the HD DPI-restart button. Exit normally and launch Loader.exe again. The blocked F12 path retained the running modded game and passed its battle-reference checks.
+
+Interactive Shift+Tab open/close remains unconfirmed. No experimental overlay-keyboard routing changes are included. The original Steam files and all 99 player save files were restored unchanged. Update from the initial 1.02 archive is supported without resetting module selection or macros.

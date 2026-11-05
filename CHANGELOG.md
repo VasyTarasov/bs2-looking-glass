@@ -1,5 +1,7 @@
 ## 1.02 — 2026-11-05
 
+Real Steam follow-up: fix background HD startup; supply missing Steam app-id metadata for Loader without replacing user files; keep the running Loader game on F12 instead of restarting without its mods. Safely update the initial 1.02 package.
+
 Broader installer recognition: clean Steam English, both verified restoration archives, Larry translations and older BS2RU_v5. RMModLoader 2.4–2.6 adapter preserves game/translation data and restores owned Loader settings on removal. Changed objects use current database properties instead of stale reference prose. Installation failures roll back changes; updates from 1.0/1.01 retain settings.
 
 ## 1.01 — 2026-11-05
