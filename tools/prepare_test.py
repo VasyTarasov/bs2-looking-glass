@@ -38,7 +38,7 @@ def main():
     parser.add_argument('--source',type=Path,required=True)
     parser.add_argument('--game',type=Path,required=True)
     parser.add_argument('--copy',action='store_true',help='Copy only runtime folders/executable, excluding saves and Steam files')
-    parser.add_argument('--suite',choices=['v1_modules','v1_basic','v1_reference','v1_visual','localization','forecast_zero099994','hud_mechanics099994','catalog_ui','catalog_v1','forecast_percent','forecast_presentation','cleanse09999','auto_items09998','polish_content','polish_support','polish_gunbreak','polish_inventory','polish_economy','polish_system','module_boot','live09996','menus09995','diagnostic_text09995','menus09994','queue09993','forecast_weapons','forecast_matrix','forecast_catalog','forecast_baseline','highlight_catalog','iteration09992','iteration0999','macros_optional0998','iteration0997','map0997','rings0996','diagnostics0995','battle_speed0994','resources0993','preferences0992','iteration0991','performance0991','iteration092dev','reference098','weapon_audit','iteration097','iteration094','smoke','system','keys','reference','forecast','modules','effects_loadouts','screens','adversarial','stress','iteration','showcase','export','semantic','semantic_integration','semantic_forecast','semantic_boot','map_return','debug_performance'],default='v1_modules')
+    parser.add_argument('--suite',choices=['compatibility','v1_modules','v1_basic','v1_reference','v1_visual','localization','forecast_zero099994','hud_mechanics099994','catalog_ui','catalog_v1','forecast_percent','forecast_presentation','cleanse09999','auto_items09998','polish_content','polish_support','polish_gunbreak','polish_inventory','polish_economy','polish_system','module_boot','live09996','menus09995','diagnostic_text09995','menus09994','queue09993','forecast_weapons','forecast_matrix','forecast_catalog','forecast_baseline','highlight_catalog','iteration09992','iteration0999','macros_optional0998','iteration0997','map0997','rings0996','diagnostics0995','battle_speed0994','resources0993','preferences0992','iteration0991','performance0991','iteration092dev','reference098','weapon_audit','iteration097','iteration094','smoke','system','keys','reference','forecast','modules','effects_loadouts','screens','adversarial','stress','iteration','showcase','export','semantic','semantic_integration','semantic_forecast','semantic_boot','map_return','debug_performance'],default='v1_modules')
     parser.add_argument('--vanilla',action='store_true',help='System suite without the mod for differential comparison')
     parser.add_argument('--cases',default='victory')
     parser.add_argument('--seed',type=int,default=24015)
@@ -69,18 +69,22 @@ def main():
         raw=read_scripts(source/'Game.rgss3a')
     else:raw=original.read_bytes()
     scripts=Marshal(raw if args.vanilla else patch_scripts(raw)).read()
-    if b'class SteamAPIContext' not in zlib.decompress(scripts[222][2]):raise ValueError('Unexpected Steam script')
-    scripts[222]=[scripts[222][0],scripts[222][1],zlib.compress(b'# Disabled in isolated test copy only.\n')]
+    for i,row in enumerate(scripts):
+        if b'class SteamAPIContext' in zlib.decompress(row[2]):
+            scripts[i]=[row[0],row[1],zlib.compress(b'# Disabled in isolated test copy only.\n')]
     spec=suite_file(args.suite)
-    scripts[-1]=[scripts[-1][0],b'BS2QoL native tests',zlib.compress(spec.read_bytes())]
+    main_index=next(i for i,row in enumerate(scripts) if row[1]==b'Main')
+    scripts[main_index]=[scripts[main_index][0],b'BS2QoL native tests',zlib.compress(spec.read_bytes())]
     scripts.insert(0,[900001,b'BS2QoL silent test prelude',zlib.compress(PRELUDE)])
     data=b'\x04\x08'+dump(scripts)
     check=Marshal(data)
-    if len(check.read())!=(225 if args.vanilla else 226) or check.pos!=len(data):raise ValueError('Invalid test script table')
+    if len(check.read())!=len(scripts) or check.pos!=len(data):raise ValueError('Invalid test script table')
     shutil.copytree(ROOT/'mod/BS2Suite',game/'Mods/BS2Suite',dirs_exist_ok=True)
     from install import DEFAULTS, config, select
     selected=DEFAULTS if args.modules is None else ([] if args.modules=='none' else select(args.modules))
     (game/'BS2Suite').mkdir(exist_ok=True)
+    import install as installer_module
+    if installer_module._compatibility_policy:(game/'BS2Suite/compatibility.rvdata2').write_bytes(installer_module._compatibility_policy)
     (game/'BS2Suite/modules.ini').write_bytes(config(selected))
     (game/'BS2Suite/language.ini').write_text('language='+compatible['language']+'\n',encoding='ascii')
     shutil.copy2(ROOT/'tests/native_capture.rb',game/'BS2QA_native_capture.rb')

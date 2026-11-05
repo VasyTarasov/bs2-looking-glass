@@ -1,0 +1,72 @@
+# encoding: UTF-8
+# Local policy contains only mechanical compatibility flags, never game assets.
+module BS2Suite
+  module Compatibility
+    def self.policy
+      return @policy if @policy
+      path=File.join(Dir.pwd,'BS2Suite','compatibility.rvdata2')
+      value=File.file?(path) && File.size(path)<1024*1024 ? File.open(path,'rb') { |f| Marshal.load(f) } : {}
+      raise 'Invalid compatibility policy' unless value.is_a?(Hash)
+      @policy=value
+    end
+    def self.excluded?(uid)
+      @excluded ||= policy.fetch('excluded',[]).inject({}) { |h,k| h[k]=true;h }
+      !!@excluded[uid]
+    end
+    def self.native(uid)
+      match=/\A(skill|item|weapon|armor|state):([0-9]+)\z/.match(uid.to_s)
+      return nil unless match
+      tables={'skill'=>$data_skills,'item'=>$data_items,'weapon'=>$data_weapons,'armor'=>$data_armors,'state'=>$data_states}
+      table=tables[match[1]];table && table[match[2].to_i]
+    end
+    def self.named(row,uid)
+      object=native(uid);return row unless row && object && object.respond_to?(:name)
+      name=object.name.to_s.dup.force_encoding('UTF-8')
+      return row unless name.valid_encoding?
+      names=row['names'].dup
+      lang=policy['native_language']
+      if lang=='ru' || lang=='en';names[lang]=name;else;names['ru']=name;names['en']=name;end
+      row.merge('names'=>names)
+    end
+    def self.current_name(object,locale)
+      lang=policy['native_language']
+      return nil unless object && object.respond_to?(:name) && (lang==locale.to_s || lang=='other')
+      object.name
+    end
+  end
+end
+class BS2QoL::ReferenceCard
+  alias compatibility_base_name name
+  def name(object)
+    BS2Suite::Compatibility.current_name(object,language) || compatibility_base_name(object)
+  end
+end
+class BS2QoL::PracticalCard
+  alias compatibility_practical_name name
+  def name(object)
+    BS2Suite::Compatibility.current_name(object,language) || compatibility_practical_name(object)
+  end
+end
+if defined?(BS2Suite::CatalogV1)
+  module BS2Suite::CatalogV1
+    class << self
+      alias compatibility_original_entry entry
+      def entry(object)
+        key=uid(object);return nil if BS2Suite::Compatibility.excluded?(key)
+        BS2Suite::Compatibility.named(compatibility_original_entry(object),key)
+      end
+    end
+  end
+end
+if defined?(BS2Suite::Reference098)
+  module BS2Suite::Reference098
+    class << self
+      alias compatibility_original_get get
+      def get(object)
+        key=defined?(BS2Suite::CatalogV1) ? BS2Suite::CatalogV1.uid(object) : nil
+        return nil if key && BS2Suite::Compatibility.excluded?(key)
+        compatibility_original_get(object)
+      end
+    end
+  end
+end

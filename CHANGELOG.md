@@ -1,3 +1,11 @@
+## 1.02 — 2026-11-05
+
+Broader installer recognition: clean Steam English, both verified restoration archives, Larry translations and older BS2RU_v5. RMModLoader 2.4–2.6 adapter preserves game/translation data and restores owned Loader settings on removal. Changed objects use current database properties instead of stale reference prose. Installation failures roll back changes; updates from 1.0/1.01 retain settings.
+
+## 1.01 — 2026-11-05
+
+Compatibility release: recognize both verified English restoration archives and Larry base/1.06; preserve the exact original archive on removal; explain external-loader and known translation conflicts; retain 1.0 settings during updates.
+
 # Version history
 
 [Русский](docs/CHANGELOG-RU.md) · [Home](README.md)

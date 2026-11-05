@@ -6,7 +6,7 @@ from archive_reader import Marshal
 from process_check import target_running
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = '1.0'
+VERSION = '1.02'
 MANIFEST=json.loads((ROOT/'modules.json').read_text(encoding='utf8'))
 IDS=[m['id'] for m in MANIFEST]
 DEFAULTS=[m['id'] for m in MANIFEST if m['default']]
@@ -69,16 +69,16 @@ def validate_scripts(raw, profile):
             expected=QOL_BOOT if row[1]==b'BS2QoL bootstrap' else MODULES_BOOT
             if zlib.decompress(row[2]) != expected: raise ValueError('Unknown previous bootstrap')
             qol+=1
-        else: baseline.append([row[0].decode('ascii') if isinstance(row[0],bytes) else row[0],row[1].decode('utf8'),digest(row[2])])
+        else: baseline.append([row[0].decode('ascii','replace') if isinstance(row[0],bytes) else row[0],row[1].decode('utf8','replace'),digest(row[2])])
     if qol>2 or baseline!=profile['scripts']: raise ValueError('Unsupported or modified game scripts')
-    if rows[-1][1]!=b'Main': raise ValueError('Main must be last')
+    if not any(r[1]==b'Main' for r in rows): raise ValueError('Main entry point missing')
     return bool(qol)
 
 def patch_scripts(raw):
     rows=table(raw)
     if any(row[1]==NAME for row in rows): raise ValueError('Modules bootstrap already present')
     rows=[row for row in rows if row[1] not in (b'BS2QoL bootstrap',b'BS2Modules bootstrap')]
-    rows.insert(len(rows)-1,[900015,NAME,zlib.compress(BOOT)])
+    rows.insert(next(i for i,r in enumerate(rows) if r[1]==b'Main'),[900015,NAME,zlib.compress(BOOT)])
     result=b'\x04\x08'+dump(rows)
     if table(result)!=rows: raise ValueError('Script serialization failed')
     return result
@@ -107,10 +107,21 @@ def verify_own_modules(game):
         if path.suffix=='.rb' and old.replace(b'\r\n',b'\n')==expected.replace(b'\r\n',b'\n'):continue
         raise ValueError('Installed code differs; restore verified modules before configuring')
 
-def run(game,mode='check',selected=None,language='auto'):
+def game_profiles():
+    return [(lang,json.loads((ROOT/name).read_text(encoding='utf8'))) for lang,name in (
+        ('ru','build_profile.json'),('ru','build_profile.ru_larry101.json'),
+        ('en','build_profile.en.json'),('en','build_profile.en_official.json'))]
+
+def _run(game,mode='check',selected=None,language='auto'):
     game=Path(game).resolve()
     if any(part.casefold()=='secrets' for part in game.parts): raise ValueError('Protected directory refused')
     if language not in ('auto','en','ru'):raise ValueError('Unknown game language')
+    from loader_install import present as loader_present,run as run_loader
+    record_path=game/'BS2Suite/install.json'
+    saved_record=json.loads(record_path.read_text(encoding='utf8')) if record_path.is_file() else None
+    if (mode=='uninstall' and saved_record and saved_record.get('storage')=='loader') or (mode!='uninstall' and loader_present(game)):
+        import install as this_installer
+        return run_loader(game,mode,selected,language,this_installer)
     if (game/'Game.rgss3a').exists():
         from packed_game import run as run_packed
         return run_packed(game,mode,selected,language)
@@ -118,15 +129,11 @@ def run(game,mode='check',selected=None,language='auto'):
     raw=target.read_bytes()
     record=json.loads(marker.read_text(encoding='utf8')) if marker.exists() else None
     original=(directory/'Scripts.original.rvdata2').read_bytes() if record else raw
-    detected=None
-    for candidate,filename in [('ru','build_profile.json'),('en','build_profile.en.json')]:
-        candidate_profile=json.loads((ROOT/filename).read_text(encoding='utf8'))
-        try:validate_scripts(original,candidate_profile)
-        except ValueError:continue
-        detected=candidate;profile=candidate_profile;break
-    if not detected:raise ValueError('Unsupported or modified game scripts')
-    if language!='auto' and language!=detected:raise ValueError('Selected language does not match the game. Choose '+detected.upper()+'.')
-    language=detected
+    from compatibility import probe,set_probe
+    import install as this_installer
+    profile,report,policy=probe(game,original,lambda name:(game/name).read_bytes(),ROOT,language)
+    set_probe(this_installer,report,policy)
+    language=report['language']
     active=bool(record and digest(raw)==record['installed_scripts_sha256'])
     if record and digest(raw) not in (record['installed_scripts_sha256'],record['original_scripts_sha256']):
         raise ValueError('Script table changed after installation; refusing to overwrite it')
@@ -181,11 +188,33 @@ def run(game,mode='check',selected=None,language='auto'):
     atomic_write(marker,json.dumps(dict(record,active=True),indent=2).encode('utf8'))
     return {'installed':True,'modules':selected,'qol_present':qol,'saves_touched':False}
 
+_compatibility_result=None
+_compatibility_policy=None
+
+def run(game,mode='check',selected=None,language='auto'):
+    global _compatibility_result,_compatibility_policy
+    _compatibility_result=None;_compatibility_policy=None
+    game=Path(game).resolve()
+    if any(p.casefold()=='secrets' for p in game.parts):raise ValueError('Protected directory refused')
+    if not game.is_dir():raise ValueError('Select the game folder containing Game.exe')
+    if mode!='check' and target_running(game/'Game.exe'):raise ValueError('Close the game before changing modules')
+    from install_transaction import Transaction
+    def execute():
+        result=_run(game,mode,selected,language)
+        if _compatibility_result:
+            result.update(_compatibility_result)
+            if mode!='check' and mode!='uninstall':
+                atomic_write(game/'BS2Suite/compatibility.rvdata2',_compatibility_policy)
+                atomic_write(game/'BS2Suite/compatibility-report.json',json.dumps(_compatibility_result,indent=2).encode())
+        return result
+    if mode=='check':return execute()
+    with Transaction(game):return execute()
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--game',type=Path,required=True)
     parser.add_argument('--modules',help='comma-separated IDs from modules.json (debug is opt-in)')
-    parser.add_argument('--language',choices=['auto','en','ru'],default='auto',help='Language of the target game; does not translate the base game')
+    parser.add_argument('--language',choices=['auto','en','ru'],default='auto',help='Mod interface language; auto follows the game. Does not translate the base game')
     modes=parser.add_mutually_exclusive_group()
     for name in ('install','configure','uninstall'): modes.add_argument('--'+name,action='store_true')
     args=parser.parse_args()
@@ -194,7 +223,9 @@ def main():
     print(json.dumps(run(args.game,mode,selected,args.language),ensure_ascii=True))
 
 if __name__=='__main__':
-    try: main()
+    try:
+        import install as installer_module
+        installer_module.main()
     except Exception as error:
         print(json.dumps({'ok':False,'error':str(error),'saves_touched':False},ensure_ascii=True))
         raise SystemExit(1)

@@ -66,8 +66,6 @@ def run(game,mode,selected,language):
     for p in (archive,backup,marker):
         if p.is_symlink():raise ValueError('Linked game files are not supported')
     record=json.loads(marker.read_text(encoding='utf8')) if marker.exists() else None
-    profile=json.loads((installer.ROOT/'build_profile.en.json').read_text(encoding='utf8'))
-    if language not in ('auto','en'):raise ValueError('This archive is English. Select English game version.')
     if record and record.get('storage')!='archive':raise ValueError('Incompatible previous loose-installation record; use a separate game folder')
     # The verified Game.ini points at Data/Scripts, which RGSS loads from this
     # archive. Original distributions can retain loose base Data alongside it.
@@ -79,7 +77,14 @@ def run(game,mode,selected,language):
         original_archive=backup
         if sha_file(backup)!=record['original_archive_sha256']:raise ValueError('Original archive backup mismatch')
     else:original_archive=archive
-    if sha_file(original_archive)!=profile['archive_sha256']:raise ValueError('Unsupported English archive; no changes made')
+    original_hash=sha_file(original_archive)
+    entries(original_archive)
+    from compatibility import probe,set_probe
+    reader=ArchiveReader(original_archive)
+    profile,report,policy=probe(game,read_scripts(original_archive),reader.read,installer.ROOT,language)
+    profile['archive_sha256']=original_hash
+    set_probe(installer,report,policy)
+    language=report['language']
     for name in ('Game.exe','Game.ini','System/RGSS301.dll'):
         if sha_file(game/name)!=profile['files'][name]:raise ValueError('Unsupported build: '+name)
     original=read_scripts(original_archive);installer.validate_scripts(original,profile)
@@ -90,7 +95,7 @@ def run(game,mode,selected,language):
         from module_selection import migrate,parse,DEFAULTS
         text=(directory/'modules.ini').read_text(encoding='utf8') if (directory/'modules.ini').exists() else ''
         module_ids=(sorted(parse(text)&set(installer.IDS)) if record and record['version']==installer.VERSION else migrate(text)) if text else DEFAULTS
-        return {'compatible':True,'installed':active,'language':'en','storage':'archive','loose_base_data_preserved':loose_data_ignored,'target_running':running,'changes':False,'module_ids':module_ids}
+        return {'compatible':True,'installed':active,'language':language,'storage':'archive','loose_base_data_preserved':loose_data_ignored,'target_running':running,'changes':False,'module_ids':module_ids}
     if mode=='uninstall':
         if not record:raise ValueError('No installation record')
         if not active:return {'already_uninstalled':True,'changes':False}
@@ -111,8 +116,8 @@ def run(game,mode,selected,language):
         update(game,True)
         installer.verify_own_modules(game)
         installer.atomic_write(directory/'modules.ini',installer.config(selected))
-        installer.atomic_write(directory/'language.ini',b'language=en\n')
-        return {'configured':True,'language':'en','storage':'archive','saves_touched':False}
+        installer.atomic_write(directory/'language.ini',('language='+language+'\n').encode('ascii'))
+        return {'configured':True,'language':language,'storage':'archive','saves_touched':False}
     if mode=='configure':raise ValueError('Install modules before configuring')
     mod=game/'Mods/BS2Suite'
     if mod.exists() and not record:raise ValueError('Existing modules without an installation record')
@@ -139,14 +144,14 @@ def run(game,mode,selected,language):
         stage.parent.mkdir(exist_ok=True)
         shutil.copytree(installer.ROOT/'mod/BS2Suite',stage)
         patched_copy(backup,temp,patched)
-        record={'version':installer.VERSION,'active':False,'language':'en','storage':'archive',
+        record={'version':installer.VERSION,'active':False,'language':language,'storage':'archive',
                 'original_scripts_sha256':installer.digest(original),'installed_scripts_sha256':installer.digest(patched),
                 'original_archive_sha256':profile['archive_sha256'],'installed_archive_sha256':sha_file(temp)}
         installer.atomic_write(marker,json.dumps(record,indent=2).encode('utf8'))
         if mod.exists():os.replace(mod,previous_mod)
         os.replace(stage,mod);mod_replaced=True
         installer.atomic_write(directory/'modules.ini',installer.config(selected))
-        installer.atomic_write(directory/'language.ini',b'language=en\n')
+        installer.atomic_write(directory/'language.ini',('language='+language+'\n').encode('ascii'))
         if installer.target_running(game/'Game.exe'):raise ValueError('Game started during installation')
         os.replace(temp,archive);replaced=True
         installer.atomic_write(marker,json.dumps(dict(record,active=True),indent=2).encode('utf8'))
@@ -164,4 +169,4 @@ def run(game,mode,selected,language):
         temp.unlink(missing_ok=True)
         if stage.exists():
             stage.resolve().relative_to(game.resolve());shutil.rmtree(stage)
-    return {'installed':True,'language':'en','storage':'archive','archive_unpacked':False,'original_archive_backed_up':True,'saves_touched':False,'modules':selected}
+    return {'installed':True,'language':language,'storage':'archive','archive_unpacked':False,'original_archive_backed_up':True,'saves_touched':False,'modules':selected}

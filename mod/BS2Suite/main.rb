@@ -1,7 +1,7 @@
 # encoding: UTF-8
 unless defined?(BS2Suite::LOADED)
   module BS2Suite
-    VERSION='1.0'
+    VERSION='1.02'
     ROOT=File.dirname(__FILE__)
     module Locale
       def self.current
@@ -102,6 +102,7 @@ unless defined?(BS2Suite::LOADED)
     load_part('map_highlight') if enabled?('map_highlight')
     load_part('catalog_ui099992') if enabled?('reference_cards') || enabled?('semantic_groups')
     load_part('catalog_repair099994') if enabled?('reference_cards') || enabled?('semantic_groups')
+    load_part('compatibility_runtime')
     BS2QoL.const_set(:LOADED,true)
     BS2Modules.const_set(:LOADED,true)
     LOADED=true

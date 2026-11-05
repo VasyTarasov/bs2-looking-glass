@@ -36,6 +36,7 @@ class Update09993Tests(unittest.TestCase):
         (source/'mod/BS2Suite/action_context09993.rb').write_bytes(b'# new helper\n')
         (source/'tools/previous_09992dev.json').write_text(json.dumps({'main.rb':update.sha(old)}))
         (source/'tools/previous_092.json').write_text('{}')
+        (source/'tools/previous_100.json').write_text('{}')
         return game,source
 
     def test_verified_previous_version_check_apply_and_idempotence(self):
@@ -45,12 +46,12 @@ class Update09993Tests(unittest.TestCase):
             with patch.object(update,'ROOT',source),patch.object(update,'target_running',return_value=False):
                 preview=update.run(game)
                 self.assertTrue(preview['compatible']);self.assertFalse(preview['changes'])
-                result=update.run(game,True);self.assertEqual(result['updated'],'1.0')
+                result=update.run(game,True);self.assertEqual(result['updated'],'1.02')
                 self.assertTrue(update.run(game,True)['already_updated'])
-            self.assertEqual(json.loads((game/'BS2Suite/install.json').read_bytes())['version'],'1.0')
+            self.assertEqual(json.loads((game/'BS2Suite/install.json').read_bytes())['version'],'1.02')
             self.assertTrue((game/'Mods/BS2Suite/action_context09993.rb').is_file())
             self.assertTrue(all((game/k).read_bytes()==v for k,v in keep.items()))
-            self.assertEqual(len(list((game/'BS2Suite').glob('rollback-1.0-*'))),1)
+            self.assertEqual(len(list((game/'BS2Suite').glob('rollback-1.02-*'))),1)
 
     def test_modified_old_module_refused_before_any_change(self):
         with synthetic_root() as folder:

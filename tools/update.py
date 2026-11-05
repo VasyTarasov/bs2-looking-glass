@@ -40,9 +40,12 @@ def run(game,apply=False):
         from packed_game import read_scripts,sha_file
         if sha_file(game/'Game.rgss3a')!=record['installed_archive_sha256']:raise ValueError('Game archive changed; update canceled.')
         scripts=read_scripts(game/'Game.rgss3a')
+    elif record.get('storage')=='loader':
+        from install_transaction import BOOTSTRAP
+        scripts=(game/BOOTSTRAP).read_bytes()
     else:scripts=(game/'Data/Scripts.rvdata2').read_bytes()
     if sha(scripts)!=record['installed_scripts_sha256']:raise ValueError('Game scripts changed; update canceled.')
-    previous_versions={'0.9.0-preview':'090','0.9.1-alpha':'091','0.9.2-alpha':'092','0.9.3-alpha':'093','0.9.4-alpha':'094','0.9.5-alpha':'095','0.9.6-alpha':'096','0.9.7-alpha':'097','0.9.8-alpha':'098','0.91-dev':'091dev','0.92-dev':'092dev','0.991-dev':'0991dev','0.992-dev':'0992dev','0.993-dev':'0993dev','0.994-dev':'0994dev','0.995-dev':'0995dev','0.996-dev':'0996dev','0.997-dev':'0997dev','0.998-dev':'0998dev','0.9991-dev':'09991dev','0.999-dev':'0999dev','0.9992-dev':'09992dev','0.9993-dev':'09993dev','0.9994-dev':'09994dev','0.9995-dev':'09995dev','0.9996-dev':'09996dev','0.9997-dev':'09997dev','0.9998-dev':'09998dev','0.9999-dev':'09999dev','0.99991-dev':'099991dev','0.99992-dev':'099992dev','0.99993-dev':'099993dev','0.99994-dev':'099994dev','0.99995-dev':'099995dev'}
+    previous_versions={'1.01':'101','1.0':'100','0.9.0-preview':'090','0.9.1-alpha':'091','0.9.2-alpha':'092','0.9.3-alpha':'093','0.9.4-alpha':'094','0.9.5-alpha':'095','0.9.6-alpha':'096','0.9.7-alpha':'097','0.9.8-alpha':'098','0.91-dev':'091dev','0.92-dev':'092dev','0.991-dev':'0991dev','0.992-dev':'0992dev','0.993-dev':'0993dev','0.994-dev':'0994dev','0.995-dev':'0995dev','0.996-dev':'0996dev','0.997-dev':'0997dev','0.998-dev':'0998dev','0.9991-dev':'09991dev','0.999-dev':'0999dev','0.9992-dev':'09992dev','0.9993-dev':'09993dev','0.9994-dev':'09994dev','0.9995-dev':'09995dev','0.9996-dev':'09996dev','0.9997-dev':'09997dev','0.9998-dev':'09998dev','0.9999-dev':'09999dev','0.99991-dev':'099991dev','0.99992-dev':'099992dev','0.99993-dev':'099993dev','0.99994-dev':'099994dev','0.99995-dev':'099995dev'}
     if record['version'] not in (*previous_versions,VERSION):raise ValueError('This installed version does not support direct updates. Use Install.cmd.')
     previous=json.loads((ROOT/('tools/previous_'+previous_versions.get(record['version'],'092')+'.json')).read_text(encoding='utf8'))
     canonical_path=ROOT/('tools/previous_'+previous_versions.get(record['version'],'092')+'_lf.json')
@@ -51,7 +54,7 @@ def run(game,apply=False):
     labels=json.loads(labels_path.read_text(encoding='utf8')) if labels_path.is_file() and record['version']!=VERSION else {}
     source=ROOT/'mod/BS2Suite';changes=[]
     revision_path=ROOT/'tools/previous_100_initial.json'
-    revision=json.loads(revision_path.read_text(encoding='utf8')) if record['version']==VERSION and revision_path.is_file() else {}
+    revision=json.loads(revision_path.read_text(encoding='utf8')) if record['version'] in (VERSION,'1.0','1.01') and revision_path.is_file() else {}
     for path in sorted(source.rglob('*')):
         if not path.is_file():continue
         rel=path.relative_to(source).as_posix();parts=PurePosixPath(rel)
@@ -75,11 +78,11 @@ def run(game,apply=False):
     if not any(line.startswith('weapon_family_cleanup=') for line in lines):lines.append('weapon_family_cleanup=1')
     from module_selection import migrate,configuration
     config_new=configuration(migrate(text))
-    if record['version']==VERSION:config_new=config_bytes
+    if record['version'] in (VERSION,'1.0','1.01'):config_new=config_bytes
     macro_path=directory/'macros.ini'
     macro_old=macro_path.read_bytes() if macro_path.is_file() else None
     macro_new=grouped_macros(macro_old)
-    if record['version']==VERSION:macro_new=macro_old
+    if record['version'] in (VERSION,'1.0','1.01'):macro_new=macro_old
     if not apply:return {'result':'PASS','compatible':True,'target_running':running,'own_files_to_update':len(changes),'changes':False}
     if target_running(game/'Game.exe'):raise RuntimeError('The game started during the update. Update canceled.')
     backup=directory/('rollback-'+VERSION+'-'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
@@ -118,7 +121,14 @@ if __name__=='__main__':
     parser.add_argument('--language',choices=['en','ru'],default='en')
     args=parser.parse_args()
     try:
-        result=run(args.game,args.apply)
+        if args.apply:
+            from install import run as install_run
+            from module_selection import parse
+            config_path=args.game/'BS2Suite/modules.ini'
+            selected=sorted(parse(config_path.read_text(encoding='utf8')))
+            result=install_run(args.game,'configure',selected,language='auto')
+            result['updated']=VERSION
+        else:result=run(args.game,False)
         message='Обновление готово. Файлы игры и сохранения не заменялись.' if args.language=='ru' else 'Update complete. Original game files and saves were preserved.'
         print(message if args.human and args.apply else json.dumps(result,ensure_ascii=True))
     except Exception as error:

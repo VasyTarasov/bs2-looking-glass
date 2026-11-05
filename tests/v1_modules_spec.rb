@@ -24,7 +24,7 @@ rgss_main do
   end
   begin
     File.open('test_result.txt','w') { |f| f.puts 'Version 1.0 module behavior and integration contracts' }
-    check(BS2Suite::VERSION=='1.0','release version')
+    check(BS2Suite::VERSION=='1.02','release version')
     compiled=0
     Dir.glob('Mods/BS2Suite/**/*.rb').each do |file|
       RubyVM::InstructionSequence.compile(File.open(file,'rb') { |f| f.read }.force_encoding('UTF-8'),file);compiled+=1
