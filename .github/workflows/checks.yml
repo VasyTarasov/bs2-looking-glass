@@ -37,6 +37,7 @@ jobs:
           python tools/build_distribution.py --download --python-archive "$env:RUNNER_TEMP/python-embed.zip" --output "$env:RUNNER_TEMP/QoL-Pack.zip"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Expand-Archive -LiteralPath "$env:RUNNER_TEMP/QoL-Pack.zip" -DestinationPath "$env:RUNNER_TEMP/Offline QA"
-          $root=Join-Path "$env:RUNNER_TEMP/Offline QA" 'BLACK-SOULS-II-QoL-Pack-1.0'
+          $version=(Get-Content -LiteralPath project.json -Raw | ConvertFrom-Json).version
+          $root=Join-Path "$env:RUNNER_TEMP/Offline QA" ('BLACK-SOULS-II-QoL-Pack-'+$version)
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/Test-distribution.ps1 -Root $root
           exit $LASTEXITCODE
