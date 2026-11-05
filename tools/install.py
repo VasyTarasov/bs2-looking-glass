@@ -6,7 +6,7 @@ from archive_reader import Marshal
 from process_check import target_running
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = '1.02'
+VERSION = '1.03'
 MANIFEST=json.loads((ROOT/'modules.json').read_text(encoding='utf8'))
 IDS=[m['id'] for m in MANIFEST]
 DEFAULTS=[m['id'] for m in MANIFEST if m['default']]
@@ -155,9 +155,9 @@ def _run(game,mode='check',selected=None,language='auto'):
     if active and digest(original)!=record['original_scripts_sha256']: raise ValueError('Backup mismatch')
     qol=validate_scripts(original,profile)
     if mode=='check':
-        from module_selection import migrate,parse
+        from module_selection import for_installation
         text=(directory/'modules.ini').read_text(encoding='utf8') if (directory/'modules.ini').exists() else ''
-        module_ids=(sorted(parse(text)&set(IDS)) if record and record['version']==VERSION else migrate(text)) if text else DEFAULTS
+        module_ids=for_installation(text,record['version'] if record else None,VERSION)
         return {'compatible':True,'installed':active,'qol_present':qol,'language':language,'storage':'loose','target_running':running,'changes':False,'module_ids':module_ids}
     selected=DEFAULTS if selected is None else selected
     if set(selected)-set(IDS): raise ValueError('Unknown module')

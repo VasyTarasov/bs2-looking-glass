@@ -42,9 +42,11 @@ module BS2Suite::HDDisplay
       value
     end
     def startup
-      desired=data['launch']==1 ? preferred : data.merge('mode'=>2)
+      # The launch preference applies once per process. Returning to the title
+      # after a death or leaving the game menu must keep the live session mode.
+      desired=@desired || (data['launch']==1 ? preferred : data.merge('mode'=>2))
       @desired=desired.dup;@repair_budget=12;@repair_tick=nil
-      return true if iconic?
+      return true if iconic? || matches_desired?
       apply(desired)
     end
     alias bs2092dev_apply apply

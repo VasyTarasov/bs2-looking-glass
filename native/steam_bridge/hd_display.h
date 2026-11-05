@@ -136,7 +136,7 @@ static void quad(int x,int y,int w,int h){
 }
 static void restore(){
  if(saved&&game&&IsWindow(game)){
-  SetWindowLongW(game,GWL_STYLE,originalStyle);SetWindowLongW(game,GWL_EXSTYLE,originalEx);SetWindowPlacement(game,&originalPlacement);
+  SetWindowLongW(game,GWL_STYLE,originalStyle|(enabled&&clipChildrenAdded?WS_CLIPCHILDREN:0));SetWindowLongW(game,GWL_EXSTYLE,originalEx);SetWindowPlacement(game,&originalPlacement);
   SetWindowPos(game,0,0,0,0,0,SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_FRAMECHANGED);
  }
  saved=false;on=false;dirty=true;capture.clear();captureW=captureH=0;

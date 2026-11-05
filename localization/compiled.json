@@ -83,8 +83,8 @@
       "en_sha256": "65118684788ff7afbdb176a23ad4629fb2ecaa4cac196e55f30b6bdd714ed040"
     },
     "display092dev.rb": {
-      "source_sha256": "c384f7d9875433db6f5eedf657e904cccdea9e3e30151600c9d7a4f144dd3bf4",
-      "en_sha256": "1b6312edf07e05bf144e7c29a263b2341e0a1bdc9b070637ab39c61c5737c9ad"
+      "source_sha256": "c071aad1fd80d48b8a74b94e8f5cab5b20f6f017bc16655c515ea9de655de655",
+      "en_sha256": "d40d18f57397e0e49352cf13802b9c5d4302a2fe8fece3cf2ffe7b071f13d352"
     },
     "equipment_details.rb": {
       "source_sha256": "ca856b4af9e74b55f0decee79bf87c9fbff28d72a68b1185813b710271e8c343",

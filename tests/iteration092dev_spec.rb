@@ -144,7 +144,7 @@ begin
     check(BS2Suite::Keys.token(:note)=='F10' && BS2Suite::Keys.token(:stats)=='SHIFT+F10' && BS2Suite::Keys.token(:run)=='J','new display defaults preserve existing custom control map on conflict')
     check(BS2Suite::Keys.token(:fullscreen)!='F10' && BS2Suite::Keys.token(:field)!='SHIFT+F10','new commands choose free keys rather than stealing existing custom bindings')
     BS2Suite::Store.write('keys',saved_keys);BS2Suite::Keys.instance_variable_set(:@data,nil)
-    BS2Suite::Store.write('hd_display','');hd.instance_variable_set(:@data,nil)
+    BS2Suite::Store.write('hd_display','');hd.instance_variable_set(:@data,nil);hd.instance_variable_set(:@desired,nil)
     check(hd.data['launch']==0 && hd.data.values_at('width','height')==hd.monitor_size,'fresh preferences start windowed and remember monitor-size HD target')
     hd.startup;check(hd.status[1]==0,'unchecked startup really restores original window')
     tick;tick([121]);check(hd.status[6,2]==hd.monitor_size && hd.status[1]==1,'actual first F10 input uses native monitor size')
@@ -154,7 +154,7 @@ begin
     hd.toggle;hd.toggle
     check(hd.status[6,2]==[960,720] && hd.status[3]==0,'F10 remembers confirmed size and forces sharp pixels')
     check(hd.data['filter']==0,'mandatory sharp filter is also persisted')
-    hd.persist(hd.data.merge('launch'=>1));hd.startup
+    hd.persist(hd.data.merge('launch'=>1));hd.instance_variable_set(:@desired,nil);hd.startup
     check(hd.status[6,2]==[960,720],'checked startup applies preferred HD size')
     # Own-window lifecycle: minimise before startup applies, restore it, then
     # let the usual graphics poll repair the deferred configuration.

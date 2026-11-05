@@ -44,7 +44,7 @@ class RepositoryTests(unittest.TestCase):
   text=(ROOT/'mod/BS2Suite/qol/lib/reference_data.rb').read_text(encoding='utf8');rows=re.findall(r'^\s*\d+ => (\[.*\]),?$',text,re.M)
   self.assertGreater(len(rows),1800);self.assertTrue(all(json.loads(r)[1]=='' for r in rows))
  def test_release_version(self):
-  p=json.loads((ROOT/'project.json').read_bytes());self.assertEqual(p['version'],'1.02');self.assertTrue(p['stable_release'])
+  p=json.loads((ROOT/'project.json').read_bytes());self.assertEqual(p['version'],'1.03');self.assertTrue(p['stable_release'])
   self.assertIn(p['version'],(ROOT/'tools/install.py').read_text(encoding='utf8'))
  def test_portable_private_path_guard(self):
   import install,update,collect_debug
@@ -75,7 +75,7 @@ class RepositoryTests(unittest.TestCase):
   try:
    result=packager.package(path);self.assertEqual(result['result'],'PASS');self.assertFalse(result['release_created'])
    with zipfile.ZipFile(path) as z:
-    prefix='BLACK-SOULS-II-QoL-Pack-1.02/';manifest=json.loads(z.read(prefix+'SHA256.json'))
+    prefix='BLACK-SOULS-II-QoL-Pack-1.03/';manifest=json.loads(z.read(prefix+'SHA256.json'))
     self.assertTrue(all(hashlib.sha256(z.read(prefix+k)).hexdigest()==v for k,v in manifest.items()))
     self.assertFalse(any('/.git/' in k or k.endswith('/Game.exe') or '/Data/' in k for k in z.namelist()))
   finally:

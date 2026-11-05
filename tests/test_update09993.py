@@ -37,6 +37,7 @@ class Update09993Tests(unittest.TestCase):
         (source/'tools/previous_09992dev.json').write_text(json.dumps({'main.rb':update.sha(old)}))
         (source/'tools/previous_092.json').write_text('{}')
         (source/'tools/previous_100.json').write_text('{}')
+        (source/'tools/previous_102.json').write_text('{}')
         return game,source
 
     def test_verified_previous_version_check_apply_and_idempotence(self):
@@ -46,12 +47,12 @@ class Update09993Tests(unittest.TestCase):
             with patch.object(update,'ROOT',source),patch.object(update,'target_running',return_value=False):
                 preview=update.run(game)
                 self.assertTrue(preview['compatible']);self.assertFalse(preview['changes'])
-                result=update.run(game,True);self.assertEqual(result['updated'],'1.02')
+                result=update.run(game,True);self.assertEqual(result['updated'],update.VERSION)
                 self.assertTrue(update.run(game,True)['already_updated'])
-            self.assertEqual(json.loads((game/'BS2Suite/install.json').read_bytes())['version'],'1.02')
+            self.assertEqual(json.loads((game/'BS2Suite/install.json').read_bytes())['version'],update.VERSION)
             self.assertTrue((game/'Mods/BS2Suite/action_context09993.rb').is_file())
             self.assertTrue(all((game/k).read_bytes()==v for k,v in keep.items()))
-            self.assertEqual(len(list((game/'BS2Suite').glob('rollback-1.02-*'))),1)
+            self.assertEqual(len(list((game/'BS2Suite').glob('rollback-'+update.VERSION+'-*'))),1)
 
     def test_modified_old_module_refused_before_any_change(self):
         with synthetic_root() as folder:
@@ -107,5 +108,20 @@ class Update09993Tests(unittest.TestCase):
                 with self.assertRaises(OSError):update.run(game,True)
             self.assertTrue(all((game/k).read_bytes()==v for k,v in before.items()))
             self.assertFalse((game/'Mods/BS2Suite/action_context09993.rb').exists())
+
+    def test_final_102_updates_preserving_exact_player_configuration(self):
+        with synthetic_root() as folder:
+            game,source=self.fixture(Path(folder))
+            record=game/'BS2Suite/install.json';data=json.loads(record.read_bytes());data['version']='1.02';record.write_text(json.dumps(data))
+            old=game/'Mods/BS2Suite/main.rb'
+            (source/'tools/previous_102.json').write_text(json.dumps({'main.rb':update.sha(old.read_bytes()),'action_context09993.rb':None}))
+            # A deliberately sparse configuration must not be re-expanded on update.
+            (game/'BS2Suite/modules.ini').write_bytes(b'hd_display=1\nsteam_bridge=0\nweapon_family_cleanup=0\n')
+            (game/'BS2Suite/hd_display.ini').write_bytes(b'width=1280\nheight=720\nmode=0\nlaunch=0\n')
+            keep={p:p.read_bytes() for p in [game/'BS2Suite/modules.ini',game/'BS2Suite/macros.ini',game/'BS2Suite/hd_display.ini',game/'Save01.rvdata2']}
+            with patch.object(update,'ROOT',source),patch.object(update,'target_running',return_value=False):
+                self.assertEqual(update.run(game,True)['updated'],update.VERSION)
+                self.assertTrue(update.run(game,True)['already_updated'])
+            self.assertTrue(all(p.read_bytes()==v for p,v in keep.items()))
 
 if __name__=='__main__':unittest.main()

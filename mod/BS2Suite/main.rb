@@ -1,7 +1,7 @@
 # encoding: UTF-8
 unless defined?(BS2Suite::LOADED)
   module BS2Suite
-    VERSION='1.02'
+    VERSION='1.03'
     ROOT=File.dirname(__FILE__)
     module Locale
       def self.current

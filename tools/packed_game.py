@@ -94,7 +94,8 @@ def run(game,mode,selected,language):
     if mode=='check':
         from module_selection import migrate,parse,DEFAULTS
         text=(directory/'modules.ini').read_text(encoding='utf8') if (directory/'modules.ini').exists() else ''
-        module_ids=(sorted(parse(text)&set(installer.IDS)) if record and record['version']==installer.VERSION else migrate(text)) if text else DEFAULTS
+        from module_selection import for_installation
+        module_ids=for_installation(text,record['version'] if record else None,installer.VERSION)
         return {'compatible':True,'installed':active,'language':language,'storage':'archive','loose_base_data_preserved':loose_data_ignored,'target_running':running,'changes':False,'module_ids':module_ids}
     if mode=='uninstall':
         if not record:raise ValueError('No installation record')

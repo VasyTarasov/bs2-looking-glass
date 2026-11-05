@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,sys,unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
-from module_selection import MANIFEST,IDS,DEFAULTS,expand,migrate,configuration,parse
+from module_selection import MANIFEST,IDS,DEFAULTS,expand,migrate,configuration,parse,for_installation
 
 class ModuleSelectionTests(unittest.TestCase):
  def test_defaults_are_exact(self):self.assertEqual(set(IDS)-set(DEFAULTS),{'legacy_shortcuts','battle_support','debug'})
@@ -28,5 +28,12 @@ class ModuleSelectionTests(unittest.TestCase):
   self.assertIn('legacy_shortcuts',selected);self.assertNotIn('semantic_groups',selected);self.assertNotIn('macros',selected)
  def test_retired_flags_are_not_preserved(self):
   self.assertFalse({'defeat','retry','scaling'}&parse(configuration(migrate('defeat=1\nretry=1\nscaling=1\n')).decode()))
+ def test_stable_versions_keep_sparse_choices_during_installer_check(self):
+  text='hd_display=1\nbattle_support=1\nbattle_speed=0\nmap_highlight=0\n'
+  for version in ['1.0','1.01','1.02','1.03']:
+   self.assertEqual(for_installation(text,version,'1.03'),['battle_support','hd_display'])
+ def test_preview_check_keeps_the_existing_migration_contract(self):
+  text='controls=1\neffects=1\n'
+  self.assertEqual(for_installation(text,'0.92-dev','1.03'),migrate(text))
 
 if __name__=='__main__':unittest.main()

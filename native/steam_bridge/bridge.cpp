@@ -142,6 +142,7 @@ static void detachSteam(){
  if(steamReady){hookShots(screenshots,previousHook);unregisterCallback(&requested);unregisterCallback(&finished);unregisterCallback(&activated);steamReady=0;screenshots=0;}
 }
 static HWND game=0,canvas=0;static HDC mem=0,dc=0;static HBITMAP bmp=0;static void* pixels=0;
+static bool clipChildrenAdded=false;
 static HWND previousFocus=0;static bool borrowedFocus=false;static LONG focusChanges=0;
 static void overlayFocus(){
  DWORD pid=0;GetWindowThreadProcessId(GetForegroundWindow(),&pid);
@@ -196,7 +197,14 @@ static bool renderer(){
  if(rc&&ready)return true;if(!(flags&1)||glFailed)return false;
  HDC savedDC=wglGetCurrentDC();HGLRC savedRC=wglGetCurrentContext();
  renderThread=GetCurrentThreadId();WNDCLASSW wc={};wc.lpfnWndProc=canvasProc;wc.hInstance=GetModuleHandleW(0);wc.lpszClassName=L"BS2SteamCanvas090";wc.style=CS_OWNDC;RegisterClassW(&wc);
- canvas=CreateWindowExW(WS_EX_NOACTIVATE,wc.lpszClassName,L"",WS_CHILD|WS_VISIBLE,0,0,640,480,game,0,wc.hInstance,0);if(!canvas){glFailed=true;errors++;return false;}dc=GetDC(canvas);
+ // The engine keeps painting the parent with GDI. Exclude the OpenGL child
+ // from that DC's visible region instead of dropping the engine's blits.
+ LONG parentStyle=GetWindowLongW(game,GWL_STYLE);
+ if(!(parentStyle&WS_CLIPCHILDREN)){
+  SetWindowLongW(game,GWL_STYLE,parentStyle|WS_CLIPCHILDREN);clipChildrenAdded=true;
+  SetWindowPos(game,0,0,0,0,0,SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE|SWP_NOZORDER|SWP_FRAMECHANGED);
+ }
+ canvas=CreateWindowExW(WS_EX_NOACTIVATE,wc.lpszClassName,L"",WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,0,0,640,480,game,0,wc.hInstance,0);if(!canvas){glFailed=true;errors++;return false;}dc=GetDC(canvas);
  PIXELFORMATDESCRIPTOR pfd={};pfd.nSize=sizeof(pfd);pfd.nVersion=1;pfd.dwFlags=PFD_DRAW_TO_WINDOW|PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER;pfd.iPixelType=PFD_TYPE_RGBA;pfd.cColorBits=32;
  int pf=ChoosePixelFormat(dc,&pfd);if(!pf || !SetPixelFormat(dc,pf,&pfd)){ShowWindow(canvas,SW_HIDE);glFailed=true;errors++;return false;}
  rc=wglCreateContext(dc);if(!rc || !wglMakeCurrent(dc,rc)){ShowWindow(canvas,SW_HIDE);glFailed=true;errors++;return false;}
@@ -349,6 +357,8 @@ extern "C" int WINAPI BS2_Stop(){
  detachSteam();HD::restore();
  if(rc && GetCurrentThreadId()==renderThread){wglMakeCurrent(dc,rc);HD::freePanel();glDeleteTextures(1,&tex);wglMakeCurrent(0,0);wglDeleteContext(rc);rc=0;}
  if(canvas)ShowWindow(canvas,SW_HIDE);if(canvas&&GetWindowThreadProcessId(canvas,0)==GetCurrentThreadId()){if(dc)ReleaseDC(canvas,dc);DestroyWindow(canvas);canvas=0;}
+ if(clipChildrenAdded&&game&&IsWindow(game))SetWindowLongW(game,GWL_STYLE,GetWindowLongW(game,GWL_STYLE)&~WS_CLIPCHILDREN);
+ clipChildrenAdded=false;
  if(mem)DeleteDC(mem);mem=0;if(bmp)DeleteObject(bmp);bmp=0;LeaveCriticalSection(&lock);MH_Uninitialize();DeleteCriticalSection(&lock);ready=0;return 1;
 }
 BOOL WINAPI DllMain(HINSTANCE,DWORD,LPVOID){return TRUE;}

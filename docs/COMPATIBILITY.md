@@ -33,3 +33,11 @@ A background-start bug was fixed: the bridge now finds this process's RGSS windo
 Automatic restart through Game.exe is blocked while ModLoader.dll is loaded, because it would discard the loader and its mods. This includes F12 and the HD DPI-restart button. Exit normally and launch Loader.exe again. The blocked F12 path retained the running modded game and passed its battle-reference checks.
 
 Interactive Shift+Tab open/close remains unconfirmed. No experimental overlay-keyboard routing changes are included. The original Steam files and all 99 player save files were restored unchanged. Update from the initial 1.02 archive is supported without resetting module selection or macros.
+
+## 1.03: windowed HD presentation
+
+The original GDI window excludes the OpenGL child from painting (`WS_CLIPCHILDREN`); the child clips siblings and children. The added parent flag is retained while the compositor is active and removed on shutdown when it was added by the pack. Original GDI calls are preserved. No desktop, registry or Windows display settings are changed.
+
+Rapid on-screen flickering was visible even when sampled window dimensions and GPU readback looked correct. A window-geometry check alone is insufficient. The corrected 1280x720 output was visually confirmed by the user on the affected system. Targeted native lifecycle checks cover 800x600, 1280x720, 1920x1080, monitor-sized borderless, F10/classic transitions and repeated title returns in the English, Larry and RMModLoader 2.6/BS2RU_v5 cases. The Loader lifecycle was checked on the normal desktop after the private-desktop launcher stalled before executing test scripts. These are focused rendering/lifecycle checks, not new full playthroughs.
+
+Title returns preserve the current session mode. The launch checkbox still applies to a newly started process, including an F12 process restart. Verified updates from both published 1.02 revisions preserve module selections and player configuration.

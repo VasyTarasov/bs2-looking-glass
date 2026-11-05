@@ -124,7 +124,7 @@ def audit(root=ROOT,staged=False):
   if rel not in files:errors.append({'path':rel,'rule':'missing runtime asset'})
  errors+=link_errors(files)
  project=json.loads(files.get('project.json',b'{}'))
- if project.get('version')!='1.02' or project.get('stable_release') is not True:errors.append({'path':'project.json','rule':'version 1.02 release metadata required'})
+ if project.get('version')!='1.03' or project.get('stable_release') is not True:errors.append({'path':'project.json','rule':'version 1.03 release metadata required'})
  if b'original descriptions from' in files.get('mod/BS2Suite/qol/lib/reference_data.rb',b'').lower():errors.append({'path':'reference_data.rb','rule':'original description export retained'})
  workflow=files.get('.github/workflows/checks.yml',b'')
  if workflow and (b'contents: read' not in workflow or b'persist-credentials: false' not in workflow):errors.append({'path':'.github/workflows/checks.yml','rule':'read-only checkout required'})

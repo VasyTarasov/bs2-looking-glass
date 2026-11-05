@@ -1,3 +1,7 @@
+## 1.03 — 2026-11-06
+
+Fix rapid flickering between the original game image and HD output in windowed modes. The GDI parent and OpenGL child now use the required clipping styles; original GDI rendering is preserved. Returning to the title screen keeps the current window size and HD/classic mode. The full-screen launch preference still applies to a fresh launch.
+
 ## 1.02 — 2026-11-05
 
 Real Steam follow-up: fix background HD startup; supply missing Steam app-id metadata for Loader without replacing user files; keep the running Loader game on F12 instead of restarting without its mods. Safely update the initial 1.02 package.

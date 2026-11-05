@@ -67,7 +67,8 @@ def run(game,mode,selected,language,installer):
     if mode=='check':
         from module_selection import parse,migrate,DEFAULTS
         text=(directory/'modules.ini').read_text(encoding='utf8') if (directory/'modules.ini').is_file() else ''
-        selected_ids=sorted(parse(text)&set(installer.IDS)) if active and record['version'] in ('1.0','1.01',installer.VERSION) else migrate(text) if text else DEFAULTS
+        from module_selection import for_installation
+        selected_ids=for_installation(text,record['version'] if record else None,installer.VERSION)
         return dict(report,compatible=True,installed=active,storage='loader',target_running=running,changes=False,module_ids=selected_ids)
     if running:raise ValueError('Close the game before changing modules')
     if mode=='configure' and not active:raise ValueError('Install the pack before configuring it')
