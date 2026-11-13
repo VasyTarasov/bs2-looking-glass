@@ -32,7 +32,7 @@ def for_installation(text,version,current_version):
     if not text:return DEFAULTS.copy()
     # Stable releases share the same public module switches. Preview migration
     # would silently enable features or discard the automatic-support choice.
-    if version in ('1.0','1.01','1.02',current_version):
+    if version in ('1.0','1.01','1.02','1.03',current_version):
         return sorted(parse(text)&set(IDS))
     return migrate(text)
 

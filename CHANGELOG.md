@@ -1,3 +1,11 @@
+## 1.04 — 2026-11-13
+
+- Fixed a reproduced double-reward and silent-exit path when an instant action defeats the last enemy. The completed battle no longer resumes its old input/action handler.
+- Instant action sequences stop at victory or battle abort. Cleanup does not restore a completed battle's queued actions or overwrite a newly started battle.
+- Optional priority bookkeeping runs after the engine finishes battle cleanup; an error there no longer prevents the battle from ending. Unexpected execution errors are no longer swallowed as macro validation failures.
+- Fixed startup when reference cards are disabled. Legacy battle plan and key hints stay hidden while the HD sidebar has accepted their replacement, including the battle fade-out; classic and sidebar-disabled modes retain their normal panels.
+- Added native-engine regression tests, including a comparison against 1.03 through the original main loop and a 40-battle accelerated run. This addresses the reproduced mechanism; it does not establish the cause of every reported game exit.
+
 ## 1.03 — 2026-11-06
 
 Fix rapid flickering between the original game image and HD output in windowed modes. The GDI parent and OpenGL child now use the required clipping styles; original GDI rendering is preserved. Returning to the title screen keeps the current window size and HD/classic mode. The full-screen launch preference still applies to a fresh launch.

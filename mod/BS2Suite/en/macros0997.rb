@@ -2,6 +2,7 @@
 # encoding: UTF-8
 module BS2Suite
   module Macros
+    class Stopped < StandardError;end
     LIMIT=8
     ROWS=6
     GROUPS=4
@@ -116,7 +117,10 @@ module BS2Suite
         end
       end
       if paid.empty?
-        free.each { |r| scene.bs2s_macro_quick(actor,r,target) }
+        free.each do |r|
+          break if BS2Suite::BattleFlow.leaving?(scene)
+          scene.bs2s_macro_quick(actor,r,target)
+        end
       else
         paid.last.instance_variable_set(:@bs2s_macro_after,free)
         paid.last.instance_variable_set(:@bs2s_macro_executor,set['executor']) if executor_allowed?(set,actor)
@@ -128,13 +132,13 @@ module BS2Suite
         scene.next_command
       end
       BS2QoL::Keyboard.consume;nil
-    rescue StandardError=>e
+    rescue Stopped=>e
       'Macro stopped: '+e.message
     end
     def self.stop(actor,action,message)
       token=action.instance_variable_get(:@bs2s_macro_token)
       actor.actions.each do |a|
-        next unless token && a.instance_variable_get(:@bs2s_macro_token).equal?(token)
+        next unless token && a && a.instance_variable_get(:@bs2s_macro_token).equal?(token)
         a.clear
         a.instance_variable_set(:@bs2s_macro_before,[]);a.instance_variable_set(:@bs2s_macro_after,[])
         a.instance_variable_set(:@bs2s_macro_token,nil);a.instance_variable_set(:@bs2s_macro_source,nil);a.instance_variable_set(:@bs2s_macro_executor,nil)
@@ -502,15 +506,19 @@ class Game_Action
     if actor.actor? && !forcing && !BS2Suite::DirectWeapons.quick? && instance_variable_get(:@bs2s_macro_token)
       begin
         before=@bs2s_macro_before || [];@bs2s_macro_before=[]
-        before.each { |row| scene.bs2s_macro_quick(actor,row,@bs2s_macro_target) }
+        before.each do |row|
+          break if BS2Suite::BattleFlow.leaving?(scene)
+          scene.bs2s_macro_quick(actor,row,@bs2s_macro_target)
+        end
+        BS2Suite::BattleFlow.halt_current
         weapon=@bs2s_macro_source
-        raise 'source weapon unavailable' if weapon && actor.equips[0]!=weapon && !BS2QoL::Model.change_weapon(actor,weapon)
+        raise BS2Suite::Macros::Stopped,'source weapon unavailable' if weapon && actor.equips[0]!=weapon && !BS2QoL::Model.change_weapon(actor,weapon)
         if @bs2s_macro_executor && !@bs2s_direct_applied
           final=BS2Suite::DirectWeapons.resolve(actor,@bs2s_macro_executor)
-          raise 'execution weapon unavailable' unless final && BS2Suite::DirectWeapons.eligible_final(actor,item,final,0,self) && (actor.equips[0]==final || BS2QoL::Model.change_weapon(actor,final))
+          raise BS2Suite::Macros::Stopped,'execution weapon unavailable' unless final && BS2Suite::DirectWeapons.eligible_final(actor,item,final,0,self) && (actor.equips[0]==final || BS2QoL::Model.change_weapon(actor,final))
           @bs2s_direct_applied=true
         end
-      rescue StandardError=>e
+      rescue BS2Suite::Macros::Stopped=>e
         BS2Suite::Macros.stop(actor,self,e.message);return
       end
     end
@@ -555,26 +563,38 @@ class Scene_Battle
   # Use native costs, effects, limits, events and RNG. This nested action never
   # advances AP or consumes a paid queue slot; there are at most six rows.
   def bs2s_macro_quick(actor,row,target)
+    return if BS2Suite::BattleFlow.leaving?(self)
     action=BS2Suite::Macros.action(actor,row,target)
-    raise 'item / source unavailable' unless action
-    raise 'action is no longer instant' unless BS2Suite::ActionRules.quick?(action.item)
+    raise BS2Suite::Macros::Stopped,'item / source unavailable' unless action
+    raise BS2Suite::Macros::Stopped,'action is no longer instant' unless BS2Suite::ActionRules.quick?(action.item)
     weapon=action.instance_variable_get(:@bs2s_macro_source)
-    raise 'source weapon unavailable' if weapon && actor.equips[0]!=weapon && !BS2QoL::Model.change_weapon(actor,weapon)
-    raise 'cost, cooldown or limit: '+action.item.name unless actor.usable?(action.item)
+    raise BS2Suite::Macros::Stopped,'source weapon unavailable' if weapon && actor.equips[0]!=weapon && !BS2QoL::Model.change_weapon(actor,weapon)
+    raise BS2Suite::Macros::Stopped,'cost, cooldown or limit: '+action.item.name unless actor.usable?(action.item)
     actions=actor.actions;subject=@subject
+    generation=BS2Suite::BattleFlow.generation
+    participants=($game_party.all_members+$game_troop.members).uniq
     window=@actor_command_window;window_state=window && [window.active,window.openness]
     window.deactivate.close if window
-    old_active=@hzm_vxa_quickSkill_active;@hzm_vxa_quickSkill_active=true
+    old_active=@hzm_vxa_quickSkill_active;old_quick=HZM_VXA::QuickSkill.quickSkill?;@hzm_vxa_quickSkill_active=true
     HZM_VXA::QuickSkill.start;actor.instance_variable_set(:@actions,[action]);@subject=actor
     action.prepare
-    raise 'action unavailable' unless action.valid?
+    raise BS2Suite::Macros::Stopped,'action unavailable' unless action.valid?
     bs20997_macro_execute
     process_event
-    raise 'actor cannot continue' unless actor.alive?
+    return if BS2Suite::BattleFlow.leaving?(self,generation)
+    raise BS2Suite::Macros::Stopped,'actor cannot continue' unless actor.alive?
   ensure
-    HZM_VXA::QuickSkill.finish if actions
-    actor.instance_variable_set(:@actions,actions) if actions
-    @subject=subject if actions
+    if actions && generation==BS2Suite::BattleFlow.generation
+      HZM_VXA::QuickSkill.finish
+      if BS2Suite::BattleFlow.active?(generation)
+        actor.instance_variable_set(:@actions,actions);@subject=subject
+        HZM_VXA::QuickSkill.start if old_quick
+      else
+        BS2Suite::BattleFlow.clear_finished_actions(participants,generation);@subject=nil
+      end
+    elsif actions
+      HZM_VXA::QuickSkill.instance_variable_set(:@quickSkill,false)
+    end
     @hzm_vxa_quickSkill_active=old_active if actions
     if actions && window && !window.disposed? && window_state && !scene_changing?
       window.openness=window_state[1];window.activate if window_state[0] && actor.alive?
@@ -587,8 +607,11 @@ class Scene_Battle
     if action && action.instance_variable_get(:@bs2s_macro_token) && !BS2Suite::DirectWeapons.quick?
       after=action.instance_variable_get(:@bs2s_macro_after) || [];action.instance_variable_set(:@bs2s_macro_after,[])
       begin
-        after.each { |r| bs2s_macro_quick(@subject,r,action.instance_variable_get(:@bs2s_macro_target)) }
-      rescue StandardError=>e;BS2Suite::Macros.stop(@subject,action,e.message);end
+        after.each do |r|
+          break if BS2Suite::BattleFlow.leaving?(self)
+          bs2s_macro_quick(@subject,r,action.instance_variable_get(:@bs2s_macro_target))
+        end
+      rescue BS2Suite::Macros::Stopped=>e;BS2Suite::Macros.stop(@subject,action,e.message);end
     end
   end
   alias bs20997_macro_enemy_ok on_enemy_ok

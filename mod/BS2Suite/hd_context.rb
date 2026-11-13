@@ -1,6 +1,7 @@
 # encoding: UTF-8
 module BS2Suite::HDDisplay
   class << self
+    def legacy_hidden?;active? && !!@panel_accepted;end
     def active?
       state=status
       state[1]==1 && state[4]==1 && state[14]==0 && BS2Suite::SteamBridge.stats[4]==1

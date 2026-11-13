@@ -36,17 +36,21 @@ module BS2Suite
     end
   end
 end
+if defined?(BS2QoL::ReferenceCard) && BS2QoL::ReferenceCard.method_defined?(:name)
 class BS2QoL::ReferenceCard
   alias compatibility_base_name name
   def name(object)
     BS2Suite::Compatibility.current_name(object,language) || compatibility_base_name(object)
   end
 end
+end
+if defined?(BS2QoL::PracticalCard) && BS2QoL::PracticalCard.method_defined?(:name)
 class BS2QoL::PracticalCard
   alias compatibility_practical_name name
   def name(object)
     BS2Suite::Compatibility.current_name(object,language) || compatibility_practical_name(object)
   end
+end
 end
 if defined?(BS2Suite::CatalogV1)
   module BS2Suite::CatalogV1

@@ -2,7 +2,7 @@
 
 [![Русский](docs/assets/ru.svg)](docs/README-RU.md)
 
-**Version 1.03 · Russian and English game versions · Windows 10/11**
+**Version 1.04 · Russian and English game versions · Windows 10/11**
 
 [**Download the pack and installer**](https://github.com/VasyTarasov/bs2-looking-glass/releases/latest) · [Google Drive mirror](https://drive.google.com/file/d/15SWTxKYxn0LpaGEv0tr7uiWNPAS_PK8m/view?usp=drivesdk) · [Steam guide (English)](https://steamcommunity.com/sharedfiles/filedetails/?id=3830468719) · [Version history](CHANGELOG.md)
 
@@ -10,7 +10,7 @@ Extract the **entire** release ZIP and run `Install.cmd`. Python and the require
 
 Tested with Larry Russian translation (base 1.01 and fixes 1.06), the older BS2RU_v5 translation, clean English Steam data, two English restoration archives, and RMModLoader 2.4–2.6, including the Forge translation layout. Install your translation or restoration patch before QoL Pack. Recognition no longer requires an exact archive hash or rejects a build simply for its language or extra scripts. Changed database objects use live properties in reference cards. DisplayMod must be removed first; arbitrary gameplay overhauls are not guaranteed compatible.
 
-Version 1.03 fixes rapid HD flickering in windowed modes. Returning to the title screen keeps the current size and HD/classic mode; a fresh launch still follows the full-screen launch setting.
+Version 1.04 fixes a reproduced battle-ending error: a lethal instant action could grant rewards twice and close the game without an error message. Action sequences now stop when the battle ends. It also fixes startup with reference cards disabled and prevents the old battle panels from appearing over accepted HD output during transitions. The windowed HD and title-screen size fixes from 1.03 are retained.
 
 ## Contents
 

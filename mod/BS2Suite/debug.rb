@@ -2,7 +2,7 @@
 module BS2Suite::Debug
   CHUNK_BYTES=8*1024*1024 # New chunks, never deletion or a lifetime/session limit.
   WATCHED_COMMANDS=[101,102,103,111,117,121,122,123,125,126,127,128,201,301,311,312,313,314,315,316,317,318,319,321,331,332,333,334,339,340,351,352,353,354,355].freeze
-  FLUSH_BOUNDARIES=%w(exception observer_error session_end session_exit scene_transition save_game_begin save_game_end load_game_begin load_game_end battle_setup battle_end bookmark user_note).freeze
+  FLUSH_BOUNDARIES=%w(exception observer_error session_end session_exit scene_transition save_game_begin save_game_end load_game_begin load_game_end battle_setup battle_end victory_enter victory_exit battle_terminate_begin battle_terminate_end priority_error bookmark user_note).freeze
   class << self
     attr_reader :directory,:error
     def json(v,depth=0)

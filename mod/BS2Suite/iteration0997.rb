@@ -8,6 +8,7 @@ class Scene_Battle
       index=actor.instance_variable_get(:@action_input_index)
       @hzm_vxa_quickSkill_skill=item
       hzm_vxa_quickSkill_run
+      return if scene_changing? || !$game_party.in_battle
       # QuickSkill executes by temporarily swapping this slot with slot zero.
       # Keep the already chosen actions and resume this exact unspent slot.
       action.clear if actor.actions.include?(action)

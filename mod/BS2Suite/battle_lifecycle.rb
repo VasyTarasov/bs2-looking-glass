@@ -1,0 +1,151 @@
+# encoding: UTF-8
+module BS2Suite
+  # An instant action may finish a battle from inside a native action/input
+  # handler. Unwind that handler instead of resuming it in the next scene.
+  module BattleFlow
+    def self.generation;@generation || 0;end
+    def self.begin_battle;@generation=generation+1;end
+    def self.active?(generation_id=generation)
+      generation_id==generation && $game_party && $game_party.in_battle &&
+        !BattleManager.instance_variable_get(:@phase).nil?
+    end
+    def self.leaving?(scene,generation_id=generation)
+      scene.scene_changing? || !active?(generation_id)
+    end
+    def self.run(scene)
+      return if scene.scene_changing?
+      return yield if @scope && @scope[0].equal?(scene)
+      previous=@scope;token=Object.new;@scope=[scene,token,generation]
+      begin
+        catch(token) { yield }
+      ensure
+        @scope=previous
+      end
+    end
+    def self.halt(scene)
+      scope=@scope
+      throw(scope[1]) if scope && scope[0].equal?(scene) && leaving?(scene,scope[2])
+    end
+    def self.halt_current
+      halt(@scope[0]) if @scope
+    end
+    def self.clear_finished_actions(participants,generation_id)
+      return unless generation_id==generation && !active?(generation_id)
+      participants.each do |battler|
+        battler.clear_actions
+        battler.instance_variable_set(:@hzm_vxa_quickSkill_actions,nil)
+      end
+    end
+    def self.observe(event,extra={})
+      return unless defined?(BS2Suite::Debug)
+      BS2Suite::Debug.emit(event,{
+        :battle=>generation,:phase=>BattleManager.instance_variable_get(:@phase),
+        :in_battle=>!!($game_party && $game_party.in_battle),
+        :scene=>SceneManager.scene && SceneManager.scene.class.to_s
+      }.merge(extra))
+    end
+  end
+end
+if defined?(BS2Suite::HDDisplay)
+  module BS2Suite::HDLegacyWindow
+    def show
+      BS2Suite::HDDisplay.legacy_hidden? ? hide : super
+    end
+  end
+  Window_BS2QPlan.send(:include,BS2Suite::HDLegacyWindow)
+  Window_BS2QKeyHints.send(:include,BS2Suite::HDLegacyWindow)
+end
+module BattleManager
+  class << self
+    alias bs2flow_setup setup
+    def setup(*args)
+      BS2Suite::BattleFlow.begin_battle
+      bs2flow_setup(*args)
+    end
+    alias bs2flow_victory process_victory
+    def process_victory
+      BS2Suite::BattleFlow.observe('victory_enter',{:troop=>$game_troop && $game_troop.troop.id,:callers=>caller.take(6)})
+      value=bs2flow_victory
+      BS2Suite::BattleFlow.observe('victory_exit');value
+    end
+  end
+end
+class Scene_Battle
+  alias bs2flow_next_command next_command
+  def next_command
+    BS2Suite::BattleFlow.run(self) { bs2flow_next_command }
+  end
+  alias bs2flow_process_action process_action
+  def process_action
+    BS2Suite::BattleFlow.run(self) { bs2flow_process_action }
+  end
+  alias bs2flow_execute_action execute_action
+  def execute_action
+    BS2Suite::BattleFlow.run(self) do
+      value=bs2flow_execute_action;BS2Suite::BattleFlow.halt(self);value
+    end
+  end
+  alias bs2flow_process_event process_event
+  def process_event
+    value=bs2flow_process_event;BS2Suite::BattleFlow.halt(self);value
+  end
+  alias bs2flow_native_quick hzm_vxa_quickSkill_run
+  def hzm_vxa_quickSkill_run
+    actor=BattleManager.actor;selected=actor && actor.input
+    index=actor && actor.instance_variable_get(:@action_input_index)
+    generation=BS2Suite::BattleFlow.generation
+    participants=($game_party.all_members+$game_troop.members).uniq
+    old_active=@hzm_vxa_quickSkill_active;old_quick=HZM_VXA::QuickSkill.quickSkill?
+    BS2Suite::BattleFlow.run(self) { bs2flow_native_quick }
+  ensure
+    if @hzm_vxa_quickSkill_active && !old_active
+      if generation==BS2Suite::BattleFlow.generation
+        if BS2Suite::BattleFlow.active?(generation) && actor && selected && index &&
+            index>=0 && index<actor.actions.size && actor.actions[0].equal?(selected)
+          actor.actions[0],actor.actions[index]=actor.actions[index],actor.actions[0]
+          selected.clear
+        end
+        HZM_VXA::QuickSkill.finish
+        HZM_VXA::QuickSkill.start if old_quick && BS2Suite::BattleFlow.active?(generation)
+      else
+        # A common event may already have started another battle. Release the
+        # old quick-action latch without restoring old queues over the new one.
+        HZM_VXA::QuickSkill.instance_variable_set(:@quickSkill,false)
+      end
+      @hzm_vxa_quickSkill_active=old_active
+    end
+    if participants && generation
+      BS2Suite::BattleFlow.clear_finished_actions(participants,generation)
+    end
+    @hzm_vxa_quickSkill_skill=nil if !BS2Suite::BattleFlow.active?(generation)
+  end
+  alias bs2flow_pre_terminate pre_terminate
+  def pre_terminate
+    [@bs2q_plan,@bs2q_footer].compact.each { |window| window.hide unless window.disposed? }
+    bs2flow_pre_terminate
+  end
+  alias bs2flow_terminate terminate
+  def terminate
+    BS2Suite::BattleFlow.observe('battle_terminate_begin')
+    value=bs2flow_terminate
+    BS2Suite::BattleFlow.observe('battle_terminate_end');value
+  end
+end
+class Game_Action
+  alias bs2flow_prepare prepare
+  def prepare
+    value=bs2flow_prepare;BS2Suite::BattleFlow.halt_current;value
+  end
+end
+if defined?(BS2Suite::Macros)
+  module BS2Suite::Macros
+    class << self
+      alias bs2flow_commit commit
+      def commit(scene,*args)
+        BS2Suite::BattleFlow.run(scene) { bs2flow_commit(scene,*args) }
+      ensure
+        BS2QoL::Keyboard.consume if scene.scene_changing?
+      end
+    end
+  end
+end

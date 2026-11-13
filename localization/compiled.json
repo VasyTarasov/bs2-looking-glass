@@ -22,6 +22,10 @@
       "source_sha256": "516ff0a7b342394633c239312196864ab4685fbc4ee0d800f0e569d1feffc7ae",
       "en_sha256": "88a708184c5f18ff028d48955dd1f80a519624068f4f3599b9042093d516b64f"
     },
+    "battle_lifecycle.rb": {
+      "source_sha256": "f3bf966da7d144795a6900dfcff6954a29d27647c0d8bef066c2032beaf65a92",
+      "en_sha256": "c383de3517d65e73f2a52db27f5b82e70f317e3a5b3db121d5899045dd882aee"
+    },
     "battle_panels.rb": {
       "source_sha256": "1da0058fe9a328e166ec482432766b57acbf52e878d9b752ef55abf4ef28cca4",
       "en_sha256": "d38e6afccef394f1608ad02b4448c295e4b208530b2e3bdd47476b4d98ebcf3d"
@@ -63,16 +67,16 @@
       "en_sha256": "4f0418d30c27794189a472a6cf7e5ce1a6a11e9f56f83b85997eb016022a60f8"
     },
     "compatibility_runtime.rb": {
-      "source_sha256": "d5f3611a4566d9aab66284beaa30da5efb3d0e8a762f7b5efef841fc39592e1b",
-      "en_sha256": "e8b4ff48699ba1557675e03ce9d951fc231b74fa252740f551081e5878be5b9a"
+      "source_sha256": "e652bb250958136d972a84df2dfd90b302ceb3809d120968abf44a5b3fafa87a",
+      "en_sha256": "f9b431db2451751068a31ace2f2e5c693e068ce40f5f521460ba5b79028e2672"
     },
     "core.rb": {
       "source_sha256": "73a2083e0add75e01c2e3990b832664de99c7b2decc3c45d50d1bf78c863a5ee",
       "en_sha256": "de5e556079f985619c1743715b8f12ffe1dc1d5939fa7d953a91782a402215da"
     },
     "debug.rb": {
-      "source_sha256": "0d2fc1df9d20427dbacd6e808a1c0e43c13e30b1a25fc6a65d8a7d8848a9d4fc",
-      "en_sha256": "00724cb4c4d91601098b9777492e56e9e008b50b15cf1a6fbe729d197b5b4ebd"
+      "source_sha256": "2355c19acec5c781651e67e627113ca37c9805d1df66fd8f3824351ebbaa26fb",
+      "en_sha256": "387869fdeae12b81f1ff12bd753e36176b7f64cf110783fd922653586e22dc6d"
     },
     "diagnostics0995.rb": {
       "source_sha256": "f4a45d11ee53e369576d03e70c1e45916c589bb3bb7cc6940287ac0dfaad5ce1",
@@ -127,8 +131,8 @@
       "en_sha256": "dc46d2575402c0ea6c6d3c84dfd299442ecf4e058911cbebe994cd07874d6dc8"
     },
     "hd_context.rb": {
-      "source_sha256": "f719223ca44b3cb0361b46e662e17aa3118443ea7fb567c8564c236b26e3d79b",
-      "en_sha256": "2e1e00127e6af941315d00f1b3ec8b7a3565f8437d6a5cc94d20295e2e6a9e3c"
+      "source_sha256": "1924b2bc50be3b32e64f816fc188a6a52e29d01d94571b5f4ae32bdbe8c3aaba",
+      "en_sha256": "3793c75b83c245ba879663f279ea9d715bdfc68fdd04acb2015cce7c4589f7f5"
     },
     "hd_display.rb": {
       "source_sha256": "3c51ce6033d375615fb1c9bb83595c18205c355e6e09c5ba7218ea61544a650e",
@@ -147,8 +151,8 @@
       "en_sha256": "c4c17326a0b9ab453f461b39dd0dfffa553bbd236fb28bffd896e18025304744"
     },
     "iteration0997.rb": {
-      "source_sha256": "675a7310f78283ddab7fba244653dac9655817abc9e8af096a8838dfb5b7dc4f",
-      "en_sha256": "5e0ef93a5cc7bddbbb94412fd3be3807a38972af4efabc71e1aab8a5ec7ce03a"
+      "source_sha256": "18fa08e42db56a0e82bb0dbde73025f93af2b778ca584cfa0d76ab17aa9773fd",
+      "en_sha256": "eb05a1ef0b0bb06b006bc24b4e159785fddd13802b0f22332e4c3ecd67247d55"
     },
     "iteration0999.rb": {
       "source_sha256": "f292b5496bc066697d980d23d7f04968f01d2aaa1c930b62447f71832f9e6a4f",
@@ -163,8 +167,8 @@
       "en_sha256": "d0052a6de4b4a70e4184f54a3fa73d65b34662499d70725e5b8d8599df22855b"
     },
     "macros0997.rb": {
-      "source_sha256": "9b970017d5c7b3ed3c4df2d74912af0438ffa2ed9b974a0204081f8a1ed3d105",
-      "en_sha256": "7a23c8830db83ec87bc53b7f1d5f8ac4de1bfc8564ae1c94dca544f6b7094a9c"
+      "source_sha256": "c3418bcdcbf8abcd784db79c03fb976ec76b979fa415227185954d05dff79d50",
+      "en_sha256": "797be468dfb061ed5868ed914666c74d38bd1aaf794882b6765e4e89f4b95a24"
     },
     "map_highlight.rb": {
       "source_sha256": "1e011828f457dfffa755661afc48cf4e51e6bd116512c29de6f9a76c9a1ccb2a",
@@ -207,8 +211,8 @@
       "en_sha256": "711d0e89704b4f475ad26222c5ed8cd206b8956236a7a50dee6fb5ff57ed3106"
     },
     "priority0991.rb": {
-      "source_sha256": "0dc33b120fe7f5909e63c36b4f0fe81e47e9f59115a20ecf2895932b1596364a",
-      "en_sha256": "8a206e4801547e3d21d98486ac9565db0146317381be6f70b97563b313e1f703"
+      "source_sha256": "84c099ef25e5f59e749aee0ea0eb48637ebc932c27624932dc001af0f31b20bd",
+      "en_sha256": "d57defe636424869018ba19bcfdbfca0ca135f8238bbfcf29b67add26d9d7686"
     },
     "qol/lib/bindings.rb": {
       "source_sha256": "92ceecea6fa071548a3ce0e05646122728aec3f1164eb69f9ee52defdd77cf80",
@@ -363,5 +367,5 @@
       "en_sha256": "f6c5ab00d69dfa93ab3b32c46ffbb29a047bb4842d54313ecea22cf8ef7c4fca"
     }
   },
-  "translations_sha256": "7f2997b66a8fb121661304dcb09967b6bc4918271a4bba615dd9f2237a556829"
+  "translations_sha256": "e6d08fe366dfd79b56a1eaf913a727de651e6c2aeb1652fa20d3b05973f3d137"
 }

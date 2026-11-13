@@ -30,10 +30,10 @@ class ModuleSelectionTests(unittest.TestCase):
   self.assertFalse({'defeat','retry','scaling'}&parse(configuration(migrate('defeat=1\nretry=1\nscaling=1\n')).decode()))
  def test_stable_versions_keep_sparse_choices_during_installer_check(self):
   text='hd_display=1\nbattle_support=1\nbattle_speed=0\nmap_highlight=0\n'
-  for version in ['1.0','1.01','1.02','1.03']:
-   self.assertEqual(for_installation(text,version,'1.03'),['battle_support','hd_display'])
+  for version in ['1.0','1.01','1.02','1.03','1.04']:
+   self.assertEqual(for_installation(text,version,'1.04'),['battle_support','hd_display'])
  def test_preview_check_keeps_the_existing_migration_contract(self):
   text='controls=1\neffects=1\n'
-  self.assertEqual(for_installation(text,'0.92-dev','1.03'),migrate(text))
+  self.assertEqual(for_installation(text,'0.92-dev','1.04'),migrate(text))
 
 if __name__=='__main__':unittest.main()

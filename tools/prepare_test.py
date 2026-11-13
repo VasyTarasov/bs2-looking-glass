@@ -38,7 +38,7 @@ def main():
     parser.add_argument('--source',type=Path,required=True)
     parser.add_argument('--game',type=Path,required=True)
     parser.add_argument('--copy',action='store_true',help='Copy only runtime folders/executable, excluding saves and Steam files')
-    parser.add_argument('--suite',choices=['compatibility','v1_modules','v1_basic','v1_reference','v1_visual','localization','forecast_zero099994','hud_mechanics099994','catalog_ui','catalog_v1','forecast_percent','forecast_presentation','cleanse09999','auto_items09998','polish_content','polish_support','polish_gunbreak','polish_inventory','polish_economy','polish_system','module_boot','live09996','menus09995','diagnostic_text09995','menus09994','queue09993','forecast_weapons','forecast_matrix','forecast_catalog','forecast_baseline','highlight_catalog','iteration09992','iteration0999','macros_optional0998','iteration0997','map0997','rings0996','diagnostics0995','battle_speed0994','resources0993','preferences0992','iteration0991','performance0991','iteration092dev','reference098','weapon_audit','iteration097','iteration094','smoke','system','keys','reference','forecast','modules','effects_loadouts','screens','adversarial','stress','iteration','showcase','export','semantic','semantic_integration','semantic_forecast','semantic_boot','map_return','debug_performance'],default='v1_modules')
+    parser.add_argument('--suite',choices=['priority_finish','battle_exit','battle_exit_edges','battle_exit_loop','compatibility','v1_modules','v1_basic','v1_reference','v1_visual','localization','forecast_zero099994','hud_mechanics099994','catalog_ui','catalog_v1','forecast_percent','forecast_presentation','cleanse09999','auto_items09998','polish_content','polish_support','polish_gunbreak','polish_inventory','polish_economy','polish_system','module_boot','live09996','menus09995','diagnostic_text09995','menus09994','queue09993','forecast_weapons','forecast_matrix','forecast_catalog','forecast_baseline','highlight_catalog','iteration09992','iteration0999','macros_optional0998','iteration0997','map0997','rings0996','diagnostics0995','battle_speed0994','resources0993','preferences0992','iteration0991','performance0991','iteration092dev','reference098','weapon_audit','iteration097','iteration094','smoke','system','keys','reference','forecast','modules','effects_loadouts','screens','adversarial','stress','iteration','showcase','export','semantic','semantic_integration','semantic_forecast','semantic_boot','map_return','debug_performance'],default='v1_modules')
     parser.add_argument('--vanilla',action='store_true',help='System suite without the mod for differential comparison')
     parser.add_argument('--cases',default='victory')
     parser.add_argument('--seed',type=int,default=24015)
@@ -88,6 +88,8 @@ def main():
     (game/'BS2Suite/modules.ini').write_bytes(config(selected))
     (game/'BS2Suite/language.ini').write_text('language='+compatible['language']+'\n',encoding='ascii')
     shutil.copy2(ROOT/'tests/native_capture.rb',game/'BS2QA_native_capture.rb')
+    if args.suite.startswith('battle_exit') or args.suite=='priority_finish':
+        shutil.copy2(ROOT/'tests/battle_exit_helpers.rb',game/'BS2QA_exit_helpers.rb')
     if args.suite=='iteration0991':
         for name in ['iteration0991_extra.rb','tempo0992_extra.rb','followup0992_extra.rb']:shutil.copy2(ROOT/'tests'/name,game/name)
     from install import BOOT

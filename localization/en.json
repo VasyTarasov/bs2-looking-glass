@@ -3498,5 +3498,6 @@
   "Состав модпака": "Mod selection",
   "Отметки изученных книг: ": "Learned-book markers: ",
   "ModLoader: выйдите из игры и снова запустите Loader.exe.": "ModLoader: exit the game, then launch Loader.exe again.",
-  "недоступен при ModLoader": "unavailable with ModLoader"
+  "недоступен при ModLoader": "unavailable with ModLoader",
+  "Не удалось обновить приоритеты: ": "Could not update priorities: "
 }

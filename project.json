@@ -1,7 +1,7 @@
 {
   "name": "BLACK SOULS II — QoL Pack",
   "repository": "VasyTarasov/bs2-looking-glass",
-  "version": "1.03",
+  "version": "1.04",
   "status": "stable",
   "stable_release": true,
   "imported_baseline": "0.9.8-alpha",

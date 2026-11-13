@@ -160,7 +160,14 @@ module BattleManager
     end
     alias bs20991_priority_end battle_end
     def battle_end(*args)
-      BS2Suite::Priorities.finish;bs20991_priority_end(*args)
+      value=bs20991_priority_end(*args)
+      begin
+        BS2Suite::Priorities.finish
+      rescue StandardError=>e
+        BS2Suite::BattleFlow.observe('priority_error',{:class=>e.class.to_s,:message=>e.message}) if defined?(BS2Suite::BattleFlow)
+        BS2QoL::Hotkeys.notice('Не удалось обновить приоритеты: '+e.message)
+      end
+      value
     end
   end
 end
